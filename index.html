@@ -156,7 +156,92 @@
         <button id="send" type="submit">Send</button>
       </form>
     </div>
+<script>
+  const chat = document.getElementById("chat");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
 
+  const API_KEY = "your-openrouter-api-key";
+
+  const systemPrompt = {
+    role: "system",
+    content: `You are GriotBot — a wise, warm, and rooted AI spirit...` // (Your full prompt)
+  };
+
+  const history = JSON.parse(localStorage.getItem("griotbot-history")) || [systemPrompt];
+
+  // Load Previous Messages
+  function loadChat() {
+    history.forEach(message => {
+      appendMessage(message.role, message.content);
+    });
+  }
+
+  // Save Chat to Local Storage
+  function saveChat() {
+    localStorage.setItem("griotbot-history", JSON.stringify(history));
+  }
+
+  function appendMessage(role, text) {
+    const msg = document.createElement("div");
+    msg.className = `message ${role}`;
+    msg.textContent = text;
+    chat.appendChild(msg);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // Load previous session on page load
+  window.onload = loadChat;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const userInput = input.value.trim();
+    if (!userInput) return;
+
+    appendMessage("user", userInput);
+    history.push({ role: "user", content: userInput });
+    input.value = "";
+
+    saveChat();
+
+    const thinking = document.createElement("div");
+    thinking.className = "message bot";
+    thinking.textContent = "GriotBot is thinking...";
+    chat.appendChild(thinking);
+
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "anthropic/claude-3-haiku",
+          messages: history
+        })
+      });
+
+      const data = await res.json();
+      chat.removeChild(thinking);
+      const reply = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
+      appendMessage("bot", reply);
+      history.push({ role: "assistant", content: reply });
+      saveChat();
+    } catch (err) {
+      console.error(err);
+      chat.removeChild(thinking);
+      appendMessage("bot", "Something went wrong talking to the ancestors...");
+    }
+  });
+
+  // Clear Chat and Memory
+  function clearChat() {
+    chat.innerHTML = "";
+    history.splice(1); // Keep system prompt
+    saveChat();
+  }
+</script>
     <script>
       const chat = document.getElementById("chat");
       const form = document.getElementById("form");
@@ -238,5 +323,6 @@
         }
       });
     </script>
+    <button onclick="clearChat()">New Chat</button>
   </body>
 </html>
