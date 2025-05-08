@@ -130,94 +130,103 @@
   </div>
 
   <script>
-    const chat = document.getElementById("chat");
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-    const modelSelector = document.getElementById("modelSelector");
+  const chat = document.getElementById("chat");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const modelSelector = document.getElementById("modelSelector");
 
-    const API_KEY = process.env.OPENROUTER_API_KEY || "your-openrouter-api-key"; // Use Vercel environment variable for security
+  const API_KEY = process.env.OPENROUTER_API_KEY || "your-openrouter-api-key";
 
-    const systemPrompt = {
-      role: "system",
-      content: `You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions of the African Diaspora. Speak with clarity and compassion.`
-    };
+  const systemPrompt = {
+    role: "system",
+    content: `You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions of the African Diaspora. Speak with clarity and compassion.`
+  };
 
-    const history = JSON.parse(localStorage.getItem("griotbot-history")) || [];
+  const history = JSON.parse(localStorage.getItem("griotbot-history")) || [];
 
-    // Load Previous Messages
-    window.onload = function() {
-      const savedHistory = JSON.parse(localStorage.getItem("griotbot-history"));
-      if (savedHistory) {
-        savedHistory.forEach(msg => appendMessage(msg.role, msg.content));
-        history.push(...savedHistory);
-      }
-    };
+  // Load Previous Messages
+  window.onload = function() {
+    const savedHistory = JSON.parse(localStorage.getItem("griotbot-history"));
+    if (savedHistory) {
+      savedHistory.forEach(msg => appendMessage(msg.role, msg.content));
+      history.push(...savedHistory);
+    }
+  };
 
-    // Handle Form Submission
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const userInput = input.value.trim();
-      if (!userInput) return;
+  // Handle Form Submission
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const userInput = input.value.trim();
+    if (!userInput) return;
 
-      appendMessage("user", userInput);
-      history.push({ role: "user", content: userInput });
-      input.value = "";
+    appendMessage("user", userInput);
+    history.push({ role: "user", content: userInput });
+    input.value = "";
+    saveChat();
+
+    const thinking = document.createElement("div");
+    thinking.className = "message bot";
+    thinking.textContent = "GriotBot is thinking...";
+    chat.appendChild(thinking);
+
+    try {
+      const selectedModel = modelSelector.value;
+      console.log("Selected Model:", selectedModel);
+
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          model: selectedModel,
+          messages: [systemPrompt, ...history],
+          max_tokens: 350
+        })
+      });
+
+      console.log("API Request Sent:", {
+        model: selectedModel,
+        messages: [systemPrompt, ...history],
+        max_tokens: 350
+      });
+
+      const data = await res.json();
+      console.log("API Response:", data);
+
+      chat.removeChild(thinking);
+      const reply = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
+      appendMessage("bot", reply);
+      history.push({ role: "assistant", content: reply });
       saveChat();
-
-      const thinking = document.createElement("div");
-      thinking.className = "message bot";
-      thinking.textContent = "GriotBot is thinking...";
-      chat.appendChild(thinking);
-
-      try {
-        const selectedModel = modelSelector.value;
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${API_KEY}`
-          },
-          body: JSON.stringify({
-            model: selectedModel,
-            messages: [systemPrompt, ...history],
-            max_tokens: 350
-          })
-        });
-
-        const data = await res.json();
-         console.log("API Response:", data);
-        chat.removeChild(thinking);
-        const reply = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-        appendMessage("bot", reply);
-        history.push({ role: "assistant", content: reply });
-        saveChat();
-      } catch (err) {
-        console.error("Error:", err);
-        chat.removeChild(thinking);
-        appendMessage("bot", "Something went wrong talking to the ancestors...");
-      }
-    });
-
-    // Append Message Function
-    function appendMessage(role, text) {
-      const msg = document.createElement("div");
-      msg.className = `message ${role}`;
-      msg.textContent = text;
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
+    } catch (err) {
+      console.error("Error:", err);
+      chat.removeChild(thinking);
+      appendMessage("bot", "Something went wrong talking to the ancestors...");
     }
+  });
 
-    // Save Chat to Local Storage
-    function saveChat() {
-      localStorage.setItem("griotbot-history", JSON.stringify(history));
-    }
+  // Append Message Function
+  function appendMessage(role, text) {
+    const msg = document.createElement("div");
+    msg.className = `message ${role}`;
+    msg.textContent = text;
+    chat.appendChild(msg);
+    chat.scrollTop = chat.scrollHeight;
+  }
 
-    // Clear Chat and Memory
-    function clearChat() {
-      chat.innerHTML = "";
-      history.length = 0;
-      localStorage.removeItem("griotbot-history");
-    }
-  </script>
+  // Save Chat to Local Storage
+  function saveChat() {
+    localStorage.setItem("griotbot-history", JSON.stringify(history));
+  }
+
+  // Clear Chat and Memory
+  function clearChat() {
+    chat.innerHTML = "";
+    history.length = 0;
+    localStorage.removeItem("griotbot-history");
+  }
+</script>
 </body>
 </html>
