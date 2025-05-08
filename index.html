@@ -1,18 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GriotBot Chat</title>
   <style>
+    :root {
+      --primary-bg: #f6f1ec;
+      --text-color: #4b2e2a;
+      --button-bg: #c49a6c;
+    }
+
     body {
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      background-color: #f6f1ec;
-      color: #4b2e2a;
+      background-color: var(--primary-bg);
+      color: var(--text-color);
       margin: 0;
       display: flex;
       height: 100vh;
     }
+
     #sidebar {
       width: 220px;
       background: #4b2e2a;
@@ -21,12 +28,14 @@
       flex-direction: column;
       padding: 1rem;
     }
+
     #sidebar h2 {
       font-size: 1.2rem;
       margin-bottom: 2rem;
     }
+
     #sidebar button {
-      background: #c49a6c;
+      background: var(--button-bg);
       border: none;
       color: #fff;
       padding: 0.5rem;
@@ -34,14 +43,17 @@
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
+      aria-label: "Start a new chat";
     }
+
     #chat-container {
       flex: 1;
       display: flex;
       flex-direction: column;
     }
+
     #header {
-      background-color: #c49a6c;
+      background-color: var(--button-bg);
       padding: 1rem;
       text-align: center;
       font-weight: bold;
@@ -52,12 +64,14 @@
       align-items: center;
       gap: 1rem;
     }
+
     #chat {
       flex: 1;
       padding: 1rem;
       overflow-y: auto;
       scroll-behavior: smooth;
     }
+
     .message {
       margin: 0.5rem 0;
       padding: 0.5rem;
@@ -65,31 +79,36 @@
       max-width: 64%;
       line-height: 1.5;
     }
+
     .user {
       background-color: #bd8735;
       color: white;
       align-self: flex-end;
       margin-left: auto;
     }
+
     .bot {
       background-color: #7d8765;
       color: white;
       align-self: flex-start;
     }
+
     #form {
       display: flex;
       padding: 1rem;
-      border-top: 1px solid #c49a6c;
+      border-top: 1px solid var(--button-bg);
     }
+
     #input {
       flex: 1;
       padding: 0.5rem;
       font-size: 1rem;
-      border: 1px solid #c49a6c;
+      border: 1px solid var(--button-bg);
       border-radius: 8px 0 0 8px;
     }
+
     #send {
-      background-color: #c49a6c;
+      background-color: var(--button-bg);
       color: white;
       border: none;
       padding: 0 1rem;
@@ -97,9 +116,25 @@
       border-radius: 0 8px 8px 0;
       cursor: pointer;
     }
+
     #modelSelector {
       font-size: 0.9rem;
       padding: 0.3rem;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid white;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -124,109 +159,105 @@
     </div>
     <div id="chat"></div>
     <form id="form">
-      <input type="text" id="input" placeholder="Ask GriotBot..." required />
+      <input type="text" id="input" placeholder="Ask GriotBot..." required>
       <button id="send" type="submit">Send</button>
     </form>
   </div>
 
   <script>
-  const chat = document.getElementById("chat");
-  const form = document.getElementById("form");
-  const input = document.getElementById("input");
-  const modelSelector = document.getElementById("modelSelector");
+    const chat = document.getElementById("chat");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const modelSelector = document.getElementById("modelSelector");
 
-  const API_KEY = process.env.OPENROUTER_API_KEY || "your-openrouter-api-key";
+    const API_KEY = "your-openrouter-api-key"; // Replace with your server-side key retrieval method
 
-  const systemPrompt = {
-    role: "system",
-    content: `You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions of the African Diaspora. Speak with clarity and compassion.`
-  };
+    const systemPrompt = {
+      role: "system",
+      content: `You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions of the African Diaspora. Speak with clarity and compassion.`
+    };
 
-  const history = JSON.parse(localStorage.getItem("griotbot-history")) || [];
+    let history = [];
 
-  // Load Previous Messages
-  window.onload = function() {
-    const savedHistory = JSON.parse(localStorage.getItem("griotbot-history"));
-    if (savedHistory) {
-      savedHistory.forEach(msg => appendMessage(msg.role, msg.content));
-      history.push(...savedHistory);
+    async function loadChatHistory() {
+      try {
+        const savedHistory = JSON.parse(localStorage.getItem("griotbot-history")) || [];
+        for (const msg of savedHistory) {
+          appendMessage(msg.role, msg.content);
+        }
+        history = savedHistory;
+      } catch (error) {
+        console.error("Failed to load chat history:", error);
+      }
     }
-  };
 
-  // Handle Form Submission
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const userInput = input.value.trim();
-    if (!userInput) return;
-
-    appendMessage("user", userInput);
-    history.push({ role: "user", content: userInput });
-    input.value = "";
-    saveChat();
-
-    const thinking = document.createElement("div");
-    thinking.className = "message bot";
-    thinking.textContent = "GriotBot is thinking...";
-    chat.appendChild(thinking);
-
-    try {
+    async function fetchBotResponse(userMessage) {
       const selectedModel = modelSelector.value;
-      console.log("Selected Model:", selectedModel);
+      const endpoint = "https://openrouter.ai/api/v1/chat/completions";
 
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [systemPrompt, ...history],
-          max_tokens: 350
-        })
-      });
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
+          body: JSON.stringify({ model: selectedModel, messages: [systemPrompt, ...history], max_tokens: 350 })
+        });
 
-      console.log("API Request Sent:", {
-        model: selectedModel,
-        messages: [systemPrompt, ...history],
-        max_tokens: 350
-      });
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
+      } catch (err) {
+        console.error("API Error:", err);
+        return "Something went wrong talking to the ancestors...";
+      }
+    }
 
-      const data = await res.json();
-      console.log("API Response:", data);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const userInput = input.value.trim();
+      if (!userInput) return;
 
-      chat.removeChild(thinking);
-      const reply = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
+      appendMessage("user", userInput);
+      history.push({ role: "user", content: userInput });
+      input.value = "";
+      saveChat();
+
+      showLoadingIndicator();
+      const reply = await fetchBotResponse(userInput);
+      removeLoadingIndicator();
       appendMessage("bot", reply);
       history.push({ role: "assistant", content: reply });
       saveChat();
-    } catch (err) {
-      console.error("Error:", err);
-      chat.removeChild(thinking);
-      appendMessage("bot", "Something went wrong talking to the ancestors...");
+    });
+
+    function appendMessage(role, text) {
+      const msg = document.createElement("div");
+      msg.className = `message ${role}`;
+      msg.textContent = text;
+      chat.appendChild(msg);
+      setTimeout(() => chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" }), 100);
     }
-  });
 
-  // Append Message Function
-  function appendMessage(role, text) {
-    const msg = document.createElement("div");
-    msg.className = `message ${role}`;
-    msg.textContent = text;
-    chat.appendChild(msg);
-    chat.scrollTop = chat.scrollHeight;
-  }
+    function showLoadingIndicator() {
+      const loadingDiv = document.createElement("div");
+      loadingDiv.className = "loading";
+      chat.appendChild(loadingDiv);
+    }
 
-  // Save Chat to Local Storage
-  function saveChat() {
-    localStorage.setItem("griotbot-history", JSON.stringify(history));
-  }
+    function removeLoadingIndicator() {
+      const loadingDiv = document.querySelector(".loading");
+      if (loadingDiv) chat.removeChild(loadingDiv);
+    }
 
-  // Clear Chat and Memory
-  function clearChat() {
-    chat.innerHTML = "";
-    history.length = 0;
-    localStorage.removeItem("griotbot-history");
-  }
-</script>
+    function saveChat() {
+      localStorage.setItem("griotbot-history", JSON.stringify(history));
+    }
+
+    function clearChat() {
+      chat.innerHTML = "";
+      history = [];
+      localStorage.removeItem("griotbot-history");
+    }
+
+    loadChatHistory();
+  </script>
 </body>
 </html>
