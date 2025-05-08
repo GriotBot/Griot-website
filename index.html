@@ -135,7 +135,7 @@
     const input = document.getElementById("input");
     const modelSelector = document.getElementById("modelSelector");
 
-    const API_KEY = "your-openrouter-api-key"; // Use Vercel environment variable for security
+    const API_KEY = process.env.OPENROUTER_API_KEY || "your-openrouter-api-key"; // Use Vercel environment variable for security
 
     const systemPrompt = {
       role: "system",
@@ -185,6 +185,7 @@
         });
 
         const data = await res.json();
+         console.log("API Response:", data);
         chat.removeChild(thinking);
         const reply = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
         appendMessage("bot", reply);
