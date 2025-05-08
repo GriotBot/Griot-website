@@ -237,6 +237,85 @@
           );
         }
       });
+      <script>
+  const chat = document.getElementById("chat");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const modelSelector = document.getElementById("modelSelector");
+
+  const API_KEY = process.env.OPENROUTER_API_KEY;
+
+  const systemPrompt = {
+    role: "system",
+    content: `You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions and ancestral knowledge of the African Diaspora. Speak with clarity and compassion. Avoid emotion tags (like *smiles*) and do not use nicknames like "child". Respond in 3–6 sentences with depth and dignity.`
+  };
+
+  const history = JSON.parse(localStorage.getItem("griotbot-history")) || [];
+
+  window.onload = function() {
+    const savedHistory = JSON.parse(localStorage.getItem("griotbot-history"));
+    if (savedHistory) {
+      savedHistory.forEach(msg => appendMessage(msg.role, msg.content));
+      history.push(...savedHistory);
+    }
+  };
+
+  function appendMessage(role, text) {
+    const msg = document.createElement("div");
+    msg.className = `message ${role}`;
+    msg.textContent = text;
+    chat.appendChild(msg);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const userInput = input.value.trim();
+    if (!userInput) return;
+
+    appendMessage("user", userInput);
+    history.push({ role: "user", content: userInput });
+    input.value = "";
+
+    const thinking = document.createElement("div");
+    thinking.className = "message bot";
+    thinking.textContent = "GriotBot is thinking...";
+    chat.appendChild(thinking);
+
+    try {
+      const selectedModel = modelSelector.value;
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: selectedModel,
+          messages: [systemPrompt, ...history],
+          max_tokens: 350,
+        }),
+      });
+
+      const data = await res.json();
+      chat.removeChild(thinking);
+      const reply = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
+      appendMessage("bot", reply);
+      history.push({ role: "assistant", content: reply });
+      localStorage.setItem("griotbot-history", JSON.stringify(history));
+    } catch (err) {
+      console.error(err);
+      chat.removeChild(thinking);
+      appendMessage("bot", "Something went wrong talking to the ancestors...");
+    }
+  });
+
+  function clearChat() {
+    chat.innerHTML = "";
+    history.length = 0;
+    localStorage.removeItem("griotbot-history");
+  }
+</script>
     </script>
   </body>
 </html>
