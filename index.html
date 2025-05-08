@@ -70,7 +70,13 @@
   </div>
 
   <div id="chat-container">
-    <div id="header">GriotBot</div>
+    <div id="header">
+      GriotBot
+      <select id="modelSelector">
+        <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
+        <option value="openai/gpt-4o">GPT-4o (OpenAI)</option>
+      </select>
+    </div>
     <div id="chat"></div>
     <form id="form">
       <input type="text" id="input" placeholder="Ask GriotBot..." required />
@@ -82,17 +88,22 @@
     const chat = document.getElementById("chat");
     const form = document.getElementById("form");
     const input = document.getElementById("input");
+    const modelSelector = document.getElementById("modelSelector");
 
-    const API_KEY = "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"; // Replace with Vercel env variable
+    // API Key from Vercel Environment Variable
+    const API_KEY = process.env.OPENROUTER_API_KEY || "your-openrouter-api-key"; 
 
     const systemPrompt = {
       role: "system",
-      content: `You are GriotBot — a wise, warm, and rooted AI spirit...`
+      content: `You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions and ancestral knowledge of the African Diaspora. Speak with clarity and compassion.`
     };
 
     const history = JSON.parse(localStorage.getItem("griotbot-history")) || [systemPrompt];
 
-    window.onload = () => history.slice(1).forEach(msg => appendMessage(msg.role, msg.content));
+    // Load Previous Messages
+    window.onload = () => {
+      history.slice(1).forEach(msg => appendMessage(msg.role, msg.content));
+    };
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -102,18 +113,38 @@
       appendMessage("user", userInput);
       history.push({ role: "user", content: userInput });
       input.value = "";
+      saveChat();
 
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-        body: JSON.stringify({ model: "anthropic/claude-3-haiku", messages: history })
-      });
+      const thinking = document.createElement("div");
+      thinking.className = "message bot";
+      thinking.textContent = "GriotBot is thinking...";
+      chat.appendChild(thinking);
 
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-      appendMessage("bot", reply);
-      history.push({ role: "assistant", content: reply });
-      localStorage.setItem("griotbot-history", JSON.stringify(history));
+      try {
+        const selectedModel = modelSelector.value;
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`
+          },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: history
+          })
+        });
+
+        const data = await res.json();
+        chat.removeChild(thinking);
+        const reply = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
+        appendMessage("bot", reply);
+        history.push({ role: "assistant", content: reply });
+        saveChat();
+      } catch (err) {
+        console.error(err);
+        chat.removeChild(thinking);
+        appendMessage("bot", "Something went wrong talking to the ancestors...");
+      }
     });
 
     function appendMessage(role, text) {
@@ -124,10 +155,14 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
+    function saveChat() {
+      localStorage.setItem("griotbot-history", JSON.stringify(history));
+    }
+
     function clearChat() {
       chat.innerHTML = "";
-      history.splice(1);
-      localStorage.removeItem("griotbot-history");
+      history.splice(1); // Keep system prompt
+      saveChat();
     }
   </script>
 </body>
