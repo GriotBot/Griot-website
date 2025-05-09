@@ -6,10 +6,10 @@ const modelSelector = document.getElementById("modelSelector");
 async function fetchBotResponse(userMessage) {
   try {
     const response = await fetch("/api/chat", {
-      method: "POST",  // Change from GET to POST
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "openai/gpt-4o",  // Adjust if needed
+        model: "openai/gpt-4o",
         messages: [{ role: "user", content: userMessage }]
       })
     });
