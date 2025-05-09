@@ -19,9 +19,9 @@ export default async function handler(req, res) {
     const data = await response.json();
     console.log("Full OpenRouter Response:", JSON.stringify(data, null, 2));
 
-    // ✅ Extract chatbot response
-    const botMessage = data.choices?.[0]?.message?.content || "GriotBot is silent...";
-    
+    // ✅ Extract chatbot response, checking for "content" or fallback to "reasoning"
+    const botMessage = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning || "GriotBot is silent...";
+
     return res.status(200).json({ botMessage });
   } catch (error) {
     console.error("API Error:", error);
