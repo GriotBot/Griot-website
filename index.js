@@ -6,25 +6,23 @@ const modelSelector = document.getElementById("modelSelector");
 async function fetchBotResponse(userMessage) {
   try {
     const response = await fetch("/api/chat", {
-      method: "POST",
+      method: "POST",  // Change from GET to POST
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: modelSelector.value,
-        messages: [{ role: "user", content: userMessage }],
-      }),
+        model: "openai/gpt-4o",  // Adjust if needed
+        messages: [{ role: "user", content: userMessage }]
+      })
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to reach AI server.");
-    }
-
+    if (!response.ok) throw new Error("Failed to reach AI server.");
     const data = await response.json();
     return data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
   } catch (error) {
-    console.error("Error fetching chat response:", error);
+    console.error("Error:", error);
     return "Something went wrong talking to the ancestors...";
   }
 }
+
 
 // Handle Chat Input
 form.addEventListener("submit", async (e) => {
