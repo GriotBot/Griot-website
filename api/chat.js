@@ -7,7 +7,6 @@ export default async function handler(req, res) {
 
   try {
     console.log("Sending request to OpenRouter...");
-
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -18,7 +17,7 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    console.log("OpenRouter Response:", data);
+    console.log("Full OpenRouter Response:", JSON.stringify(data, null, 2));
 
     return res.status(200).json(data);
   } catch (error) {
