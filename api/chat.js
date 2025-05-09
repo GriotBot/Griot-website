@@ -4,7 +4,7 @@ async function fetchBotResponse(userMessage) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer YOUR_API_KEY_HERE"  // 🔥 API Key is directly embedded here
+        Authorization: "Bearer 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"  // 🔥 API Key is directly embedded here
       },
       body: JSON.stringify({
         model: "openai/gpt-4o",
