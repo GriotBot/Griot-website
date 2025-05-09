@@ -1,263 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GriotBot Chat</title>
-  <style>
-    :root {
-      --primary-bg: #f6f1ec;
-      --text-color: #4b2e2a;
-      --button-bg: #c49a6c;
-    }
-
-    body {
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      background-color: var(--primary-bg);
-      color: var(--text-color);
-      margin: 0;
-      display: flex;
-      height: 100vh;
-    }
-
-    #sidebar {
-      width: 220px;
-      background: #4b2e2a;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      padding: 1rem;
-    }
-
-    #sidebar h2 {
-      font-size: 1.2rem;
-      margin-bottom: 2rem;
-    }
-
-    #sidebar button {
-      background: var(--button-bg);
-      border: none;
-      color: #fff;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      aria-label: "Start a new chat";
-    }
-
-    #chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #header {
-      background-color: var(--button-bg);
-      padding: 1rem;
-      text-align: center;
-      font-weight: bold;
-      color: #fff;
-      font-size: 1.2rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    #chat {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
-      scroll-behavior: smooth;
-    }
-
-    .message {
-      margin: 0.5rem 0;
-      padding: 0.5rem;
-      border-radius: 8px;
-      max-width: 64%;
-      line-height: 1.5;
-    }
-
-    .user {
-      background-color: #bd8735;
-      color: white;
-      align-self: flex-end;
-      margin-left: auto;
-    }
-
-    .bot {
-      background-color: #7d8765;
-      color: white;
-      align-self: flex-start;
-    }
-
-    #form {
-      display: flex;
-      padding: 1rem;
-      border-top: 1px solid var(--button-bg);
-    }
-
-    #input {
-      flex: 1;
-      padding: 0.5rem;
-      font-size: 1rem;
-      border: 1px solid var(--button-bg);
-      border-radius: 8px 0 0 8px;
-    }
-
-    #send {
-      background-color: var(--button-bg);
-      color: white;
-      border: none;
-      padding: 0 1rem;
-      font-size: 1rem;
-      border-radius: 0 8px 8px 0;
-      cursor: pointer;
-    }
-
-    #modelSelector {
-      font-size: 0.9rem;
-      padding: 0.3rem;
-    }
-
-    .loading {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border: 2px solid white;
-      border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-  </style>
-</head>
-<body>
-  <div id="sidebar">
-    <h2>GriotBot</h2>
-    <button onclick="clearChat()">New Chat</button>
-    <a href="about.html" style="color: #eee;">About GriotBot</a><br>
-    <a href="feedback.html" style="color: #eee;">Share Feedback</a>
-    <blockquote style="font-style: italic; color: #eee;">
-      "A people without the knowledge of their past history, origin and culture is like a tree without roots." — Marcus Garvey
-    </blockquote>
-  </div>
-
-  <div id="chat-container">
-    <div id="header">
-      GriotBot
-      <select id="modelSelector">
-        <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
-        <option value="openai/gpt-4o">GPT-4o (OpenAI)</option>
-      </select>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GriotBot Chat</title>
+    <style>
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background-color: #f6f1ec;
+        color: #4b2e2a;
+        margin: 0;
+        display: flex;
+        height: 100vh;
+      }
+      #sidebar {
+        width: 220px;
+        background: #4b2e2a;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+      }
+      #sidebar h2 {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+      }
+      #sidebar button {
+        background: #c49a6c;
+        border: none;
+        color: #fff;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      #chat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      #header {
+        background-color: #c49a6c;
+        padding: 1rem;
+        text-align: center;
+        font-weight: bold;
+        color: #fff;
+        font-size: 1.2rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+      }
+      #tagline {
+        background-color: #f6f1ec;
+        text-align: center;
+        font-style: italic;
+        color: #7d8765;
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+      }
+      #chat {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+      }
+      .message {
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+        border-radius: 8px;
+        max-width: 64%;
+        line-height: 1.5;
+      }
+      .user {
+        background-color: #bd8735;
+        color: white;
+        align-self: flex-end;
+        margin-left: auto;
+      }
+      .bot {
+        background-color: #7d8765;
+        color: white;
+        align-self: flex-start;
+      }
+      #form {
+        display: flex;
+        padding: 1rem;
+        border-top: 1px solid #c49a6c;
+      }
+      #input {
+        flex: 1;
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid #c49a6c;
+        border-radius: 8px 0 0 8px;
+      }
+      #send {
+        background-color: #c49a6c;
+        color: white;
+        border: none;
+        padding: 0 1rem;
+        font-size: 1rem;
+        border-radius: 0 8px 8px 0;
+        cursor: pointer;
+      }
+      #modelSelector {
+        font-size: 0.9rem;
+        padding: 0.3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sidebar">
+      <h2>GriotBot</h2>
+      <button onclick="location.reload()">New Chat</button>
+      <a
+        href="about.html"
+        style="
+          color: #eee;
+          font-size: 0.9rem;
+          margin-top: 1rem;
+          display: inline-block;
+        "
+        >About GriotBot</a
+        <a href="feedback.html"
+   style="color: #eee; font-size: 0.9rem; display: inline-block; margin-top: 0.5rem;">
+  Share Feedback
+</a>
+      >
+      <blockquote
+        style="
+          font-style: italic;
+          font-size: 0.9rem;
+          color: #eee;
+          margin-top: 1rem;
+        "
+      >
+        "A people without the knowledge of their past history, origin and
+        culture is like a tree without roots."<br />— Marcus Garvey
+      </blockquote>
     </div>
-    <div id="chat"></div>
-    <form id="form">
-      <input type="text" id="input" placeholder="Ask GriotBot..." required>
-      <button id="send" type="submit">Send</button>
-    </form>
-  </div>
+    <div id="chat-container">
+      <div id="header">
+        GriotBot
+        <select id="modelSelector">
+          <option value="openai/gpt-4o" selected>GPT-4o (OpenAI)</option>
+          <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
+        </select>
+      </div>
+      <div id="tagline">Deep roots. Bright horizons</div>
+      <div id="chat"></div>
+      <form id="form">
+        <input type="text" id="input" placeholder="Ask GriotBot..." required />
+        <button id="send" type="submit">Send</button>
+      </form>
+    </div>
 
-  <script>
-    const chat = document.getElementById("chat");
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-    const modelSelector = document.getElementById("modelSelector");
+    <script>
+      const chat = document.getElementById("chat");
+      const form = document.getElementById("form");
+      const input = document.getElementById("input");
+      const modelSelector = document.getElementById("modelSelector");
 
-    const API_KEY = "your-openrouter-api-key"; // Replace with your server-side key retrieval method
+      const API_KEY =
+        "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";
 
-    const systemPrompt = {
-      role: "system",
-      content: `You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions of the African Diaspora. Speak with clarity and compassion.`
-    };
+      const systemPrompt = {
+        role: "system",
+        content: `You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions and ancestral knowledge of the African Diaspora. Speak with clarity and compassion. Avoid emotion tags (like *smiles*) and do not use nicknames like "child". Respond in 3–6 sentences with depth and dignity.`,
+      };
 
-    let history = [];
+      const history = [systemPrompt];
 
-    async function loadChatHistory() {
-      try {
-        const savedHistory = JSON.parse(localStorage.getItem("griotbot-history")) || [];
-        for (const msg of savedHistory) {
-          appendMessage(msg.role, msg.content);
+      function appendMessage(role, text) {
+        const msg = document.createElement("div");
+        msg.className = `message ${role}`;
+        msg.textContent = text;
+        chat.appendChild(msg);
+        setTimeout(() => {
+          chat.scrollTop = chat.scrollHeight;
+        }, 50);
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const userInput = input.value.trim();
+        if (!userInput) return;
+
+        appendMessage("user", userInput);
+        history.push({ role: "user", content: userInput });
+        input.value = "";
+
+        const thinking = document.createElement("div");
+        thinking.className = "message bot";
+        thinking.textContent = "GriotBot is thinking...";
+        chat.appendChild(thinking);
+        setTimeout(() => {
+          chat.scrollTop = chat.scrollHeight;
+        }, 50);
+
+        try {
+          const selectedModel = modelSelector.value;
+
+          const res = await fetch(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${API_KEY}`,
+              },
+              body: JSON.stringify({
+                model: selectedModel,
+                messages: history,
+                max_tokens: 350,
+              }),
+            }
+          );
+
+          const data = await res.json();
+          chat.removeChild(thinking);
+          const reply =
+            data.choices?.[0]?.message?.content ||
+            data.choices?.[0]?.text ||
+            "GriotBot is silent for now...";
+          appendMessage("bot", reply);
+          history.push({ role: "assistant", content: reply });
+          localStorage.setItem("griotbot-history", JSON.stringify(history));
+        } catch (err) {
+          console.error(err);
+          chat.removeChild(thinking);
+          appendMessage(
+            "bot",
+            "Something went wrong talking to the ancestors..."
+          );
         }
-        history = savedHistory;
-      } catch (error) {
-        console.error("Failed to load chat history:", error);
-      }
-    }
-
-    async function fetchBotResponse(userMessage) {
-      const selectedModel = modelSelector.value;
-      const endpoint = "https://openrouter.ai/api/v1/chat/completions";
-
-      try {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-          body: JSON.stringify({ model: selectedModel, messages: [systemPrompt, ...history], max_tokens: 350 })
-        });
-
-        const data = await res.json();
-        return data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-      } catch (err) {
-        console.error("API Error:", err);
-        return "Something went wrong talking to the ancestors...";
-      }
-    }
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const userInput = input.value.trim();
-      if (!userInput) return;
-
-      appendMessage("user", userInput);
-      history.push({ role: "user", content: userInput });
-      input.value = "";
-      saveChat();
-
-      showLoadingIndicator();
-      const reply = await fetchBotResponse(userInput);
-      removeLoadingIndicator();
-      appendMessage("bot", reply);
-      history.push({ role: "assistant", content: reply });
-      saveChat();
-    });
-
-    function appendMessage(role, text) {
-      const msg = document.createElement("div");
-      msg.className = `message ${role}`;
-      msg.textContent = text;
-      chat.appendChild(msg);
-      setTimeout(() => chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" }), 100);
-    }
-
-    function showLoadingIndicator() {
-      const loadingDiv = document.createElement("div");
-      loadingDiv.className = "loading";
-      chat.appendChild(loadingDiv);
-    }
-
-    function removeLoadingIndicator() {
-      const loadingDiv = document.querySelector(".loading");
-      if (loadingDiv) chat.removeChild(loadingDiv);
-    }
-
-    function saveChat() {
-      localStorage.setItem("griotbot-history", JSON.stringify(history));
-    }
-
-    function clearChat() {
-      chat.innerHTML = "";
-      history = [];
-      localStorage.removeItem("griotbot-history");
-    }
-
-    loadChatHistory();
-  </script>
-</body>
+      });
+    </script>
+  </body>
 </html>
