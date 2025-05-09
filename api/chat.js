@@ -1,8 +1,5 @@
 export default async function handler(req, res) {
-  console.log("Received Request:", req.body); // Debugging log
-
   if (req.method !== "POST") {
-    console.log("Invalid Method:", req.method);
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
@@ -18,11 +15,9 @@ export default async function handler(req, res) {
       body: JSON.stringify({ model, messages, max_tokens: 350 })
     });
 
-    console.log("Sent Request to OpenRouter, awaiting response...");
+    if (!response.ok) throw new Error("API request failed");
 
     const data = await response.json();
-    console.log("OpenRouter Response:", data);
-
     return res.status(200).json(data);
   } catch (error) {
     console.error("API Error:", error);
