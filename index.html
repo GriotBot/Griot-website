@@ -154,6 +154,7 @@
       margin-top: 1rem;
       color: #4b2e2a;
       display: block;
+      max-width: 90%;
     }
 
     #copyright {
@@ -186,7 +187,7 @@
     <div id="logo">🌿</div>
     <div id="quote">
       "A people without the knowledge of their past history,<br> 
-      origin and culture is like a tree without roots.<br> — Marcus Garvey"
+      origin and culture is like a tree without roots."
     </div>
     <div id="chat"></div>
   </div>
@@ -225,7 +226,10 @@
       "Unity is strength. — Ghanaian Proverb"
     ];
 
-    factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+    // Display Random Fact
+    window.onload = function() {
+      factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+    };
 
     // Clear Logo and Quote on User Message
     const form = document.getElementById("form");
