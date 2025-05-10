@@ -4,7 +4,7 @@ async function fetchBotResponse(userMessage) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer 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`
+        "Authorization": "Bearer YOUR_API_KEY_HERE"
       },
       body: JSON.stringify({
         model: "openai/gpt-4o",
@@ -12,21 +12,21 @@ async function fetchBotResponse(userMessage) {
         max_tokens: 350
       })
     });
-const sidebar = document.getElementById("sidebar");
-const toggleBtn = document.getElementById("toggleSidebar");
 
-toggleBtn.addEventListener("click", () => {
-  sidebar.classList.toggle("hidden");
-});
+    console.log("API Response Status:", response.status);
 
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("API Error Details:", errorData);
+      throw new Error(`API error: ${response.status} - ${errorData.error?.message || "Unknown issue"}`);
+    }
 
     const data = await response.json();
-    console.log("API Response:", data);
+    console.log("Full API Response:", data);
 
-    return data.choices?.[0]?.message?.content || "Something went wrong...";
+    return data.choices?.[0]?.message?.content || "OpenRouter responded, but no message found...";
   } catch (error) {
     console.error("Error fetching bot response:", error);
-    return "GriotBot is silent...";
+    return `Error: ${error.message}`;
   }
 }
