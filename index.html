@@ -70,6 +70,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
+      padding: 1rem;
     }
 
     #logo {
@@ -176,7 +177,7 @@
     <div id="logo">🌿</div>
     <div id="quote">
       "A people without the knowledge of their past history,<br> 
-      origin and culture is like a tree without roots." — Marcus Garvey
+      origin and culture is like a tree without roots.<br> — Marcus Garvey"
     </div>
     <div id="chat"></div>
   </div>
@@ -194,14 +195,17 @@
   <script>
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleSidebar");
-    const chat = document.getElementById("chat");
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
+    const chatContainer = document.getElementById("chat-container");
     const factElement = document.getElementById("fact");
 
     // Toggle Sidebar Visibility
     toggleBtn.addEventListener("click", () => {
       sidebar.classList.toggle("visible");
+    });
+
+    // Close Sidebar on Chat Area Click
+    chatContainer.addEventListener("click", () => {
+      sidebar.classList.remove("visible");
     });
 
     // Random Facts/Proverbs
@@ -213,9 +217,15 @@
       "Unity is strength. — Ghanaian Proverb"
     ];
 
+    // Display Random Fact
     factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
 
-    form.addEventListener("submit", async (e) => {
+    // Chat Functionality
+    const form = document.getElementById("form");
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
       const userInput = input.value.trim();
       if (!userInput) return;
@@ -228,26 +238,10 @@
       botMessage.textContent = "GriotBot is thinking...";
       chat.appendChild(botMessage);
 
-      try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer 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`
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-4o",
-            messages: [{ role: "user", content: userInput }],
-            max_tokens: 350
-          })
-        });
-
-        const data = await res.json();
-        botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-      } catch (err) {
-        botMessage.textContent = "Something went wrong talking to the ancestors...";
-        console.error(err);
-      }
+      // Simulate API Response (Replace with API Fetch for Live)
+      setTimeout(() => {
+        botMessage.textContent = "This is a simulated response from GriotBot.";
+      }, 1000);
     });
 
     function appendMessage(role, text) {
