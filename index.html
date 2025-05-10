@@ -62,17 +62,6 @@
       transform: translateX(0);
     }
 
-    #sidebar h2 {
-      margin-bottom: 1rem;
-    }
-
-    #sidebar a {
-      color: #eee;
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-      text-decoration: none;
-    }
-
     /* Main Chat Area */
     #chat-container {
       flex: 1;
@@ -148,6 +137,22 @@
       border-radius: 0 8px 8px 0;
       cursor: pointer;
     }
+
+    /* Random Fact/Proverb and Copyright */
+    #fact {
+      font-size: 0.9rem;
+      font-style: italic;
+      text-align: center;
+      margin-top: 1rem;
+      color: #4b2e2a;
+    }
+
+    #copyright {
+      font-size: 0.8rem;
+      text-align: center;
+      margin-top: 0.3rem;
+      color: #7d8765;
+    }
   </style>
 </head>
 <body>
@@ -170,7 +175,8 @@
   <div id="chat-container">
     <div id="logo">🌿</div>
     <div id="quote">
-      "A people without the knowledge of their past history, origin and culture is like a tree without roots." — Marcus Garvey
+      "A people without the knowledge of their past history,<br> 
+      origin and culture is like a tree without roots." — Marcus Garvey
     </div>
     <div id="chat"></div>
   </div>
@@ -181,74 +187,36 @@
     <button id="send">Send</button>
   </form>
 
+  <!-- Random Fact and Copyright -->
+  <div id="fact"></div>
+  <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
+
   <script>
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleSidebar");
     const chatContainer = document.getElementById("chat-container");
+    const factElement = document.getElementById("fact");
 
     // Toggle Sidebar Visibility
     toggleBtn.addEventListener("click", () => {
       sidebar.classList.toggle("visible");
     });
 
-    // Close Sidebar on Chat Click
+    // Random Facts/Proverbs
+    const facts = [
+      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+      "A tree cannot stand without its roots. — Jamaican Proverb",
+      "Unity is strength. — Ghanaian Proverb"
+    ];
+
+    // Display Random Fact
+    factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+
+    // Clear Sidebar on Chat Click
     chatContainer.addEventListener("click", () => {
       sidebar.classList.remove("visible");
-    });
-
-    const form = document.getElementById("form");
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("input");
-
-    const API_KEY = "YOUR_API_KEY_HERE"; // Replace with your OpenRouter API Key
-    const systemPrompt = {
-      role: "system",
-      content: "You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions of the African Diaspora.",
-    };
-
-    const history = [systemPrompt];
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const userInput = input.value.trim();
-      if (!userInput) return;
-
-      document.getElementById("logo").style.display = "none";
-      document.getElementById("quote").style.display = "none";
-
-      const userMessage = document.createElement("div");
-      userMessage.className = "message user";
-      userMessage.textContent = userInput;
-      chat.appendChild(userMessage);
-
-      const botMessage = document.createElement("div");
-      botMessage.className = "message bot";
-      botMessage.textContent = "GriotBot is thinking...";
-      chat.appendChild(botMessage);
-
-      input.value = "";
-
-      try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-4o",
-            messages: history,
-            max_tokens: 350,
-          }),
-        });
-
-        const data = await res.json();
-        botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-        history.push({ role: "assistant", content: botMessage.textContent });
-      } catch (err) {
-        botMessage.textContent = "Something went wrong talking to the ancestors...";
-        console.error(err);
-      }
     });
   </script>
 </body>
