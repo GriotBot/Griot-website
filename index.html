@@ -38,6 +38,39 @@
       border: none;
       color: white;
       cursor: pointer;
+      z-index: 1000;
+    }
+
+    /* Sidebar (Hidden by Default) */
+    #sidebar {
+      width: 220px;
+      background: #4b2e2a;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+      z-index: 999;
+    }
+
+    #sidebar.visible {
+      transform: translateX(0);
+    }
+
+    #sidebar h2 {
+      margin-bottom: 1rem;
+    }
+
+    #sidebar a {
+      color: #eee;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      text-decoration: none;
     }
 
     /* Main Chat Area */
@@ -115,26 +148,6 @@
       border-radius: 0 8px 8px 0;
       cursor: pointer;
     }
-
-    /* Sidebar (Hidden by Default) */
-    #sidebar {
-      width: 220px;
-      background: #4b2e2a;
-      color: white;
-      position: fixed;
-      left: 0;
-      top: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      padding: 1rem;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease-in-out;
-    }
-
-    #sidebar.visible {
-      transform: translateX(0);
-    }
   </style>
 </head>
 <body>
@@ -171,17 +184,23 @@
   <script>
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleSidebar");
+    const chatContainer = document.getElementById("chat-container");
 
     // Toggle Sidebar Visibility
     toggleBtn.addEventListener("click", () => {
       sidebar.classList.toggle("visible");
     });
 
+    // Close Sidebar on Chat Click
+    chatContainer.addEventListener("click", () => {
+      sidebar.classList.remove("visible");
+    });
+
     const form = document.getElementById("form");
     const chat = document.getElementById("chat");
     const input = document.getElementById("input");
 
-    const API_KEY = "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"; // Replace with your OpenRouter API Key
+    const API_KEY = "YOUR_API_KEY_HERE"; // Replace with your OpenRouter API Key
     const systemPrompt = {
       role: "system",
       content: "You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions of the African Diaspora.",
@@ -194,7 +213,6 @@
       const userInput = input.value.trim();
       if (!userInput) return;
 
-      // Remove Logo and Quote when user starts chat
       document.getElementById("logo").style.display = "none";
       document.getElementById("quote").style.display = "none";
 
