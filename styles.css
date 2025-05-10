@@ -107,3 +107,27 @@ button[type="submit"]:hover,
   border-radius: 50%;
   padding: 4px;
 }
+#toggleSidebar {
+  position: absolute;
+  top: 10px;
+  left: 10px; /* Moved to the left */
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #4b2e2a;
+}
+
+#sidebar {
+  width: 220px;
+  background: #4b2e2a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  transition: transform 0.3s ease-in-out;
+}
+
+.hidden {
+  transform: translateX(-250px); /* Moves sidebar off-screen */
+}
