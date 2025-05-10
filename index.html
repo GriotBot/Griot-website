@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GriotBot Chat</title>
   <style>
-    /* Reset & Global Styles */
     body {
       font-family: Helvetica, Arial, sans-serif;
       background-color: #f6f1ec;
@@ -24,11 +23,11 @@
       display: flex;
       flex-direction: column;
       padding: 1rem;
-      position: absolute;
+      position: fixed;
       left: 0;
       top: 0;
       height: 100%;
-      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+      transition: transform 0.3s ease-in-out;
     }
 
     #toggleSidebar {
@@ -44,9 +43,7 @@
     }
 
     #sidebar.hidden {
-      opacity: 0;
       transform: translateX(-100%);
-      pointer-events: none;
     }
 
     /* Chat Container */
@@ -54,36 +51,26 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      margin-left: 240px; /* Prevent overlap */
-      transition: margin-left 0.3s ease-in-out;
-    }
-
-    #chat-container.expanded {
-      margin-left: 0;
-    }
-
-    #header {
-      background-color: #c49a6c;
-      padding: 1rem;
-      text-align: center;
-      font-weight: bold;
-      color: white;
-      font-size: 1.2rem;
+      padding-left: 240px;
+      transition: padding-left 0.3s ease-in-out;
     }
 
     #chat {
       flex: 1;
       padding: 1rem;
       overflow-y: auto;
-      background: #fff;
+      background: #f4f4f9;
       border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
     .message {
-      margin: 0.5rem 0;
-      padding: 0.5rem;
+      padding: 0.5rem 1rem;
       border-radius: 8px;
-      max-width: 60%;
+      max-width: 75%;
+      word-wrap: break-word;
     }
 
     .user {
@@ -119,11 +106,21 @@
       font-size: 1rem;
       cursor: pointer;
     }
+
+    /* Responsive Sidebar */
+    @media (max-width: 768px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
+      #chat-container {
+        padding-left: 0;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <button id="toggleSidebar">☰</button>
+  <button id="toggleSidebar" aria-label="Toggle Sidebar">☰</button>
   <div id="sidebar">
     <h2>GriotBot</h2>
     <button onclick="location.reload()">New Chat</button>
@@ -144,13 +141,10 @@
   <script>
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleSidebar");
-    const chatContainer = document.getElementById("chat-container");
 
     toggleBtn.addEventListener("click", () => {
       sidebar.classList.toggle("hidden");
-      chatContainer.classList.toggle("expanded");
     });
   </script>
-
 </body>
 </html>
