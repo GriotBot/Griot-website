@@ -11,63 +11,43 @@
       color: #4b2e2a;
       margin: 0;
       display: flex;
+      flex-direction: column;
       height: 100vh;
       overflow: hidden;
     }
 
-    /* Sidebar Styles */
-    #sidebar {
-      width: 220px;
-      background: #4b2e2a;
-      color: white;
-      display: flex;
-      flex-direction: column;
+    /* Top Menu Bar */
+    #header {
+      background-color: #c49a6c;
       padding: 1rem;
-      position: fixed;
-      left: 0;
-      top: 0;
-      height: 100%;
-      transform: translateX(-100%); /* Hidden by default */
-      transition: transform 0.3s ease-in-out;
+      text-align: center;
+      font-weight: bold;
+      color: white;
+      font-size: 1.2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
     }
 
     #toggleSidebar {
       position: absolute;
-      top: 10px;
       left: 10px;
+      font-size: 1.5rem;
       background: none;
       border: none;
-      font-size: 1.5rem;
+      color: white;
       cursor: pointer;
-      color: #4b2e2a;
-      z-index: 100;
     }
 
-    #sidebar.visible {
-      transform: translateX(0);
-    }
-
-    /* Chat Container */
+    /* Main Chat Area */
     #chat-container {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding-left: 0;
-      text-align: center;
-    }
-
-    #chat {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      width: 60%;
-      max-width: 700px;
-      margin: 0 auto;
+      position: relative;
     }
 
     #logo {
@@ -79,8 +59,9 @@
       font-size: 1rem;
       font-style: italic;
       color: #7d8765;
-      margin-bottom: 2rem;
+      text-align: center;
       max-width: 70%;
+      margin-bottom: 2rem;
     }
 
     .message {
@@ -103,13 +84,18 @@
       align-self: flex-start;
     }
 
+    /* Chat Input Bar */
     #form {
       display: flex;
-      padding: 1rem;
-      border-top: 1px solid #c49a6c;
-      width: 60%;
+      width: 100%;
       max-width: 700px;
-      margin: 0 auto;
+      padding: 0.5rem;
+      border-top: 1px solid #c49a6c;
+      background-color: #f6f1ec;
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     #input {
@@ -129,12 +115,37 @@
       border-radius: 0 8px 8px 0;
       cursor: pointer;
     }
+
+    /* Sidebar (Hidden by Default) */
+    #sidebar {
+      width: 220px;
+      background: #4b2e2a;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+    }
+
+    #sidebar.visible {
+      transform: translateX(0);
+    }
   </style>
 </head>
 <body>
 
+  <!-- Header with Menu Button and Title -->
+  <div id="header">
+    <button id="toggleSidebar" aria-label="Toggle Sidebar">☰</button>
+    GriotBot
+  </div>
+
   <!-- Sidebar (Hidden by Default) -->
-  <button id="toggleSidebar" aria-label="Toggle Sidebar">☰</button>
   <div id="sidebar">
     <h2>GriotBot</h2>
     <button onclick="location.reload()">New Chat</button>
@@ -142,19 +153,20 @@
     <a href="feedback.html">Share Feedback</a>
   </div>
 
-  <!-- Chat Area with Logo and Quote -->
+  <!-- Main Chat Area -->
   <div id="chat-container">
-    <div id="chat">
-      <div id="logo">🌿</div>
-      <div id="quote">
-        "A people without the knowledge of their past history, origin and culture is like a tree without roots." — Marcus Garvey
-      </div>
+    <div id="logo">🌿</div>
+    <div id="quote">
+      "A people without the knowledge of their past history, origin and culture is like a tree without roots." — Marcus Garvey
     </div>
-    <form id="form">
-      <input type="text" id="input" placeholder="Ask GriotBot..." required />
-      <button id="send">Send</button>
-    </form>
+    <div id="chat"></div>
   </div>
+
+  <!-- Chat Input Form -->
+  <form id="form">
+    <input type="text" id="input" placeholder="Ask GriotBot..." required />
+    <button id="send">Send</button>
+  </form>
 
   <script>
     const sidebar = document.getElementById("sidebar");
@@ -165,17 +177,24 @@
       sidebar.classList.toggle("visible");
     });
 
-    // Clear Chat Logo and Quote on First Message
     const form = document.getElementById("form");
     const chat = document.getElementById("chat");
     const input = document.getElementById("input");
 
-    form.addEventListener("submit", (e) => {
+    const API_KEY = "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"; // Replace with your OpenRouter API Key
+    const systemPrompt = {
+      role: "system",
+      content: "You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions of the African Diaspora.",
+    };
+
+    const history = [systemPrompt];
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const userInput = input.value.trim();
       if (!userInput) return;
 
-      // Clear Logo and Quote on First Message
+      // Remove Logo and Quote when user starts chat
       document.getElementById("logo").style.display = "none";
       document.getElementById("quote").style.display = "none";
 
@@ -190,6 +209,28 @@
       chat.appendChild(botMessage);
 
       input.value = "";
+
+      try {
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-4o",
+            messages: history,
+            max_tokens: 350,
+          }),
+        });
+
+        const data = await res.json();
+        botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
+        history.push({ role: "assistant", content: botMessage.textContent });
+      } catch (err) {
+        botMessage.textContent = "Something went wrong talking to the ancestors...";
+        console.error(err);
+      }
     });
   </script>
 </body>
