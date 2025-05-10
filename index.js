@@ -12,6 +12,12 @@ async function fetchBotResponse(userMessage) {
         max_tokens: 350
       })
     });
+const sidebar = document.getElementById("sidebar");
+const toggleBtn = document.getElementById("toggleSidebar");
+
+toggleBtn.addEventListener("click", () => {
+  sidebar.classList.toggle("hidden");
+});
 
     if (!response.ok) throw new Error(`API error: ${response.status}`);
 
