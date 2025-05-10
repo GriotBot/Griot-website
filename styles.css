@@ -120,3 +120,26 @@ body {
   font-size: 1rem;
   cursor: pointer;
 }
+
+/* New Chat Button */
+#new-chat {
+  background-color: #4b2e2a;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0.5rem 0;
+}
+
+/* About Griotbot and Share Feedback Links */
+#about-griotbot, #share-feedback {
+  color: #c49a6c;
+  text-decoration: none;
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}
+
+#about-griotbot:hover, #share-feedback:hover {
+  text-decoration: underline;
+}
