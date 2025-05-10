@@ -27,6 +27,7 @@
       left: 0;
       top: 0;
       height: 100%;
+      transform: translateX(-100%); /* Hidden by default */
       transition: transform 0.3s ease-in-out;
     }
 
@@ -38,12 +39,12 @@
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-      color: white;
+      color: #4b2e2a;
       z-index: 100;
     }
 
-    #sidebar.hidden {
-      transform: translateX(-100%);
+    #sidebar.visible {
+      transform: translateX(0);
     }
 
     /* Chat Container */
@@ -51,23 +52,40 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding-left: 240px;
-      transition: padding-left 0.3s ease-in-out;
+      align-items: center;
+      justify-content: center;
+      padding-left: 0;
+      text-align: center;
     }
 
     #chat {
       flex: 1;
       padding: 1rem;
       overflow-y: auto;
-      background: #f4f4f9;
-      border-radius: 8px;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      width: 60%;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    #logo {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    #quote {
+      font-size: 1rem;
+      font-style: italic;
+      color: #7d8765;
+      margin-bottom: 2rem;
+      max-width: 70%;
     }
 
     .message {
-      padding: 0.5rem 1rem;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
       border-radius: 8px;
       max-width: 75%;
       word-wrap: break-word;
@@ -89,6 +107,9 @@
       display: flex;
       padding: 1rem;
       border-top: 1px solid #c49a6c;
+      width: 60%;
+      max-width: 700px;
+      margin: 0 auto;
     }
 
     #input {
@@ -96,42 +117,39 @@
       padding: 0.5rem;
       font-size: 1rem;
       border: 1px solid #c49a6c;
+      border-radius: 8px 0 0 8px;
     }
 
     #send {
       background-color: #c49a6c;
       color: white;
       border: none;
-      padding: 0.5rem 1rem;
+      padding: 0 1rem;
       font-size: 1rem;
+      border-radius: 0 8px 8px 0;
       cursor: pointer;
-    }
-
-    /* Responsive Sidebar */
-    @media (max-width: 768px) {
-      #sidebar {
-        transform: translateX(-100%);
-      }
-      #chat-container {
-        padding-left: 0;
-      }
     }
   </style>
 </head>
 <body>
 
+  <!-- Sidebar (Hidden by Default) -->
   <button id="toggleSidebar" aria-label="Toggle Sidebar">☰</button>
   <div id="sidebar">
     <h2>GriotBot</h2>
     <button onclick="location.reload()">New Chat</button>
     <a href="about.html">About GriotBot</a>
     <a href="feedback.html">Share Feedback</a>
-    <blockquote>"A people without the knowledge of their past history, origin and culture is like a tree without roots." — Marcus Garvey</blockquote>
   </div>
 
+  <!-- Chat Area with Logo and Quote -->
   <div id="chat-container">
-    <div id="header">GriotBot</div>
-    <div id="chat"></div>
+    <div id="chat">
+      <div id="logo">🌿</div>
+      <div id="quote">
+        "A people without the knowledge of their past history, origin and culture is like a tree without roots." — Marcus Garvey
+      </div>
+    </div>
     <form id="form">
       <input type="text" id="input" placeholder="Ask GriotBot..." required />
       <button id="send">Send</button>
@@ -142,8 +160,36 @@
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("toggleSidebar");
 
+    // Toggle Sidebar Visibility
     toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("hidden");
+      sidebar.classList.toggle("visible");
+    });
+
+    // Clear Chat Logo and Quote on First Message
+    const form = document.getElementById("form");
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const userInput = input.value.trim();
+      if (!userInput) return;
+
+      // Clear Logo and Quote on First Message
+      document.getElementById("logo").style.display = "none";
+      document.getElementById("quote").style.display = "none";
+
+      const userMessage = document.createElement("div");
+      userMessage.className = "message user";
+      userMessage.textContent = userInput;
+      chat.appendChild(userMessage);
+
+      const botMessage = document.createElement("div");
+      botMessage.className = "message bot";
+      botMessage.textContent = "GriotBot is thinking...";
+      chat.appendChild(botMessage);
+
+      input.value = "";
     });
   </script>
 </body>
