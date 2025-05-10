@@ -163,7 +163,7 @@
   const input = document.getElementById("input");
   const modelSelector = document.getElementById("modelSelector");
 
-  const API_KEY = "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";
+ const API_KEY = process.env.OPENROUTER_API_KEY;
 
   const systemPrompt = {
     role: "system",
