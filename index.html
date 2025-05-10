@@ -1,264 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GriotBot Chat</title>
-  <style>
-    body {
-      font-family: Helvetica, Arial, sans-serif;
-      background-color: #f6f1ec;
-      color: #4b2e2a;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>GriotBot Chat</title> <style> body { font-family: Helvetica, Arial, sans-serif; background-color: #f6f1ec; color: #4b2e2a; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    #header {
-      background-color: #c49a6c;
-      padding: 1rem;
-      text-align: center;
-      font-weight: bold;
-      color: white;
-      font-size: 1.2rem;
-      position: relative;
-    }
+#header { background-color: #c49a6c; padding: 1rem; text-align: center; font-weight: bold; color: white; font-size: 1.2rem; position: relative; }
 
-    #toggleSidebar {
-      position: absolute;
-      left: 10px;
-      font-size: 1.5rem;
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-      z-index: 1000;
-    }
+#toggleSidebar { position: absolute; left: 10px; font-size: 1.5rem; background: none; border: none; color: white; cursor: pointer; z-index: 1000; }
 
-    #sidebar {
-      width: 220px;
-      background: #4b2e2a;
-      color: white;
-      position: fixed;
-      left: 0;
-      top: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      padding: 1rem;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease-in-out;
-      z-index: 999;
-    }
+#sidebar { width: 220px; background: #4b2e2a; color: white; position: fixed; left: 0; top: 0; height: 100%; display: flex; flex-direction: column; padding: 1rem; transform: translateX(-100%); transition: transform 0.3s ease-in-out; z-index: 999; }
 
-    #sidebar.visible {
-      transform: translateX(0);
-    }
+#sidebar.visible { transform: translateX(0); }
 
-    #sidebar a {
-      color: white;
-      text-decoration: none;
-      margin-top: 0.5rem;
-    }
+#sidebar a { color: white; text-decoration: none; margin-top: 0.5rem; }
 
-    #chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow-y: auto;
-      padding: 1rem;
-      padding-bottom: 150px; /* prevent overlap */
-    }
+#chat-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 1rem; padding-bottom: 150px; /* prevent overlap */ }
 
-    #logo {
-      font-size: 4rem;
-    }
+#logo { font-size: 4rem; }
 
-    #quote {
-      font-size: 1rem;
-      font-style: italic;
-      color: #7d8765;
-      text-align: center;
-      margin-bottom: 2rem;
-    }
+#quote { font-size: 1rem; font-style: italic; color: #7d8765; text-align: center; margin-bottom: 2rem; }
 
-    .message {
-      padding: 0.5rem;
-      border-radius: 8px;
-      margin: 0.5rem;
-      max-width: 75%;
-    }
+.message { padding: 0.5rem; border-radius: 8px; margin: 0.5rem; max-width: 75%; }
 
-    .user {
-      background-color: #bd8735;
-      color: white;
-      align-self: flex-end;
-    }
+.user { background-color: #bd8735; color: white; align-self: flex-end; }
 
-    .bot {
-      background-color: #7d8765;
-      color: white;
-      align-self: flex-start;
-    }
+.bot { background-color: #7d8765; color: white; align-self: flex-start; }
 
-    #form {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 700px;
-      display: flex;
-      padding: 0.5rem;
-      background-color: #f6f1ec;
-      border-top: 1px solid #c49a6c;
-    }
+#form { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 700px; display: flex; padding: 0.5rem; background-color: #f6f1ec; border-top: 1px solid #c49a6c; }
 
-    #input {
-      flex: 1;
-      padding: 0.5rem;
-      border: 1px solid #c49a6c;
-      border-radius: 8px 0 0 8px;
-    }
+#input { flex: 1; padding: 0.5rem; border: 1px solid #c49a6c; border-radius: 8px 0 0 8px; }
 
-    #send {
-      background-color: #c49a6c;
-      color: white;
-      border: none;
-      padding: 0 1rem;
-      border-radius: 0 8px 8px 0;
-      cursor: pointer;
-    }
+#send { background-color: #c49a6c; color: white; border: none; padding: 0 1rem; border-radius: 0 8px 8px 0; cursor: pointer; }
 
-    #fact {
-      font-size: 0.9rem;
-      font-style: italic;
-      text-align: center;
-      color: #4b2e2a;
-      position: fixed;
-      bottom: 50px;
-      width: 100%;
-      padding: 0 1rem;
-      box-sizing: border-box;
-    }
+#fact { font-size: 0.9rem; font-style: italic; text-align: center; color: #4b2e2a; position: fixed; bottom: 50px; width: 100%; padding: 0 1rem; box-sizing: border-box; }
 
-    #copyright {
-      font-size: 0.8rem;
-      text-align: center;
-      color: #7d8765;
-      position: fixed;
-      bottom: 30px;
-      width: 100%;
-    }
-  </style>
-</head>
-<body>
-  <div id="header">
-    <button id="toggleSidebar">☰</button>
-    GriotBot
-  </div>
+#copyright { font-size: 0.8rem; text-align: center; color: #7d8765; position: fixed; bottom: 30px; width: 100%; } </style> </head> <body> <div id="header"> <button id="toggleSidebar">☰</button> GriotBot </div>
 
-  <div id="sidebar">
-   <b> </b><h2>GriotBot</h2>
-    <button onclick="location.reload()">New Chat</button> <br>
-    <a href="about.html">About GriotBot</a> <br>
-    <a href="feedback.html">Share Feedback</a>
-  </div>
+<div id="sidebar"> <b> </b><h2>GriotBot</h2> <button onclick="location.reload()">New Chat</button> <br> <a href="about.html">About GriotBot</a> <br> <a href="feedback.html">Share Feedback</a> </div>
 
-  <div id="chat-container">
-    <div id="logo">🌿</div>
-    <div id="quote">
-      "A people without the knowledge of their past history,<br>
-      origin and culture is like a tree without roots." <br> <br> – Marcus Mosiah Gravey
-    </div>
-    <div id="chat"></div>
-  </div>
+<div id="chat-container"> <div id="logo">🌿</div> <div id="quote"> "A people without the knowledge of their past history,<br> origin and culture is like a tree without roots." <br> <br> – Marcus Mosiah Gravey </div> <div id="chat"></div> </div>
 
-  <form id="form">
-    <input id="input" type="text" placeholder="Ask GriotBot..." required />
-    <button id="send">Send</button>
-  </form>
+<form id="form"> <input id="input" type="text" placeholder="Ask GriotBot..." required /> <button id="send">Send</button> </form>
 
-  <div id="fact"></div>
-  <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
+<div id="fact"></div> <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
-  <script>
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleSidebar");
-    const chatContainer = document.getElementById("chat-container");
-    const chat = document.getElementById("chat");
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-    const factElement = document.getElementById("fact");
+<script> const sidebar = document.getElementById("sidebar"); const toggleBtn = document.getElementById("toggleSidebar"); const chatContainer = document.getElementById("chat-container"); const chat = document.getElementById("chat"); const form = document.getElementById("form"); const input = document.getElementById("input"); const factElement = document.getElementById("fact");
 
-    // Sidebar functionality
-    toggleBtn.onclick = () => sidebar.classList.toggle("visible");
-    chatContainer.onclick = () => sidebar.classList.remove("visible");
+// Sidebar functionality toggleBtn.onclick = () => sidebar.classList.toggle("visible"); chatContainer.onclick = () => sidebar.classList.remove("visible");
 
-    // Random Proverbs
-    const facts = [
-      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-      "A tree cannot stand without its roots. — Jamaican Proverb",
-      "Unity is strength. — Ghanaian Proverb"
-    ];
-    factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+// Random Proverbs const facts = [ "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb", "Until the lion learns to write, every story will glorify the hunter. — African Proverb", "We are the drums, we are the dance. — Afro-Caribbean Proverb", "A tree cannot stand without its roots. — Jamaican Proverb", "Unity is strength. — Ghanaian Proverb" ]; factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
 
-    // API integration (OpenRouter)
-    const API_KEY = "YOUR_API_KEY_HERE";
+// API integration (OpenRouter) const API_KEY = "YOUR_API_KEY_HERE";
 
-    form.onsubmit = async (e) => {
-      e.preventDefault();
+form.onsubmit = async (e) => { e.preventDefault();
 
-      document.getElementById("logo").style.display = "none";
-      document.getElementById("quote").style.display = "none";
+document.getElementById("logo").style.display = "none"; document.getElementById("quote").style.display = "none";
 
-      const userInput = input.value.trim();
-      if (!userInput) return;
+const userInput = input.value.trim(); if (!userInput) return;
 
-      appendMessage("user", userInput);
-      input.value = "";
+appendMessage("user", userInput); input.value = "";
 
-      const botMessage = document.createElement("div");
-      botMessage.className = "message bot";
-      botMessage.textContent = "GriotBot is thinking...";
-      chat.appendChild(botMessage);
+const botMessage = document.createElement("div"); botMessage.className = "message bot"; botMessage.textContent = "GriotBot is thinking..."; chat.appendChild(botMessage);
 
-      try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer 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`
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-4o",
-            messages: [{role: "user", content: userInput}],
-            max_tokens: 350
-          })
-        });
+try { const res = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": Bearer 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 }, body: JSON.stringify({ model: "openai/gpt-4o", messages: [{role: "user", content: userInput}], max_tokens: 350 }) });
 
-        const data = await res.json();
-        botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-      } catch (error) {
-        botMessage.textContent = "Something went wrong.";
-        console.error(error);
-      }
+const data = await res.json();
+botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
 
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    };
+} catch (error) { botMessage.textContent = "Something went wrong."; console.error(error); }
 
-    function appendMessage(role, text) {
-      const msg = document.createElement("div");
-      msg.className = `message ${role}`;
-      msg.textContent = text;
-      chat.appendChild(msg);
-    }
-  </script>
-</body>
-</html>
+chatContainer.scrollTop = chatContainer.scrollHeight; };
+
+function appendMessage(role, text) { const msg = document.createElement("div"); msg.className = message ${role}; msg.textContent = text; chat.appendChild(msg); } </script> </body> </html>
