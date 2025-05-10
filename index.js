@@ -1,1 +1,26 @@
-const chat = document.getElementById("chat"); const form = document.getElementById("form"); const input = document.getElementById("input"); const modelSelector = document.getElementById("modelSelector"); async function fetchBotResponse(userMessage) { try { const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-4o", messages: [{ role: "user", content: userMessage }] }) }); if (!response.ok) throw new Error("Failed to reach AI server."); const data = await response.json(); return data.choices?.[0]?.message?.content || "GriotBot is silent for now..."; } catch (error) { console.error("Error:", error); return "Something went wrong talking to the ancestors..."; } } // Handle Chat Input form.addEventListener("submit", async (e) => { e.preventDefault(); const userInput = input.value.trim(); if (!userInput) return; appendMessage("user", userInput); input.value = ""; showLoadingIndicator(); const reply = await fetchBotResponse(userInput); removeLoadingIndicator(); appendMessage("bot", reply); }); // Message UI Functions function appendMessage(role, text) { const msg = document.createElement("div"); msg.className = `message ${role}`; msg.textContent = text; chat.appendChild(msg); setTimeout(() => chat.scrollTo({ top: chat.scrollHeight, behavior: "smooth" }), 100); } function showLoadingIndicator() { const loadingDiv = document.createElement("div"); loadingDiv.className = "loading"; chat.appendChild(loadingDiv); } function removeLoadingIndicator() { const loadingDiv = document.querySelector(".loading"); if (loadingDiv) chat.removeChild(loadingDiv); }
+async function fetchBotResponse(userMessage) {
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer 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`
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-4o",
+        messages: [{ role: "user", content: userMessage }],
+        max_tokens: 350
+      })
+    });
+
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+    const data = await response.json();
+    console.log("API Response:", data);
+
+    return data.choices?.[0]?.message?.content || "Something went wrong...";
+  } catch (error) {
+    console.error("Error fetching bot response:", error);
+    return "GriotBot is silent...";
+  }
+}
