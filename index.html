@@ -163,7 +163,7 @@
   const input = document.getElementById("input");
   const modelSelector = document.getElementById("modelSelector");
 
- const API_KEY = process.env.OPENROUTER_API_KEY;
+const API_KEY = "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";
 
   const systemPrompt = {
     role: "system",
@@ -204,18 +204,18 @@
       console.log("Selected Model:", selectedModel);
       console.log("Sending API Request...");
 
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: history,
-          max_tokens: 350,
-        }),
-      });
+   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${API_KEY}`
+  },
+  body: JSON.stringify({
+    model: selectedModel,
+    messages: history,
+    max_tokens: 350
+  })
+});
 
       console.log("API Request Sent:", {
         model: selectedModel,
