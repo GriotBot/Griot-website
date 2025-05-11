@@ -39,11 +39,11 @@
   }
 
   /* Transform to 'X' (close icon) when sidebar is visible */
-  #toggleSidebar.open {
+  #sidebar.visible + #header #toggleSidebar {
     transform: rotate(45deg); /* Makes it look like an 'X' */
     color: #f6f1ec;
   }
-   
+  
   /* Enhanced Sidebar Styles */
   #sidebar {
     width: 220px;
@@ -203,15 +203,14 @@
 
   toggleBtn.onclick = () => {
     sidebar.classList.toggle("visible");
-    toggleBtn.classList.toggle("open"); // Corrected
   };
 
   document.addEventListener("click", (e) => {
     if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
       sidebar.classList.remove("visible");
-      toggleBtn.classList.remove("open"); // Corrected
     }
   });
+    
     const chatContainer = document.getElementById("chat-container");
     const chat = document.getElementById("chat");
     const form = document.getElementById("form");
