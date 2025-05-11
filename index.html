@@ -44,19 +44,18 @@
       background: #4b2e2a;
       color: white;
       position: fixed;
-      left: 0;
+      left: -220px;
       top: 0;
       height: 100%;
       display: flex;
       flex-direction: column;
       padding: 1rem;
-      transform: translateX(-100%);
       transition: transform 0.3s ease-in-out;
       z-index: 999;
     }
 
     #sidebar.visible {
-      transform: translateX(0);
+      transform: translateX(220px);
     }
 
     #sidebar a {
@@ -192,6 +191,11 @@
   <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
   <script>
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebar');
+
+    toggleBtn.onclick = () => sidebar.classList.toggle('visible');
+
     const facts = [
       "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
       "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
@@ -201,7 +205,7 @@
       "The child who is not embraced by the village will burn it down to feel its warmth. — African Proverb",
       "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
       "When an old man dies, a library burns to the ground. — African Proverb",
-      "Don’t set sail on someone else’s star. — African American Proverb"
+      "Don’t set sail on someone else’s star. — African-American Proverb"
     ];
 
     document.getElementById("fact").textContent = facts[Math.floor(Math.random() * facts.length)];
