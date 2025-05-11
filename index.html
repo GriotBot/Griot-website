@@ -199,17 +199,40 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
 
-    #fact {
-      font-size: 0.9rem;
-      font-style: italic;
-      text-align: center;
-      color: #4b2e2a;
-      position: fixed;
-      bottom: 50px;
-      width: 100%;
-      padding: 0 1rem;
-      box-sizing: border-box;
-    }
+    /* Fact Section with Background Box */
+  #factBox {
+    position: fixed;
+    bottom: 50px;
+    width: 100%;
+    background-color: rgba(246, 241, 236, 0.95);
+    text-align: center;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  #fact {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #4b2e2a;
+    transition: opacity 0.5s ease-in-out;
+  }
+
+  #refreshFact {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #4b2e2a;
+    transition: transform 0.3s;
+  }
+
+  #refreshFact:hover {
+    transform: rotate(180deg);
+  }
 
     #copyright {
       font-size: 0.8rem;
@@ -242,7 +265,10 @@
     </div>
     <div id="chat"></div>
   </div>
-
+<div id="factBox">
+  <div id="fact"></div>
+  <button id="refreshFact" onclick="showRandomProverb()">🔄 Refresh</button>
+</div>
   <form id="form">
     <input id="input" type="text" placeholder="Ask GriotBot..." required />
     <button id="send">Send</button>
@@ -293,7 +319,7 @@
     factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
 
     // API integration (OpenRouter)
-    const API_KEY = "YOUR_API_KEY_HERE";
+    const API_KEY = "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";
 
     form.onsubmit = async (e) => {
       e.preventDefault();
@@ -335,7 +361,19 @@
 
       chatContainer.scrollTop = chatContainer.scrollHeight;
     };
+    
+// Function to Show Random Proverb
+  function showRandomProverb() {
+    factElement.style.opacity = 0; // Fade out effect
+    setTimeout(() => {
+      factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+      factElement.style.opacity = 1; // Fade in effect
+    }, 300);
+  }
 
+  // Initialize Proverb Display on Load
+  window.onload = showRandomProverb;
+    
     // Function to Append Messages (User and Bot) with Smooth Scroll
   function appendMessage(role, text) {
     const msg = document.createElement("div");
