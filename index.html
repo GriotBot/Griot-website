@@ -36,15 +36,14 @@
       cursor: pointer;
       z-index: 1000;
     }
-
    
   /* Enhanced Sidebar Styles */
   #sidebar {
     width: 220px;
-    background: rgba(75, 46, 42, 0.9); /* Slight transparency for depth */
+    background: rgba(75, 46, 42, 0.9);
     color: white;
     position: fixed;
-    left: -220px;
+    left: 0; /* Ensure it starts at the left */
     top: 0;
     height: 100%;
     display: flex;
@@ -54,14 +53,13 @@
     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
     z-index: 999;
     backdrop-filter: blur(8px); /* Subtle blur for modern effect */
-    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2);
   }
 
   #sidebar.visible {
     transform: translateX(0);
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
   }
-
 
     #sidebar a {
       color: white;
@@ -194,7 +192,17 @@
 
   <script>
     const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleSidebar");
+  const toggleBtn = document.getElementById("toggleSidebar");
+
+  toggleBtn.onclick = () => {
+    sidebar.classList.toggle("visible");
+  };
+
+  document.addEventListener("click", (e) => {
+    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+      sidebar.classList.remove("visible");
+    }
+  });
     const chatContainer = document.getElementById("chat-container");
     const chat = document.getElementById("chat");
     const form = document.getElementById("form");
