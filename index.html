@@ -208,9 +208,9 @@
     text-align: center;
     padding: 0.5rem 1rem;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
     transition: opacity 0.3s ease-in-out;
   }
 
@@ -219,6 +219,17 @@
     font-style: italic;
     color: #4b2e2a;
     transition: opacity 0.5s ease-in-out;
+  }
+
+  #refreshFact {
+    font-size: 1rem; /* Reduced size by 20% */
+    cursor: pointer;
+    color: #4b2e2a;
+    transition: transform 0.3s;
+  }
+
+  #refreshFact:hover {
+    transform: scale(1.2); /* Slight scale-up on hover */
   }
 
   #refreshFact {
@@ -267,7 +278,7 @@
   </div>
 <div id="factBox">
   <div id="fact"></div>
-  <button id="refreshFact" onclick="showRandomProverb()">🔄</button>
+  <div id="refreshFact" onclick="showRandomProverb()">🔄</div>
 </div>
   <form id="form">
     <input id="input" type="text" placeholder="Ask GriotBot..." required />
