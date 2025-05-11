@@ -25,120 +25,72 @@
       font-size: 1.2rem;
       position: relative;
     }
-    /* Animated Toggle Button */
-  #toggleSidebar {
-    position: absolute;
-    left: 10px;
-    font-size: 1.5rem;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    z-index: 1000;
-    transition: transform 0.3s ease, color 0.3s ease;
-  }
 
-  /* Transform to 'X' (close icon) when sidebar is visible */
-  #sidebar.visible + #header #toggleSidebar {
-    transform: rotate(45deg); /* Makes it look like an 'X' */
-    color: #f6f1ec;
-  }
-  
-  /* Enhanced Sidebar Styles */
-  #sidebar {
-    width: 220px;
-    background: rgba(75, 46, 42, 0.9);
-    color: white;
-    position: fixed;
-    left: 0; /* Ensure it starts at the left */
-    top: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
-    z-index: 999;
-    backdrop-filter: blur(8px); /* Subtle blur for modern effect */
-    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2);
-  }
-
-  #sidebar.visible {
-    transform: translateX(0);
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
-  }
-
-    #sidebar a {
+    #toggleSidebar {
+      position: absolute;
+      left: 10px;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
       color: white;
-      text-decoration: none;
-      margin-top: 0.5rem;
-    }
-/* Smooth Scroll for Chat Area */
-  #chat-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow-y: auto;
-    padding: 1rem;
-    padding-bottom: 150px; /* prevent overlap */
-    scroll-behavior: smooth;
-  }
-
-    #logo {
-      font-size: 4rem;
+      cursor: pointer;
+      z-index: 1000;
+      transition: transform 0.3s ease, color 0.3s ease;
     }
 
-    #quote {
-      font-size: 1rem;
-      font-style: italic;
-      color: #7d8765;
-      text-align: center;
-      margin-bottom: 2rem;
+    #toggleSidebar.open {
+      transform: rotate(45deg);
+      color: #f6f1ec;
     }
+
+    #sidebar {
+      width: 220px;
+      background: rgba(75, 46, 42, 0.9);
+      color: white;
+      position: fixed;
+      left: -220px; 
+      top: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
+      z-index: 999;
+      backdrop-filter: blur(8px);
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2);
+    }
+
+    #sidebar.visible {
+      transform: translateX(0);
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    #logo { font-size: 4rem; }
+
+    #quote { font-size: 1rem; font-style: italic; color: #7d8765; text-align: center; margin-bottom: 2rem; }
 
     .message {
       padding: 0.5rem;
       border-radius: 8px;
       margin: 0.5rem;
       max-width: 75%;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
     }
-/* Enhanced User Message Bubble */
-  .user {
-    background-color: #bd8735;
-    color: white;
-    align-self: flex-end;
-    padding: 0.5rem;
-    border-radius: 8px;
-    margin: 0.5rem;
-    max-width: 75%;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease;
-  }
 
-  .user:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  }
+    .user { background-color: #bd8735; color: white; align-self: flex-end; }
 
-  /* Enhanced Bot Message Bubble with Gradient */
-  .bot {
-    background: linear-gradient(135deg, #7d8765, #5e6e4f);
-    color: white;
-    align-self: flex-start;
-    padding: 0.5rem;
-    border-radius: 8px;
-    margin: 0.5rem;
-    max-width: 75%;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease;
-  }
-
-  .bot:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  }
+    .bot { background: linear-gradient(135deg, #7d8765, #5e6e4f); color: white; align-self: flex-start; }
 
     #form {
       position: fixed;
@@ -153,70 +105,12 @@
       border-top: 1px solid #c49a6c;
     }
 
-    #input {
-      flex: 1;
-      padding: 0.5rem;
-      border: 1px solid #c49a6c;
-      border-radius: 8px 0 0 8px;
-    }
+    #fact { font-size: 0.9rem; font-style: italic; text-align: center; color: #4b2e2a; position: fixed; bottom: 50px; width: 100%; opacity: 0; transition: opacity 0.6s ease-in-out; }
 
-    /* Send Button with Hover Effect */
-  #send {
-    background-color: #c49a6c;
-    color: white;
-    border: none;
-    padding: 0 1rem;
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
+    #fact.visible { opacity: 1; }
 
-  #send:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    background-color: #a6754c;
-  }
+    #copyright { font-size: 0.8rem; text-align: center; color: #7d8765; position: fixed; bottom: 30px; width: 100%; }
 
-  #send:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  }
-
-    /* Proverb Section with Separator */
-  #fact {
-    font-size: 0.9rem;
-    font-style: italic;
-    text-align: center;
-    color: #4b2e2a;
-    position: fixed;
-    bottom: 50px;
-    width: 100%;
-    padding: 0 1rem;
-    box-sizing: border-box;
-    opacity: 0;
-    transition: opacity 0.6s ease-in-out;
-  }
-
-  #fact.visible {
-    opacity: 1;
-  }
-
-  #factSeparator {
-    position: fixed;
-    bottom: 80px;
-    width: 100%;
-    height: 1px;
-    background-color: #c49a6c;
-    opacity: 0.5;
-  }
-    #copyright {
-      font-size: 0.8rem;
-      text-align: center;
-      color: #7d8765;
-      position: fixed;
-      bottom: 30px;
-      width: 100%;
-    }
   </style>
 </head>
 <body>
@@ -226,18 +120,15 @@
   </div>
 
   <div id="sidebar">
-   <b> </b><h2>GriotBot</h2>
-    <button onclick="location.reload()">New Chat</button> <br>
-    <a href="about.html">About GriotBot</a> <br>
+    <h2>GriotBot</h2>
+    <button onclick="location.reload()">New Chat</button>
+    <a href="about.html">About GriotBot</a>
     <a href="feedback.html">Share Feedback</a>
   </div>
 
   <div id="chat-container">
     <div id="logo">🌿</div>
-    <div id="quote">
-      "A people without the knowledge of their past history,<br>
-      origin and culture is like a tree without roots." <br> <br> – Marcus Mosiah Gravey
-    </div>
+    <div id="quote">"A people without the knowledge of their past history, origin and culture is like a tree without roots."</div>
     <div id="chat"></div>
   </div>
 
@@ -246,154 +137,58 @@
     <button id="send">Send</button>
   </form>
 
-  <div id="factSeparator"></div>
-<div id="fact"></div>
+  <div id="fact"></div>
   <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
-<!-- Audio for Bot Response Sound -->
-  <audio id="griotSound" src="https://example.com/griot-chime.mp3" preload="auto"></audio>
 
   <script>
-   const sidebar = document.getElementById("sidebar");
-  const toggleBtn = document.getElementById("toggleSidebar");
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleSidebar");
+    toggleBtn.onclick = () => sidebar.classList.toggle("visible");
 
-  toggleBtn.onclick = () => {
-    sidebar.classList.toggle("visible");
-  };
+    const factElement = document.getElementById("fact");
+    const facts = ["Wisdom is like a baobab tree; no one individual can embrace it.", "Until the lion learns to write, every story will glorify the hunter."];
+    factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+    setTimeout(() => factElement.classList.add("visible"), 300);
 
-  document.addEventListener("click", (e) => {
-    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-      sidebar.classList.remove("visible");
-    }
-  });
-    
-   const sidebar = document.getElementById("sidebar");
-  const toggleBtn = document.getElementById("toggleSidebar");
-  const chatContainer = document.getElementById("chat-container");
-  const chat = document.getElementById("chat");
-  const form = document.getElementById("form");
-  const input = document.getElementById("input");
-  const factElement = document.getElementById("fact");
-  const griotSound = document.getElementById("griotSound");
+    const form = document.getElementById("form");
+    const chat = document.getElementById("chat");
 
-  // Sidebar Toggle Functionality
-  toggleBtn.onclick = () => {
-    sidebar.classList.toggle("visible");
-    toggleBtn.classList.toggle("open");
-  };
-
-  document.addEventListener("click", (e) => {
-    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-      sidebar.classList.remove("visible");
-      toggleBtn.classList.remove("open");
-    }
-  });
-
-    // Random Proverbs
-   const facts = [
-    "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-    "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-    "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-    "A tree cannot stand without its roots. — Jamaican Proverb",
-    "Unity is strength. — Ghanaian Proverb",
-    "Knowledge is power, but wisdom is peace. — African Proverb",
-    "Truth is like a drum, it can be heard from afar. — African Proverb",
-    "A bird will always use another bird’s feathers to feather its nest. — Kenyan Proverb"
-  ];
-
-  factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
-  setTimeout(() => {
-    factElement.classList.add("visible");
-  }, 300);
-    
-    // Enhanced Send Function with Sound Notification
-  async function sendMessage(userInput) {
-    appendMessage("user", userInput);
-
-    const botMessage = document.createElement("div");
-    botMessage.className = "message bot";
-    botMessage.textContent = "GriotBot is thinking...";
-    chat.appendChild(botMessage);
-    userMsg.className = "message user";
-    userMsg.textContent = userInput;
-    chat.appendChild(userMsg);
-    
-    // API integration (OpenRouter)
-    const API_KEY = "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";
-
-    form.onsubmit = async (e) => {
+    form.onsubmit = (e) => {
       e.preventDefault();
-
-      document.getElementById("logo").style.display = "none";
-      document.getElementById("quote").style.display = "none";
-
       const userInput = input.value.trim();
-      if (!userInput) return;
-
-      appendMessage("user", userInput);
+      if (userInput) sendMessage(userInput);
       input.value = "";
+    };
+
+    async function sendMessage(userInput) {
+      appendMessage("user", userInput);
 
       const botMessage = document.createElement("div");
       botMessage.className = "message bot";
       botMessage.textContent = "GriotBot is thinking...";
-      chat.appendChild(botMsg);  
+      chat.appendChild(botMessage);
 
       try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer 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`
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o",
-          messages: [{role: "user", content: userInput}],
-          max_tokens: 350
-        })
-      });
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer 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` },
+          body: JSON.stringify({ model: "openai/gpt-4o", messages: [{ role: "user", content: userInput }] })
+        });
 
         const data = await response.json();
-      botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-      griotSound.play(); // Play sound when bot responds
-    } catch (error) {
-      botMessage.textContent = "Something went wrong.";
-      console.error(error);
+        botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
+      } catch (error) {
+        botMessage.textContent = "Something went wrong.";
+      }
     }
 
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  // Form Submission (Handles User Message)
-  form.onsubmit = (e) => {
-    e.preventDefault();
-    const userInput = input.value.trim();
-    if (userInput) {
-      sendMessage(userInput);
-      input.value = ""; // Clear input after send
+    function appendMessage(role, text) {
+      const msg = document.createElement("div");
+      msg.className = `message ${role}`;
+      msg.textContent = text;
+      chat.appendChild(msg);
     }
-  };
 
-  // Function to Append Messages (User and Bot)
-  function appendMessage(role, text) {
-    const msg = document.createElement("div");
-    msg.className = `message ${role}`;
-    msg.textContent = text;
-    chat.appendChild(msg);
-    smoothScrollToBottom();
-  }
-
-  // Smooth Scroll Function
-  function smoothScrollToBottom() {
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-
-  // Auto-Scroll When Message is Added
-  function appendMessage(role, text) {
-    const msg = document.createElement("div");
-    msg.className = `message ${role}`;
-    msg.textContent = text;
-    document.getElementById("chat").appendChild(msg);
-    smoothScrollToBottom();
-  }
   </script>
 </body>
 </html>
