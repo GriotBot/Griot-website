@@ -73,17 +73,18 @@
       text-decoration: none;
       margin-top: 0.5rem;
     }
-
-    #chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow-y: auto;
-      padding: 1rem;
-      padding-bottom: 150px; /* prevent overlap */
-    }
+/* Smooth Scroll for Chat Area */
+  #chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 1rem;
+    padding-bottom: 150px; /* prevent overlap */
+    scroll-behavior: smooth;
+  }
 
     #logo {
       font-size: 4rem;
@@ -310,13 +311,20 @@
 
       chatContainer.scrollTop = chatContainer.scrollHeight;
     };
+// Smooth Scroll Function
+  function smoothScrollToBottom() {
+    const chatContainer = document.getElementById("chat-container");
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
 
-    function appendMessage(role, text) {
-      const msg = document.createElement("div");
-      msg.className = `message ${role}`;
-      msg.textContent = text;
-      chat.appendChild(msg);
-    }
+  // Auto-Scroll When Message is Added
+  function appendMessage(role, text) {
+    const msg = document.createElement("div");
+    msg.className = `message ${role}`;
+    msg.textContent = text;
+    document.getElementById("chat").appendChild(msg);
+    smoothScrollToBottom();
+  }
   </script>
 </body>
 </html>
