@@ -42,13 +42,12 @@
       background: #4b2e2a;
       color: white;
       position: fixed;
-      left: 0;
+      left: -220px;
       top: 0;
       height: 100%;
       display: flex;
       flex-direction: column;
       padding: 1rem;
-      transform: translateX(-100%);
       transition: transform 0.3s ease-in-out;
       z-index: 999;
     }
@@ -161,7 +160,7 @@
     GriotBot
   </div>
 
-  <div id="sidebar">
+  <div id="sidebar" class="hidden">
     <h2>GriotBot</h2>
     <button onclick="location.reload()">New Chat</button>
     <a href="about.html">About GriotBot</a>
@@ -181,5 +180,58 @@
 
   <div id="fact">Wisdom is like a baobab tree; no one individual can embrace it.</div>
   <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
+
+  <audio id="griotSound" src="https://example.com/griot-drum.mp3" preload="auto"></audio>
+
+  <script>
+    document.getElementById("toggleSidebar").onclick = () => {
+      document.getElementById("sidebar").classList.toggle("visible");
+    };
+
+    document.addEventListener("click", (e) => {
+      if (!document.getElementById("sidebar").contains(e.target) && !document.getElementById("toggleSidebar").contains(e.target)) {
+        document.getElementById("sidebar").classList.remove("visible");
+      }
+    });
+
+    const API_KEY = "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";
+    const systemPrompt = "You are GriotBot — a wise, warm, and rooted AI spirit...";
+
+    async function sendMessage(userInput) {
+      const chat = document.getElementById("chat");
+      const userMsg = document.createElement("div");
+      userMsg.className = "message user";
+      userMsg.textContent = userInput;
+      chat.appendChild(userMsg);
+
+      const botMsg = document.createElement("div");
+      botMsg.className = "message bot";
+      botMsg.textContent = "GriotBot is thinking...";
+      chat.appendChild(botMsg);
+
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
+          body: JSON.stringify({ model: "openai/gpt-4o", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userInput }] })
+        });
+
+        const data = await response.json();
+        botMsg.textContent = data.choices[0]?.message?.content || "GriotBot is silent for now...";
+        document.getElementById("griotSound").play();
+      } catch (error) {
+        botMsg.textContent = "Unable to connect to GriotBot, please try again.";
+      }
+
+      chat.scrollTop = chat.scrollHeight;
+      document.getElementById('input').value = "";
+    }
+
+    document.getElementById('form').onsubmit = (e) => {
+      e.preventDefault();
+      const userInput = document.getElementById('input').value.trim();
+      if (userInput) sendMessage(userInput);
+    };
+  </script>
 </body>
 </html>
