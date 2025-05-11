@@ -129,12 +129,21 @@
       border-top: 1px solid #c49a6c;
     }
 
-    #input {
-      flex: 1;
-      padding: 0.5rem;
-      border: 1px solid #c49a6c;
-      border-radius: 8px 0 0 8px;
-    }
+    /* Text Input Field without Blue Outline */
+  #input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #c49a6c;
+    border-radius: 8px 0 0 8px;
+    outline: none; /* Removes the default blue outline */
+    transition: border 0.3s ease;
+  }
+
+  /* Enhanced Focus Style for Text Input */
+  #input:focus {
+    border-color: #a6754c;
+    box-shadow: 0 0 5px rgba(166, 117, 76, 0.3);
+  }
 
     /* Send Button with Hover Effect */
   #send {
