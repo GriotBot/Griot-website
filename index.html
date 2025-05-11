@@ -6,7 +6,7 @@
   <title>GriotBot Chat</title>
   <style>
     body {
-      font-family: 'Nunito Sans', sans-serif;
+      font-family: Helvetica, Arial, sans-serif;
       background-color: #f6f1ec;
       color: #4b2e2a;
       margin: 0;
@@ -14,64 +14,53 @@
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
-      transition: opacity 0.6s ease-in-out;
-      opacity: 0;
-      animation: fadeIn 0.6s forwards;
-    }
-
-    @keyframes fadeIn {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
     }
 
     #header {
       background-color: #c49a6c;
       padding: 1rem;
+      text-align: center;
       font-weight: bold;
       color: white;
       font-size: 1.2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       position: relative;
     }
 
     #toggleSidebar {
       position: absolute;
       left: 10px;
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       background: none;
       border: none;
       color: white;
       cursor: pointer;
-      z-index: 1001;
-      transition: transform 0.3s ease-in-out;
+      z-index: 1000;
     }
 
     #sidebar {
       width: 220px;
-      background: rgba(75, 46, 42, 0.95);
+      background: #4b2e2a;
       color: white;
       position: fixed;
-      left: -220px;
+      left: 0;
       top: 0;
       height: 100%;
       display: flex;
       flex-direction: column;
       padding: 1rem;
-      transition: transform 0.4s ease, opacity 0.4s ease;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
       z-index: 999;
-      opacity: 0;
-      pointer-events: none;
-      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(6px);
-      overflow-y: auto;
     }
 
     #sidebar.visible {
       transform: translateX(0);
-      opacity: 1;
-      pointer-events: auto;
+    }
+
+    #sidebar a {
+      color: white;
+      text-decoration: none;
+      margin-top: 0.5rem;
     }
 
     #chat-container {
@@ -82,9 +71,7 @@
       justify-content: center;
       padding: 1rem;
       overflow-y: auto;
-      padding-bottom: 150px;
-      transition: margin-left 0.4s ease;
-      scroll-behavior: smooth;
+      padding-bottom: 150px; 
     }
 
     #logo {
@@ -96,23 +83,14 @@
       font-style: italic;
       color: #7d8765;
       text-align: center;
-      margin-bottom: 1rem;
-    }
-
-    #fact {
-      font-size: 0.9rem;
-      font-style: italic;
-      text-align: center;
-      color: #4b2e2a;
-      margin-top: 0.5rem;
+      margin-bottom: 2rem;
     }
 
     .message {
-      padding: 0.7rem;
+      padding: 0.5rem;
       border-radius: 8px;
       margin: 0.5rem;
-      max-width: 70%;
-      word-wrap: break-word;
+      max-width: 75%;
     }
 
     .user {
@@ -128,19 +106,21 @@
     }
 
     #form {
-      display: flex;
-      padding: 1rem;
-      border-top: 1px solid #c49a6c;
-      background-color: #f6f1ec;
       position: fixed;
-      bottom: 0;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 100%;
+      max-width: 700px;
+      display: flex;
+      padding: 0.5rem;
+      background-color: #f6f1ec;
+      border-top: 1px solid #c49a6c;
     }
 
     #input {
       flex: 1;
       padding: 0.5rem;
-      font-size: 1rem;
       border: 1px solid #c49a6c;
       border-radius: 8px 0 0 8px;
     }
@@ -150,16 +130,35 @@
       color: white;
       border: none;
       padding: 0 1rem;
-      font-size: 1rem;
       border-radius: 0 8px 8px 0;
       cursor: pointer;
     }
+
+    #fact {
+      font-size: 0.9rem;
+      font-style: italic;
+      text-align: center;
+      color: #4b2e2a;
+      position: fixed;
+      bottom: 50px;
+      width: 100%;
+    }
+
+    #copyright {
+      font-size: 0.8rem;
+      text-align: center;
+      color: #7d8765;
+      position: fixed;
+      bottom: 30px;
+      width: 100%;
+    }
+
   </style>
 </head>
 <body>
   <div id="header">
     <button id="toggleSidebar">☰</button>
-    <span style="margin-left:15px;">GriotBot</span>
+    GriotBot
   </div>
 
   <div id="sidebar">
@@ -171,9 +170,8 @@
 
   <div id="chat-container">
     <div id="logo">🌿</div>
-    <div id="quote">"A people without the knowledge of their past history, origin and culture is like a tree without roots."</div>
+    <div id="quote">"A people without the knowledge of their past history,<br>origin and culture is like a tree without roots."</div>
     <div id="chat"></div>
-    <div id="fact"></div>
   </div>
 
   <form id="form">
@@ -181,14 +179,7 @@
     <button id="send">Send</button>
   </form>
 
-  <script>
-    document.getElementById('toggleSidebar').onclick = () => {
-      document.getElementById('sidebar').classList.toggle('visible');
-    };
-
-    const facts = ["Wisdom is like a baobab tree; no one individual can embrace it.", "Until the lion learns to write, every story will glorify the hunter.", "We are the drums, we are the dance.", "Unity is strength.", "A tree cannot stand without its roots."];
-    document.getElementById('fact').textContent = facts[Math.floor(Math.random() * facts.length)];
-
-  </script>
+  <div id="fact">Wisdom is like a baobab tree; no one individual can embrace it.</div>
+  <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 </body>
 </html>
