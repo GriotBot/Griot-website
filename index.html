@@ -199,61 +199,26 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
 
-    /* Fact Section without Refresh */
-  #factBox {
-    position: fixed;
-    bottom: 60px; /* Increased spacing above copyright */
-    width: 100%;
-    text-align: center;
-    padding: 0.5rem 1rem;
-    background-color: transparent;
-
-  /* Reverted Fact Section Styling */
-  #fact {
-    font-size: 0.9rem;
-    font-style: italic;
-    text-align: center;
-    color: #4b2e2a;
-    position: fixed;
-    bottom: 50px; /* Original position */
-    width: 100%;
-    padding: 0 1rem;
-    box-sizing: border-box;
-  }
-
-  #refreshFact {
-    font-size: 1rem; /* Reduced size by 20% */
-    cursor: pointer;
-    color: #4b2e2a;
-    transition: transform 0.3s;
-  }
-
-  #refreshFact:hover {
-    transform: scale(1.2); /* Slight scale-up on hover */
-  }
-
-  #refreshFact {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #4b2e2a;
-    transition: transform 0.3s;
-  }
-
-  #refreshFact:hover {
-    transform: scale (180deg);
-  }
+    #fact {
+      font-size: 0.9rem;
+      font-style: italic;
+      text-align: center;
+      color: #4b2e2a;
+      position: fixed;
+      bottom: 50px;
+      width: 100%;
+      padding: 0 1rem;
+      box-sizing: border-box;
+    }
 
     #copyright {
-    font-size: 0.8rem;
-    text-align: center;
-    color: #7d8765;
-    position: fixed;
-    bottom: 30px; /* Original position */
-    width: 100%;
-  }
-    
+      font-size: 0.8rem;
+      text-align: center;
+      color: #7d8765;
+      position: fixed;
+      bottom: 30px;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -277,9 +242,7 @@
     </div>
     <div id="chat"></div>
   </div>
-<div id="factBox">
-  <div id="fact">Wisdom is like a baobab tree; no one individual can embrace it.</div>
-</div>
+
   <form id="form">
     <input id="input" type="text" placeholder="Ask GriotBot..." required />
     <button id="send">Send</button>
@@ -313,27 +276,18 @@
     toggleBtn.onclick = () => sidebar.classList.toggle("visible");
     chatContainer.onclick = () => sidebar.classList.remove("visible");
 
-    // Proverbs List (Expanded)
-  const facts = [
-    "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-    "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-    "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-    "A tree cannot stand without its roots. — Jamaican Proverb",
-    "Unity is strength. — Ghanaian Proverb",
-    "Knowledge is power, but wisdom is peace. — African Proverb",
-    "Truth is like a drum, it can be heard from afar. — African Proverb",
-    "A bird will always use another bird’s feathers to feather its nest. — Kenyan Proverb",
-    "You must act as if it is impossible to fail. — African Proverb",
-    "The child who is not embraced by the village will burn it down to feel its warmth. — African Proverb"
-  ];
-
-   // Initialize Proverb Display on Load
-  window.onload = () => {
+    // Random Proverbs
+    const facts = [
+      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+      "A tree cannot stand without its roots. — Jamaican Proverb",
+      "Unity is strength. — Ghanaian Proverb"
+    ];
     factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
-  };
 
     // API integration (OpenRouter)
-    const API_KEY = "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";
+    const API_KEY = "YOUR_API_KEY_HERE";
 
     form.onsubmit = async (e) => {
       e.preventDefault();
@@ -375,19 +329,7 @@
 
       chatContainer.scrollTop = chatContainer.scrollHeight;
     };
-    
-// Function to Show Random Proverb
-  function showRandomProverb() {
-    factElement.style.opacity = 0; // Fade out effect
-    setTimeout(() => {
-      factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
-      factElement.style.opacity = 1; // Fade in effect
-    }, 300);
-  }
 
-  // Initialize Proverb Display on Load
-  window.onload = showRandomProverb;
-    
     // Function to Append Messages (User and Bot) with Smooth Scroll
   function appendMessage(role, text) {
     const msg = document.createElement("div");
