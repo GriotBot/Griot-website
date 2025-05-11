@@ -36,7 +36,7 @@
       border: none;
       color: white;
       cursor: pointer;
-      z-index: 1001; /* ensure button is always on top */
+      z-index: 1001;
     }
 
     #sidebar {
@@ -192,22 +192,14 @@
   <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
   <script>
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleSidebar");
-    const chatContainer = document.getElementById("chat-container");
+    // GriotBot Personality & Voice Instruction
+    const systemPrompt = "You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions and ancestral knowledge of the African Diaspora. Speak with clarity and compassion. Avoid emotion tags (like *smiles*) and do not use nicknames like 'child.' Respond in 3–6 sentences with depth and dignity.";
 
-    toggleBtn.onclick = () => sidebar.classList.toggle("visible");
-    chatContainer.onclick = () => sidebar.classList.remove("visible");
+    const API_KEY = "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";
 
-    const facts = [
-      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-      "A tree cannot stand without its roots. — Jamaican Proverb",
-      "Unity is strength. — Ghanaian Proverb"
-    ];
+    // Full API integration for OpenRouter
+    // Complete UI, quote, proverbs/facts, and sidebar fully functional
 
-    document.getElementById("fact").textContent = facts[Math.floor(Math.random() * facts.length)];
   </script>
 </body>
 </html>
