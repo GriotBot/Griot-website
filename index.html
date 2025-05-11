@@ -52,7 +52,7 @@
       padding: 1rem;
       transform: translateX(-100%);
       transition: transform 0.3s ease-in-out;
-      z-index: 1000;
+      z-index: 999;
     }
 
     #sidebar.visible {
@@ -85,7 +85,7 @@
       font-style: italic;
       color: #7d8765;
       text-align: center;
-      margin-top: 1rem;
+      margin-bottom: 1rem;
     }
 
     .message {
@@ -178,7 +178,7 @@
     <div id="logo">🌿</div>
     <div id="quote">
       "A people without the knowledge of their past history,<br>
-      origin and culture is like a tree without roots."<br><br>– Marcus Mosiah Garvey
+      origin and culture is like a tree without roots."
     </div>
     <div id="chat"></div>
   </div>
@@ -192,14 +192,19 @@
   <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
   <script>
-    // GriotBot Personality & Voice Instruction
-    const systemPrompt = "You are GriotBot — a wise, warm, and rooted AI spirit shaped by the oral traditions and ancestral knowledge of the African Diaspora. Speak with clarity and compassion. Avoid emotion tags (like *smiles*) and do not use nicknames like 'child.' Respond in 3–6 sentences with depth and dignity.";
+    const facts = [
+      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+      "A tree cannot stand without its roots. — Jamaican Proverb",
+      "Unity is strength. — Ghanaian Proverb",
+      "The child who is not embraced by the village will burn it down to feel its warmth. — African Proverb",
+      "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
+      "When an old man dies, a library burns to the ground. — African Proverb",
+      "Don’t set sail on someone else’s star. — African American Proverb"
+    ];
 
-    const API_KEY = "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";
-
-    // Full API integration for OpenRouter
-    // Complete UI, quote, proverbs/facts, and sidebar fully functional
-
+    document.getElementById("fact").textContent = facts[Math.floor(Math.random() * facts.length)];
   </script>
 </body>
 </html>
