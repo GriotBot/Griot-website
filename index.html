@@ -25,17 +25,24 @@
       font-size: 1.2rem;
       position: relative;
     }
+/* Animated Toggle Button */
+  #toggleSidebar {
+    position: absolute;
+    left: 10px;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
 
-    #toggleSidebar {
-      position: absolute;
-      left: 10px;
-      font-size: 1.5rem;
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-      z-index: 1000;
-    }
+  /* Toggle Animation for 'X' (Close Icon) */
+  #toggleSidebar.open {
+    transform: rotate(45deg); /* Makes it look like an 'X' */
+    color: #f6f1ec; /* Change color when active */
+  }
    
   /* Enhanced Sidebar Styles with Shadow and Blur */
   #sidebar {
@@ -196,11 +203,13 @@
 
   toggleBtn.onclick = () => {
     sidebar.classList.toggle("visible");
+    toggleBtn.classList.toggle("open");
   };
 
   document.addEventListener("click", (e) => {
     if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
       sidebar.classList.remove("visible");
+      toggleBtn.classList.remove("open");
     }
   });
     const chatContainer = document.getElementById("chat-container");
