@@ -16,7 +16,6 @@
       overflow: hidden;
     }
 
-    /* Header styling adjusted for spacing */
     #header {
       background-color: #c49a6c;
       padding: 1rem;
@@ -37,10 +36,7 @@
       border: none;
       color: white;
       cursor: pointer;
-    }
-
-    #header span {
-      margin-left: 10px; /* Space between toggle and text */
+      z-index: 1001; /* ensure button is always on top */
     }
 
     #sidebar {
@@ -51,12 +47,12 @@
       left: 0;
       top: 0;
       height: 100%;
+      display: flex;
+      flex-direction: column;
       padding: 1rem;
       transform: translateX(-100%);
       transition: transform 0.3s ease-in-out;
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
+      z-index: 1000;
     }
 
     #sidebar.visible {
@@ -76,8 +72,8 @@
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      padding-bottom: 150px;
       overflow-y: auto;
+      padding-bottom: 150px;
     }
 
     #logo {
@@ -97,7 +93,6 @@
       border-radius: 8px;
       margin: 0.5rem;
       word-wrap: break-word;
-      box-sizing: border-box;
     }
 
     .user {
@@ -127,7 +122,6 @@
       padding: 0.5rem;
       background-color: #f6f1ec;
       border-top: 1px solid #c49a6c;
-      box-sizing: border-box;
     }
 
     #input {
@@ -155,7 +149,6 @@
       bottom: 50px;
       width: 100%;
       padding: 0 1rem;
-      box-sizing: border-box;
     }
 
     #copyright {
@@ -163,16 +156,15 @@
       text-align: center;
       color: #7d8765;
       position: fixed;
-      bottom: 15px; /* Increased space from fact */
+      bottom: 15px;
       width: 100%;
     }
   </style>
 </head>
 <body>
-
   <div id="header">
     <button id="toggleSidebar">☰</button>
-    <span>GriotBot</span>
+    <span style="margin-left:15px;">GriotBot</span>
   </div>
 
   <div id="sidebar">
@@ -199,79 +191,23 @@
   <div id="fact"></div>
   <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
-<script>
-  const sidebar = document.getElementById("sidebar");
-  const toggleBtn = document.getElementById("toggleSidebar");
-  const chatContainer = document.getElementById("chat-container");
-  const chat = document.getElementById("chat");
-  const form = document.getElementById("form");
-  const input = document.getElementById("input");
-  const factElement = document.getElementById("fact");
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const chatContainer = document.getElementById("chat-container");
 
-  toggleBtn.onclick = () => sidebar.classList.toggle("visible");
-  chatContainer.onclick = () => sidebar.classList.remove("visible");
+    toggleBtn.onclick = () => sidebar.classList.toggle("visible");
+    chatContainer.onclick = () => sidebar.classList.remove("visible");
 
-  const facts = [
-    "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-    "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-    "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-    "A tree cannot stand without its roots. — Jamaican Proverb",
-    "Unity is strength. — Ghanaian Proverb",
-    "If you educate a man you educate an individual, but if you educate a woman you educate a nation. — African Proverb",
-    "Do not look where you fell, but where you slipped. — African Proverb",
-    "Every day is fishing day, but not every day is catching day. — Jamaican Proverb",
-    "When the music changes, so does the dance. — Nigerian Proverb"
-  ];
-  factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+    const facts = [
+      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+      "A tree cannot stand without its roots. — Jamaican Proverb",
+      "Unity is strength. — Ghanaian Proverb"
+    ];
 
-  const API_KEY = "YOUR_API_KEY_HERE";
-
-  form.onsubmit = async (e) => {
-    e.preventDefault();
-    document.getElementById("logo").style.display = "none";
-    document.getElementById("quote").style.display = "none";
-
-    const userInput = input.value.trim();
-    if (!userInput) return;
-
-    appendMessage("user", userInput);
-    input.value = "";
-
-    const botMessage = document.createElement("div");
-    botMessage.className = "message bot";
-    botMessage.textContent = "GriotBot is thinking...";
-    chat.appendChild(botMessage);
-
-    try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o",
-          messages: [{role: "user", content: userInput}],
-          max_tokens: 350
-        })
-      });
-
-      const data = await res.json();
-      botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-    } catch (error) {
-      botMessage.textContent = "Something went wrong.";
-      console.error(error);
-    }
-
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  };
-
-  function appendMessage(role, text) {
-    const msg = document.createElement("div");
-    msg.className = `message ${role}`;
-    msg.textContent = text;
-    chat.appendChild(msg);
-  }
-</script>
+    document.getElementById("fact").textContent = facts[Math.floor(Math.random() * facts.length)];
+  </script>
 </body>
 </html>
