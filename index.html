@@ -136,14 +136,27 @@
       border-radius: 8px 0 0 8px;
     }
 
-    #send {
-      background-color: #c49a6c;
-      color: white;
-      border: none;
-      padding: 0 1rem;
-      border-radius: 0 8px 8px 0;
-      cursor: pointer;
-    }
+    /* Send Button with Hover Effect */
+  #send {
+    background-color: #c49a6c;
+    color: white;
+    border: none;
+    padding: 0 1rem;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  #send:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    background-color: #a6754c;
+  }
+
+  #send:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
 
     #fact {
       font-size: 0.9rem;
