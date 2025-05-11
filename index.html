@@ -149,17 +149,18 @@
   }
 
     #form {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 700px;
-      display: flex;
-      padding: 0.5rem;
-      background-color: #f6f1ec;
-      border-top: 1px solid #c49a6c;
-    }
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    padding: 0.5rem;
+    background-color: rgba(246, 241, 236, 0.95); /* Slightly opaque background */
+    border-top: 1px solid #c49a6c;
+    z-index: 1000;
+  }
 
     /* Text Input Field without Blue Outline */
   #input {
@@ -200,25 +201,29 @@
   }
 
     #fact {
-      font-size: 0.9rem;
-      font-style: italic;
-      text-align: center;
-      color: #4b2e2a;
-      position: fixed;
-      bottom: 50px;
-      width: 100%;
-      padding: 0 1rem;
-      box-sizing: border-box;
-    }
+    font-size: 0.9rem;
+    font-style: italic;
+    text-align: center;
+    color: #4b2e2a;
+    position: fixed;
+    bottom: 50px;
+    width: 100%;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    background-color: rgba(246, 241, 236, 0.95); /* Slightly opaque background */
+    z-index: 999;
+  }
 
-    #copyright {
-      font-size: 0.8rem;
-      text-align: center;
-      color: #7d8765;
-      position: fixed;
-      bottom: 30px;
-      width: 100%;
-    }
+  #copyright {
+    font-size: 0.8rem;
+    text-align: center;
+    color: #7d8765;
+    position: fixed;
+    bottom: 30px;
+    width: 100%;
+    background-color: rgba(246, 241, 236, 0.95); /* Slightly opaque background */
+    z-index: 998;
+  }
   </style>
 </head>
 <body>
