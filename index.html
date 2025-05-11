@@ -37,9 +37,10 @@
     z-index: 1000;
     transition: transform 0.3s ease, color 0.3s ease;
   }
+
   /* Transform to 'X' (close icon) when sidebar is visible */
   #toggleSidebar.open {
-    transform: rotate(90deg);
+    transform: rotate(45deg); /* Makes it look like an 'X' */
     color: #f6f1ec;
   }
    
@@ -197,18 +198,18 @@
   <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
   <script>
-    const sidebar = document.getElementById("sidebar");
+   const sidebar = document.getElementById("sidebar");
   const toggleBtn = document.getElementById("toggleSidebar");
 
   toggleBtn.onclick = () => {
     sidebar.classList.toggle("visible");
-    toggleBtn.classList.toggle("open");
+    toggleBtn.classList.toggle("open"); // Corrected
   };
 
   document.addEventListener("click", (e) => {
     if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
       sidebar.classList.remove("visible");
-      toggleBtn.classList.remove("open");
+      toggleBtn.classList.remove("open"); // Corrected
     }
   });
     const chatContainer = document.getElementById("chat-container");
