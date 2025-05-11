@@ -17,6 +17,7 @@
       background-color: #f6f1ec;
       color: #4b2e2a;
       display: flex;
+      flex-direction: column;
       height: 100vh;
       overflow: hidden;
       transition: opacity 0.6s ease-in-out;
@@ -29,6 +30,32 @@
       100% { opacity: 1; }
     }
 
+    /* Header (Menu Bar at the Top) */
+    #header {
+      background-color: #4b2e2a;
+      color: white;
+      padding: 1rem;
+      font-weight: bold;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    #toggleSidebar {
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      color: white;
+      cursor: pointer;
+    }
+
     /* Sidebar */
     #sidebar {
       width: 220px;
@@ -36,38 +63,24 @@
       color: white;
       position: fixed;
       left: -220px;
-      top: 0;
+      top: 55px;
       height: 100%;
       display: flex;
       flex-direction: column;
       padding: 1rem;
       transition: transform 0.4s ease-in-out, opacity 0.4s ease;
-      z-index: 999;
-      opacity: 0;
-      pointer-events: none;
       box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(6px);
       overflow-y: auto;
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
     }
 
     #sidebar.visible {
       transform: translateX(220px);
       opacity: 1;
       pointer-events: auto;
-    }
-
-    /* Sidebar Toggle Button */
-    #toggleSidebar {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: none;
-      border: none;
-      font-size: 1.8rem;
-      color: white;
-      cursor: pointer;
-      z-index: 1001;
-      transition: transform 0.3s ease-in-out;
     }
 
     /* Chat Container */
@@ -80,39 +93,28 @@
       padding: 1rem;
       overflow-y: auto;
       padding-bottom: 150px;
-      transition: margin-left 0.4s ease-in-out;
       scroll-behavior: smooth;
     }
 
-    #chat-container.expanded {
-      margin-left: 0;
+    #logo {
+      font-size: 4rem;
+      margin-top: 75px; /* Ensure space below header */
     }
 
-    #header {
-      background-color: #c49a6c;
-      padding: 1rem;
-      font-weight: bold;
-      color: white;
-      font-size: 1.2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+    #quote {
+      font-size: 1rem;
+      font-style: italic;
+      color: #7d8765;
+      text-align: center;
+      margin-bottom: 1rem;
     }
 
-    /* Message Bubbles */
     .message {
       padding: 0.7rem;
       border-radius: 8px;
       margin: 0.5rem;
       word-wrap: break-word;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .message:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .user {
@@ -131,11 +133,17 @@
       min-width: 40%;
     }
 
-    /* Chat Input */
+    /* Chat Input (Positioned at Bottom) */
     #form {
       display: flex;
       padding: 1rem;
       border-top: 1px solid #c49a6c;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: white;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
     }
 
     #input {
@@ -154,30 +162,15 @@
       cursor: pointer;
     }
 
-    /* Loading Animation */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 5px;
-      gap: 5px;
-    }
-
-    .loading span {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      background: #fff;
-      border-radius: 50%;
-      animation: bounce 0.6s infinite alternate;
-    }
-
-    .loading span:nth-child(2) { animation-delay: 0.2s; }
-    .loading span:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes bounce {
-      from { transform: translateY(0); }
-      to { transform: translateY(-8px); }
+    /* Copyright & Additional Details */
+    #copyright {
+      font-size: 0.8rem;
+      text-align: center;
+      color: #6d6d6d;
+      padding: 1rem;
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
     }
   </style>
 </head>
@@ -185,7 +178,7 @@
 
   <div id="header">
     <button id="toggleSidebar">☰</button>
-    <span style="margin-left:15px;">GriotBot</span>
+    <span>GriotBot</span>
   </div>
 
   <div id="sidebar">
@@ -196,6 +189,11 @@
   </div>
 
   <div id="chat-container">
+    <div id="logo">🌿</div>
+    <div id="quote">
+      "A people without the knowledge of their past history,<br>
+      origin and culture is like a tree without roots."
+    </div>
     <div id="chat"></div>
   </div>
 
@@ -203,6 +201,8 @@
     <input id="input" type="text" placeholder="Ask GriotBot..." required />
     <button id="send">Send</button>
   </form>
+
+  <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
   <script>
     const API_KEY = "YOUR_API_KEY_HERE";
@@ -216,10 +216,8 @@
 
       const botMsg = document.createElement("div");
       botMsg.className = "message bot";
-      botMsg.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
+      botMsg.innerHTML = "GriotBot is thinking...";
       chat.appendChild(botMsg);
-
-      setTimeout(() => botMsg.innerHTML = "GriotBot is thinking...", 1000);
 
       try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
