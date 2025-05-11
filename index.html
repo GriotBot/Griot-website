@@ -182,18 +182,33 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
 
-    #fact {
-      font-size: 0.9rem;
-      font-style: italic;
-      text-align: center;
-      color: #4b2e2a;
-      position: fixed;
-      bottom: 50px;
-      width: 100%;
-      padding: 0 1rem;
-      box-sizing: border-box;
-    }
+    /* Proverb Section with Separator */
+  #fact {
+    font-size: 0.9rem;
+    font-style: italic;
+    text-align: center;
+    color: #4b2e2a;
+    position: fixed;
+    bottom: 50px;
+    width: 100%;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+  }
 
+  #fact.visible {
+    opacity: 1;
+  }
+
+  #factSeparator {
+    position: fixed;
+    bottom: 80px;
+    width: 100%;
+    height: 1px;
+    background-color: #c49a6c;
+    opacity: 0.5;
+  }
     #copyright {
       font-size: 0.8rem;
       text-align: center;
@@ -231,7 +246,8 @@
     <button id="send">Send</button>
   </form>
 
-  <div id="fact"></div>
+  <div id="factSeparator"></div>
+<div id="fact"></div>
   <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
   <script>
@@ -260,14 +276,22 @@
 
     // Random Proverbs
     const facts = [
-      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-      "A tree cannot stand without its roots. — Jamaican Proverb",
-      "Unity is strength. — Ghanaian Proverb"
-    ];
-    factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+    "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+    "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+    "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+    "A tree cannot stand without its roots. — Jamaican Proverb",
+    "Unity is strength. — Ghanaian Proverb",
+    "Knowledge is power, but wisdom is peace. — African Proverb",
+    "Truth is like a drum, it can be heard from afar. — African Proverb",
+    "A bird will always use another bird’s feathers to feather its nest. — Kenyan Proverb"
+  ];
 
+  // Display Random Proverb with Fade-in Effect
+  factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+  setTimeout(() => {
+    factElement.classList.add("visible");
+  }, 300);
+    
     // API integration (OpenRouter)
     const API_KEY = "YOUR_API_KEY_HERE";
 
