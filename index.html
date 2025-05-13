@@ -6,6 +6,54 @@
   <title>GriotBot Chat</title>
   <style>
     body {
+        /* Light theme colors */
+  --bg-color: #f6f1ec;
+  --text-color: #4b2e2a;
+  --header-bg: #c49a6c;
+  --sidebar-bg: rgba(75, 46, 42, 0.85);
+  --user-bubble: #bd8735;
+  --bot-bubble-start: #7d8765;
+  --bot-bubble-end: #5e6e4f;
+}
+
+[data-theme="dark"] {
+  /* Dark theme overrides */
+  --bg-color: #2e2a24;
+  --text-color: #e6e2d9;
+  --header-bg: #533f33;
+  --sidebar-bg: rgba(30, 25, 20, 0.85);
+  --user-bubble: #a6754c;
+  --bot-bubble-start: #5e6e4f;
+  --bot-bubble-end: #3e4a38;
+}
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Header */
+#header {
+  background-color: var(--header-bg);
+}
+
+/* Sidebar */
+#sidebar {
+  background: var(--sidebar-bg);
+}
+
+/* User bubble */
+.user {
+  background-color: var(--user-bubble);
+}
+
+/* Bot bubble gradient */
+.bot {
+  background: linear-gradient(
+    135deg,
+    var(--bot-bubble-start),
+    var(--bot-bubble-end)
+  );
+}
       font-family: Helvetica, Arial, sans-serif;
       background-color: #f6f1ec;
       color: #4b2e2a;
@@ -225,6 +273,7 @@
   <div id="header">
     <button id="toggleSidebar">☰</button>
     GriotBot
+    <button id="themeToggle" aria-label="Toggle dark/light mode">🌗</button>
   </div>
 
   <div id="sidebar">
@@ -338,7 +387,23 @@
     document.getElementById("chat").appendChild(msg);
     smoothScrollToBottom();
   }
+// Theme toggle
+const themeToggle = document.getElementById("themeToggle");
 
+// On load: read saved theme or default to light
+const savedTheme = localStorage.getItem("griotbot-theme") || "light";
+document.documentElement.setAttribute("data-theme", savedTheme);
+themeToggle.textContent = savedTheme === "dark" ? "☀️" : "🌗";
+
+// When user clicks the toggle:
+themeToggle.onclick = () => {
+  const current = document.documentElement.getAttribute("data-theme");
+  const next = current === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("griotbot-theme", next);
+  // Switch icon
+  themeToggle.textContent = next === "dark" ? "☀️" : "🌗";
+};
   // Smooth Scroll Function
   function smoothScrollToBottom() {
     const chatContainer = document.getElementById("chat-container");
