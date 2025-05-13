@@ -119,6 +119,17 @@ export default function Feedback() {
       {/* HEADER + CONTROLS */}
       <div id="header" role="banner">
         <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
+        
+        {/* BACK ARROW IN HEADER - NEW POSITION */}
+        <div className="backButton">
+          <Link href="/">
+            <a aria-label="Back to chat">
+              <span className="arrow">←</span>
+              <span className="hoverText">Back to Chat</span>
+            </a>
+          </Link>
+        </div>
+        
         <div className="logo-container">
           <span className="logo-icon" aria-hidden="true">🌿</span>
           <span>GriotBot</span>
@@ -170,37 +181,12 @@ export default function Feedback() {
         </div>
       </nav>
 
-      {/* BACK BUTTON */}
-      <div style={{
-        position: 'absolute',
-        top: '70px',
-        left: '20px',
-        zIndex: '10'
-      }}>
-        <Link href="/">
-          <a style={{
-            display: 'flex',
-            alignItems: 'center',
-            color: 'var(--sidebar-text)',
-            backgroundColor: 'var(--accent-color)',
-            padding: '6px 12px',
-            borderRadius: '6px',
-            textDecoration: 'none',
-            fontSize: '0.9rem',
-            fontWeight: '500',
-            boxShadow: '0 2px 4px var(--shadow-color)'
-          }}>
-            <span style={{ marginRight: '6px' }}>←</span> Back to Chat
-          </a>
-        </Link>
-      </div>
-
       <div style={{
         height: 'calc(100vh - 160px)',
         overflowY: 'auto',
         backgroundColor: 'var(--bg-color)',
         color: 'var(--text-color)',
-        padding: '2.5rem 1.5rem 1.5rem',
+        padding: '1.5rem',
         scrollbarWidth: 'thin',
         scrollbarColor: 'var(--accent-color) var(--bg-color)'
       }}>
@@ -212,34 +198,35 @@ export default function Feedback() {
           textAlign: 'center'
         }}>
           <h1 style={{
-            color: 'var(--bot-bubble-start)',
+            color: 'var(--bot-text)',
             fontFamily: 'var(--heading-font)',
             fontSize: '2rem',
-            marginBottom: '1rem',
-            marginTop: '1.5rem'
+            marginBottom: '1rem'
           }}>We'd Love Your Feedback</h1>
           
           <p style={{ 
             marginBottom: '2rem',
             fontSize: '1.1rem',
-            color: 'var(--text-color)'
+            color: 'var(--bot-text)'
           }}>
             GriotBot is growing, and your voice helps shape the journey.
           </p>
           
           <div style={{ 
-            background: 'var(--card-bg)',
+            background: 'var(--input-bg)',
             borderRadius: '12px',
-            boxShadow: '0 3px 10px var(--shadow-color)',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
             overflow: 'hidden',
-            marginBottom: '2rem'
+            marginBottom: '2rem',
+            border: '1px solid rgba(255,255,255,0.1)'
           }}>
             <iframe
               src="https://docs.google.com/forms/d/e/1FAIpQLSdTfuVK9qk0lfin5xMfTQoakoZOPrcbrCQTswt3oDSTyp4i0w/viewform?embedded=true"
               style={{
                 width: '100%',
                 height: '60vh',
-                border: 'none'
+                border: 'none',
+                backgroundColor: '#f8f5f0'
               }}
               loading="lazy"
               title="GriotBot Feedback Form"
@@ -259,7 +246,7 @@ export default function Feedback() {
         padding: '0 1rem',
         color: 'var(--wisdom-color)',
         transition: 'color 0.3s',
-        opacity: '0.8',
+        opacity: '0.9',
         fontFamily: 'var(--quote-font)',
         pointerEvents: 'none'
       }}></div>
@@ -294,6 +281,46 @@ export default function Feedback() {
         
         ::-webkit-scrollbar-thumb:hover {
           background-color: var(--accent-hover);
+        }
+        
+        /* Back arrow button styling */
+        .backButton {
+          position: absolute;
+          left: 60px;
+          display: flex;
+          align-items: center;
+        }
+        
+        .backButton a {
+          color: var(--header-text);
+          display: flex;
+          align-items: center;
+          text-decoration: none;
+          font-size: 1.2rem;
+        }
+        
+        .backButton .arrow {
+          font-size: 1.4rem;
+          transition: transform 0.2s ease;
+        }
+        
+        .backButton a:hover .arrow {
+          transform: translateX(-3px);
+        }
+        
+        .backButton .hoverText {
+          position: absolute;
+          left: 25px;
+          opacity: 0;
+          transform: translateX(-10px);
+          transition: opacity 0.2s, transform 0.2s;
+          font-size: 0.9rem;
+          white-space: nowrap;
+        }
+        
+        .backButton a:hover .hoverText {
+          opacity: 1;
+          transform: translateX(0);
         }
         
         /* Fix for sidebar a elements */
