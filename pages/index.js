@@ -426,17 +426,22 @@ export default function Home() {
             --card-bg: #352e29;
           }
 
+          /* Global styles - Applied to everything */
+          * {
+            box-sizing: border-box !important;
+          }
+
           /* Critical body styles */
-          body {
-            margin: 0;
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            line-height: 1.6;
+          body, html {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Montserrat', sans-serif !important;
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
+            height: 100vh !important;
+            width: 100% !important;
+            overflow: hidden !important;
+            line-height: 1.6 !important;
           }
 
           /* Header styles */
@@ -457,6 +462,8 @@ export default function Home() {
             box-shadow: 0 2px 10px var(--shadow-color) !important;
             z-index: 100 !important;
             font-family: 'Lora', serif !important;
+            height: 60px !important; /* Fixed height for header */
+            width: 100% !important;
           }
           
           .logo-container,
@@ -530,7 +537,7 @@ export default function Home() {
             transform: translateX(0) !important;
           }
           
-          /* Chat container styles */
+          /* Chat container styles - FIX FOR SCROLLING */
           #chat-container,
           main#chat-container,
           [id="chat-container"] {
@@ -539,9 +546,15 @@ export default function Home() {
             flex-direction: column !important;
             align-items: center !important;
             justify-content: flex-start !important;
-            overflow-y: auto !important;
+            overflow-y: auto !important; /* Enable vertical scrolling */
+            height: calc(100vh - 160px) !important; /* Subtract header + input area heights */
+            position: fixed !important;
+            top: 60px !important; /* Position below header */
+            left: 0 !important;
+            right: 0 !important;
             padding: 1rem !important;
             padding-bottom: 140px !important;
+            background-color: var(--bg-color) !important;
           }
           
           .welcome-container,
@@ -555,6 +568,7 @@ export default function Home() {
             text-align: center !important;
             max-width: 700px !important;
             margin: 1rem auto 2rem !important;
+            width: 100% !important;
           }
           
           #logo,
@@ -593,6 +607,7 @@ export default function Home() {
             margin-bottom: 2rem !important;
             position: relative !important;
             padding: 0 1.5rem !important;
+            width: 100% !important;
           }
           
           .quote-attribution,
@@ -603,6 +618,7 @@ export default function Home() {
             margin-top: 0.5rem !important;
           }
           
+          /* FIX FOR BROWN BAR - Suggestion cards */
           .suggestion-cards,
           div.suggestion-cards,
           [class="suggestion-cards"] {
@@ -613,6 +629,7 @@ export default function Home() {
             margin-bottom: 2rem !important;
             width: 100% !important;
             max-width: 700px !important;
+            border: none !important; /* Remove any borders */
           }
           
           .suggestion-card,
@@ -625,6 +642,26 @@ export default function Home() {
             min-width: 200px !important;
             box-shadow: 0 3px 10px var(--shadow-color) !important;
             cursor: pointer !important;
+            border: none !important; /* Remove any borders */
+          }
+          
+          .suggestion-category,
+          div.suggestion-category,
+          [class="suggestion-category"] {
+            font-size: 0.8rem !important;
+            text-transform: uppercase !important;
+            color: var(--accent-color) !important;
+            font-weight: 500 !important;
+            margin-bottom: 0.5rem !important;
+          }
+          
+          .suggestion-title,
+          h3.suggestion-title,
+          [class="suggestion-title"] {
+            font-family: var(--heading-font), 'Lora', serif !important;
+            font-weight: 600 !important;
+            margin: 0 !important;
+            font-size: 1.1rem !important;
           }
           
           /* Chat styles */
@@ -637,7 +674,7 @@ export default function Home() {
             flex-direction: column !important;
           }
           
-          /* Form container styles */
+          /* Form container styles - FIXED position */
           #form-container,
           div#form-container,
           [id="form-container"] {
@@ -715,12 +752,13 @@ export default function Home() {
             font-size: 0.8rem !important;
           }
           
-          /* Footer elements */
+          /* FIXING BOTTOM ELEMENTS - Footer elements */
           #fact,
           div#fact,
           [id="fact"] {
             position: fixed !important;
             bottom: 30px !important;
+            left: 0 !important;
             width: 100% !important;
             text-align: center !important;
             font-size: 0.9rem !important;
@@ -729,6 +767,9 @@ export default function Home() {
             color: var(--wisdom-color) !important;
             opacity: 0.8 !important;
             font-family: 'Lora', serif !important;
+            background-color: transparent !important;
+            pointer-events: none !important; /* Make transparent to clicks */
+            z-index: 40 !important; /* Below input */
           }
           
           #copyright,
@@ -736,11 +777,79 @@ export default function Home() {
           [id="copyright"] {
             position: fixed !important;
             bottom: 10px !important;
+            left: 0 !important;
             width: 100% !important;
             text-align: center !important;
             font-size: 0.8rem !important;
             color: var(--text-color) !important;
             opacity: 0.6 !important;
+            background-color: transparent !important;
+            pointer-events: none !important; /* Make transparent to clicks */
+            z-index: 40 !important; /* Below input */
+          }
+          
+          /* Storyteller toggle styling */
+          .storyteller-mode,
+          div.storyteller-mode,
+          [class="storyteller-mode"] {
+            display: flex !important;
+            align-items: center !important;
+          }
+          
+          .storyteller-mode label {
+            display: flex !important;
+            align-items: center !important;
+            cursor: pointer !important;
+          }
+          
+          .toggle-switch,
+          div.toggle-switch,
+          [class="toggle-switch"] {
+            position: relative !important;
+            display: inline-block !important;
+            width: 36px !important;
+            height: 20px !important;
+            margin-left: 0.5rem !important;
+          }
+          
+          .toggle-switch input { 
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+          
+          .slider,
+          span.slider,
+          [class="slider"] {
+            position: absolute !important;
+            cursor: pointer !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background-color: rgba(0,0,0,0.25) !important;
+            transition: .3s !important;
+            border-radius: 20px !important;
+          }
+          
+          .slider:before {
+            position: absolute !important;
+            content: "" !important;
+            height: 16px !important;
+            width: 16px !important;
+            left: 2px !important;
+            bottom: 2px !important;
+            background-color: white !important;
+            transition: .3s !important;
+            border-radius: 50% !important;
+          }
+          
+          input:checked + .slider {
+            background-color: var(--accent-color) !important;
+          }
+          
+          input:checked + .slider:before {
+            transform: translateX(16px) !important;
           }
           
           /* Mobile responsive adjustments */
@@ -750,6 +859,10 @@ export default function Home() {
             [class="suggestion-card"] {
               width: 100% !important;
               max-width: 100% !important;
+            }
+            
+            #chat-container {
+              height: calc(100vh - 140px) !important;
             }
           }
         `}} />
