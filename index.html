@@ -1,201 +1,169 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GriotBot Chat</title>
   <style>
+    /*---------------------------------------
+      1. THEME VARIABLES
+    ---------------------------------------*/
+    :root {
+      /* Light theme */
+      --bg-color: #f6f1ec;
+      --text-color: #4b2e2a;
+      --header-bg: #c49a6c;
+      --sidebar-bg: rgba(75, 46, 42, 0.85);
+      --user-bubble: #bd8735;
+      --bot-bubble-start: #7d8765;
+      --bot-bubble-end: #5e6e4f;
+    }
+    [data-theme="dark"] {
+      /* Dark theme overrides */
+      --bg-color: #2e2a24;
+      --text-color: #e6e2d9;
+      --header-bg: #533f33;
+      --sidebar-bg: rgba(30, 25, 20, 0.85);
+      --user-bubble: #a6754c;
+      --bot-bubble-start: #5e6e4f;
+      --bot-bubble-end: #3e4a38;
+    }
+
+    /*---------------------------------------
+      2. GLOBAL STYLES
+    ---------------------------------------*/
+    * { box-sizing: border-box; }
     body {
-        /* Light theme colors */
-  --bg-color: #f6f1ec;
-  --text-color: #4b2e2a;
-  --header-bg: #c49a6c;
-  --sidebar-bg: rgba(75, 46, 42, 0.85);
-  --user-bubble: #bd8735;
-  --bot-bubble-start: #7d8765;
-  --bot-bubble-end: #5e6e4f;
-}
-
-[data-theme="dark"] {
-  /* Dark theme overrides */
-  --bg-color: #2e2a24;
-  --text-color: #e6e2d9;
-  --header-bg: #533f33;
-  --sidebar-bg: rgba(30, 25, 20, 0.85);
-  --user-bubble: #a6754c;
-  --bot-bubble-start: #5e6e4f;
-  --bot-bubble-end: #3e4a38;
-}
-body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
-
-/* Header */
-#header {
-  background-color: var(--header-bg);
-}
-
-/* Sidebar */
-#sidebar {
-  background: var(--sidebar-bg);
-}
-
-/* User bubble */
-.user {
-  background-color: var(--user-bubble);
-}
-
-/* Bot bubble gradient */
-.bot {
-  background: linear-gradient(
-    135deg,
-    var(--bot-bubble-start),
-    var(--bot-bubble-end)
-  );
-}
-      font-family: Helvetica, Arial, sans-serif;
-      background-color: #f6f1ec;
-      color: #4b2e2a;
       margin: 0;
+      font-family: Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       display: flex;
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
     }
+    button { background: none; border: none; cursor: pointer; }
 
+    /*---------------------------------------
+      3. HEADER + NAV
+    ---------------------------------------*/
     #header {
-      background-color: #c49a6c;
+      position: relative;
+      background-color: var(--header-bg);
+      color: white;
       padding: 1rem;
       text-align: center;
       font-weight: bold;
-      color: white;
       font-size: 1.2rem;
-      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
     }
-/* Animated Toggle Button */
-  #toggleSidebar {
-    position: absolute;
-    left: 10px;
-    font-size: 1.5rem;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    z-index: 1000;
-    transition: transform 0.3s ease, color 0.3s ease;
-  }
+    #toggleSidebar {
+      position: absolute;
+      left: 1rem;
+      font-size: 1.5rem;
+    }
+    #toggleSidebar[aria-expanded="true"] {
+      transform: rotate(45deg);
+    }
+    #themeToggle {
+      position: absolute;
+      right: 1rem;
+      font-size: 1.5rem;
+    }
 
-  /* Toggle Animation for 'X' (Close Icon) */
-  #toggleSidebar.open {
-    transform: rotate(45deg); /* Makes it look like an 'X' */
-    color: #f6f1ec; /* Change color when active */
-  }
-   
-  /* Enhanced Sidebar Styles with Shadow and Blur */
-  #sidebar {
-    width: 220px;
-    background: rgba(75, 46, 42, 0.85); /* Slightly translucent */
-    color: white;
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
-    z-index: 999;
-    backdrop-filter: blur(12px); /* Enhanced blur for modern effect */
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
-  }
-
-  #sidebar.visible {
-    transform: translateX(0);
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4); /* Slightly stronger shadow */
-  }
-    
+    /*---------------------------------------
+      4. SIDEBAR
+    ---------------------------------------*/
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100%;
+      width: 220px;
+      background: var(--sidebar-bg);
+      color: white;
+      padding: 1rem;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+      backdrop-filter: blur(12px);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    #sidebar.visible {
+      transform: translateX(0);
+    }
+    #sidebar h2 {
+      margin: 0;
+    }
     #sidebar a {
       color: white;
       text-decoration: none;
-      margin-top: 0.5rem;
     }
 
-    /* Smooth Scroll for Chat Area */
-  #chat-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow-y: auto;
-    padding: 1rem;
-    padding-bottom: 150px;
-    scroll-behavior: smooth; /* Smooth scroll effect */
-  }
-
-  /* Ensures Chat Bubbles are Limited in Width */
-  .message {
-    max-width: 75%;
-    word-wrap: break-word;
-  }
-
+    /*---------------------------------------
+      5. CHAT AREA
+    ---------------------------------------*/
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 1rem;
+      padding-bottom: 200px;
+      scroll-behavior: smooth;
+    }
     #logo {
       font-size: 4rem;
+      margin-bottom: 0.5rem;
     }
-
     #quote {
       font-size: 1rem;
       font-style: italic;
-      color: #7d8765;
+      color: var(--bot-bubble-start);
       text-align: center;
       margin-bottom: 2rem;
     }
-
-    .message {
-      padding: 0.5rem;
-      border-radius: 8px;
-      margin: 0.5rem;
-      max-width: 75%;
+    #chat {
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Enhanced User Message Bubble */
-  .user {
-    background-color: #bd8735;
-    color: white;
-    align-self: flex-end;
-    padding: 0.5rem;
-    border-radius: 12px 12px 0 12px;
-    margin: 0.5rem;
-    max-width: 65%;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease;
-  }
+    /*---------------------------------------
+      6. MESSAGE BUBBLES
+    ---------------------------------------*/
+    .message {
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border-radius: 12px;
+      max-width: 65%;
+      word-wrap: break-word;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+      transition: transform 0.2s ease;
+    }
+    .user {
+      align-self: flex-end;
+      background-color: var(--user-bubble);
+    }
+    .user:hover { transform: translateY(-2px); }
+    .bot {
+      align-self: flex-start;
+      background: linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end));
+    }
+    .bot:hover { transform: translateY(-2px); }
 
-  .user:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Enhanced Bot Message Bubble with Gradient */
-  .bot {
-    background: linear-gradient(135deg, #7d8765, #5e6e4f);
-    color: white;
-    align-self: flex-start;
-    padding: 0.5rem;
-    border-radius: 12px 12px 12px 0;
-    margin: 0.5rem;
-    max-width: 65%;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease;
-  }
-
-  .bot:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  }
-
+    /*---------------------------------------
+      7. INPUT FORM
+    ---------------------------------------*/
     #form {
       position: fixed;
       bottom: 80px;
@@ -204,214 +172,232 @@ body {
       width: 100%;
       max-width: 700px;
       display: flex;
+      border-top: 1px solid var(--header-bg);
+      background: var(--bg-color);
       padding: 0.5rem;
-      background-color: #f6f1ec;
-      border-top: 1px solid #c49a6c;
+    }
+    #input {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid var(--header-bg);
+      border-radius: 8px 0 0 8px;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+    #input:focus {
+      border-color: var(--bot-bubble-start);
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    #send {
+      padding: 0 1rem;
+      background: var(--header-bg);
+      color: white;
+      border-radius: 0 8px 8px 0;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    #send:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      background: var(--bot-bubble-start);
     }
 
-    /* Text Input Field without Blue Outline */
-  #input {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #c49a6c;
-    border-radius: 8px 0 0 8px;
-    outline: none; /* Removes the default blue outline */
-    transition: border 0.3s ease;
-  }
-
-  /* Enhanced Focus Style for Text Input */
-  #input:focus {
-    border-color: #a6754c;
-    box-shadow: 0 0 5px rgba(166, 117, 76, 0.3);
-  }
-
-    /* Send Button with Hover Effect */
-  #send {
-    background-color: #c49a6c;
-    color: white;
-    border: none;
-    padding: 0 1rem;
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  #send:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    background-color: #a6754c;
-  }
-
-  #send:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  }
-
+    /*---------------------------------------
+      8. PROVERB & COPYRIGHT
+    ---------------------------------------*/
     #fact {
-      font-size: 0.9rem;
-      font-style: italic;
-      text-align: center;
-      color: #4b2e2a;
       position: fixed;
       bottom: 50px;
       width: 100%;
+      text-align: center;
+      font-size: 0.9rem;
+      font-style: italic;
       padding: 0 1rem;
-      box-sizing: border-box;
+      color: var(--text-color);
+    }
+    #copyright {
+      position: fixed;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--bot-bubble-start);
     }
 
-    #copyright {
-      font-size: 0.8rem;
-      text-align: center;
-      color: #7d8765;
-      position: fixed;
-      bottom: 30px;
-      width: 100%;
+    /*---------------------------------------
+      9. RESPONSIVE TWEAKS
+    ---------------------------------------*/
+    @media (max-width: 600px) {
+      #form { bottom: 20px; }
+      .message { max-width: 90%; }
     }
   </style>
 </head>
 <body>
+  <!-- HEADER + CONTROLS -->
   <div id="header">
-    <button id="toggleSidebar">☰</button>
+    <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false">☰</button>
     GriotBot
     <button id="themeToggle" aria-label="Toggle dark/light mode">🌗</button>
   </div>
 
-  <div id="sidebar">
-   <b> </b><h2>GriotBot</h2>
-    <button onclick="location.reload()">New Chat</button> <br>
-    <a href="about.html">About GriotBot</a> <br>
+  <!-- SIDEBAR -->
+  <nav id="sidebar" aria-hidden="true">
+    <h2>GriotBot</h2>
+    <button onclick="location.reload()">New Chat</button>
+    <a href="about.html">About GriotBot</a>
     <a href="feedback.html">Share Feedback</a>
-  </div>
+  </nav>
 
-  <div id="chat-container">
+  <!-- MAIN CHAT AREA -->
+  <main id="chat-container">
     <div id="logo">🌿</div>
     <div id="quote">
       "A people without the knowledge of their past history,<br>
-      origin and culture is like a tree without roots." <br> <br> – Marcus Mosiah Gravey
+      origin and culture is like a tree without roots." <br>
+      — Marcus Mosiah Garvey
     </div>
     <div id="chat"></div>
-  </div>
+  </main>
 
+  <!-- MESSAGE INPUT -->
   <form id="form">
-    <input id="input" type="text" placeholder="Ask GriotBot..." required />
-    <button id="send">Send</button>
+    <input id="input" type="text" placeholder="Ask GriotBot…" required />
+    <button id="send" type="submit">Send</button>
   </form>
 
+  <!-- RANDOM PROVERB & COPYRIGHT -->
   <div id="fact"></div>
-  <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
+  <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
   <script>
-    const sidebar = document.getElementById("sidebar");
-  const toggleBtn = document.getElementById("toggleSidebar");
-
-  toggleBtn.onclick = () => {
-    sidebar.classList.toggle("visible");
-    toggleBtn.classList.toggle("open");
-  };
-
-  document.addEventListener("click", (e) => {
-    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-      sidebar.classList.remove("visible");
-      toggleBtn.classList.remove("open");
+    //–– SANITIZER TO PREVENT XSS ––
+    function sanitize(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
     }
-  });
-    const chatContainer = document.getElementById("chat-container");
-    const chat = document.getElementById("chat");
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-    const factElement = document.getElementById("fact");
 
-    // Sidebar functionality
-    toggleBtn.onclick = () => sidebar.classList.toggle("visible");
-    chatContainer.onclick = () => sidebar.classList.remove("visible");
+    //–– ELEMENT REFERENCES ––
+    const sidebar      = document.getElementById('sidebar');
+    const toggleBtn    = document.getElementById('toggleSidebar');
+    const themeToggle  = document.getElementById('themeToggle');
+    const chatContainer= document.getElementById('chat-container');
+    const chat         = document.getElementById('chat');
+    const form         = document.getElementById('form');
+    const input        = document.getElementById('input');
+    const factElement  = document.getElementById('fact');
 
-    // Random Proverbs
+    //–– 1. SIDEBAR TOGGLE ––
+    toggleBtn.addEventListener('click', () => {
+      const visible = sidebar.classList.toggle('visible');
+      toggleBtn.setAttribute('aria-expanded', visible);
+      sidebar.setAttribute('aria-hidden', !visible);
+    });
+    chatContainer.addEventListener('click', () => {
+      sidebar.classList.remove('visible');
+      toggleBtn.setAttribute('aria-expanded','false');
+      sidebar.setAttribute('aria-hidden','true');
+    });
+
+    //–– 2. THEME TOGGLE ––
+    (function() {
+      const saved = localStorage.getItem('griotbot-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+      themeToggle.textContent = saved === 'dark' ? '☀️' : '🌗';
+    })();
+    themeToggle.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('griotbot-theme', next);
+      themeToggle.textContent = next === 'dark' ? '☀️' : '🌗';
+    });
+
+    //–– 3. RANDOM PROVERB ––
     const facts = [
       "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
       "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
       "We are the drums, we are the dance. — Afro-Caribbean Proverb",
       "A tree cannot stand without its roots. — Jamaican Proverb",
-      "Unity is strength. — Ghanaian Proverb"
+      "Unity is strength. — Ghanaian Proverb",
+      "Knowledge is power, but wisdom is peace. — African Proverb",
+      "Truth is like a drum, it can be heard from afar. — African Proverb",
+      "A bird will always use another bird’s feathers to feather its nest. — Kenyan Proverb",
+      "You must act as if it is impossible to fail. — African Proverb",
+      "The child who is not embraced by the village will burn it down to feel its warmth. — African Proverb"
     ];
-    factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+    function showRandomProverb() {
+      factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+    }
+    window.addEventListener('load', showRandomProverb);
 
-    // API integration (OpenRouter)
+    //–– 4. CHAT HISTORY (localStorage) ––
+    function loadChatHistory() {
+      const hist = JSON.parse(localStorage.getItem('griotbot-history')||'[]');
+      hist.forEach(m => appendMessage(m.role, m.content, false));
+    }
+    function saveChatHistory() {
+      const msgs = Array.from(chat.querySelectorAll('.message'))
+        .map(el => ({ role: el.classList.contains('user')? 'user':'bot', content: el.textContent }));
+      localStorage.setItem('griotbot-history', JSON.stringify(msgs));
+    }
+    window.addEventListener('load', loadChatHistory);
 
+    //–– 5. APPEND MESSAGE & AUTO‑SCROLL ––
+    function appendMessage(role, text, save=true) {
+      const msg = document.createElement('div');
+      msg.className = `message ${role}`;
+      msg.innerHTML = sanitize(text);
+      chat.appendChild(msg);
+      chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+      if (save) saveChatHistory();
+    }
 
-    form.onsubmit = async (e) => {
+    //–– 6. SEND MESSAGE HANDLER ––
+    form.addEventListener('submit', async e => {
       e.preventDefault();
-
-      document.getElementById("logo").style.display = "none";
-      document.getElementById("quote").style.display = "none";
-
       const userInput = input.value.trim();
       if (!userInput) return;
+      // Disable while sending
+      input.disabled = true;
+      const sendBtn = document.getElementById('send');
+      sendBtn.disabled = true;
 
-      appendMessage("user", userInput);
-      input.value = "";
+      // Hide intro
+      document.getElementById('logo').style.display = 'none';
+      document.getElementById('quote').style.display = 'none';
 
-      const botMessage = document.createElement("div");
-      botMessage.className = "message bot";
-      botMessage.textContent = "GriotBot is thinking...";
-      chat.appendChild(botMessage);
+      appendMessage('user', userInput);
+      input.value = '';
+
+      // Placeholder while waiting
+      const botMsg = document.createElement('div');
+      botMsg.className = 'message bot';
+      botMsg.textContent = 'GriotBot is thinking…';
+      chat.appendChild(botMsg);
+      chatContainer.scrollTo({ top: chatContainer.scrollHeight });
 
       try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-4o",
-            messages: [{role: "user", content: userInput}],
-            max_tokens: 350
-          })
+        // CALL YOUR SERVERLESS PROXY ENDPOINT
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ prompt: userInput })
         });
-
+        if (!res.ok) throw new Error(`Status ${res.status}`);
         const data = await res.json();
-        botMessage.textContent = data.choices?.[0]?.message?.content || "GriotBot is silent for now...";
-      } catch (error) {
-        botMessage.textContent = "Something went wrong.";
-        console.error(error);
+        botMsg.textContent = data.choices?.[0]?.message?.content || 'GriotBot is silent for now…';
+      } catch (err) {
+        botMsg.textContent = `Error: ${err.message}`;
+        console.error('Detailed error:', err);
+      } finally {
+        // Re-enable
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+        saveChatHistory();
       }
-
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    };
-
-    // Function to Append Messages (User and Bot) with Smooth Scroll
-  function appendMessage(role, text) {
-    const msg = document.createElement("div");
-    msg.className = `message ${role}`;
-    msg.textContent = text;
-    document.getElementById("chat").appendChild(msg);
-    smoothScrollToBottom();
-  }
-// Theme toggle
-const themeToggle = document.getElementById("themeToggle");
-
-// On load: read saved theme or default to light
-const savedTheme = localStorage.getItem("griotbot-theme") || "light";
-document.documentElement.setAttribute("data-theme", savedTheme);
-themeToggle.textContent = savedTheme === "dark" ? "☀️" : "🌗";
-
-// When user clicks the toggle:
-themeToggle.onclick = () => {
-  const current = document.documentElement.getAttribute("data-theme");
-  const next = current === "light" ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem("griotbot-theme", next);
-  // Switch icon
-  themeToggle.textContent = next === "dark" ? "☀️" : "🌗";
-};
-  // Smooth Scroll Function
-  function smoothScrollToBottom() {
-    const chatContainer = document.getElementById("chat-container");
-    chatContainer.scrollTo({
-      top: chatContainer.scrollHeight,
-      behavior: "smooth"
     });
-  }
   </script>
 </body>
 </html>
