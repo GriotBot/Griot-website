@@ -287,7 +287,7 @@
     factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
 
     // API integration (OpenRouter)
-    const API_KEY = "YOUR_API_KEY_HERE";
+
 
     form.onsubmit = async (e) => {
       e.preventDefault();
@@ -311,7 +311,7 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer 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`
+
           },
           body: JSON.stringify({
             model: "openai/gpt-4o",
