@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="GriotBot - An interactive chatbot focused on cultural heritage and wisdom" />
   <title>GriotBot Chat</title>
   <style>
     /*---------------------------------------
@@ -13,20 +14,30 @@
       --bg-color: #f6f1ec;
       --text-color: #4b2e2a;
       --header-bg: #c49a6c;
-      --sidebar-bg: rgba(75, 46, 42, 0.85);
+      --sidebar-bg: rgba(75, 46, 42, 0.95); /* Increased opacity for better contrast */
       --user-bubble: #bd8735;
+      --user-text: #ffffff;
       --bot-bubble-start: #7d8765;
       --bot-bubble-end: #5e6e4f;
+      --bot-text: #ffffff;
+      --focus-color: #bd8735;
+      --placeholder-color: #75554c;
+      --input-bg: #ffffff;
     }
     [data-theme="dark"] {
-      /* Dark theme overrides */
+      /* Dark theme overrides with improved contrast */
       --bg-color: #2e2a24;
       --text-color: #e6e2d9;
       --header-bg: #533f33;
-      --sidebar-bg: rgba(30, 25, 20, 0.85);
+      --sidebar-bg: rgba(30, 25, 20, 0.95);
       --user-bubble: #a6754c;
+      --user-text: #ffffff;
       --bot-bubble-start: #5e6e4f;
       --bot-bubble-end: #3e4a38;
+      --bot-text: #ffffff;
+      --focus-color: #c49a6c;
+      --placeholder-color: #a19b8c;
+      --input-bg: #3e3930;
     }
 
     /*---------------------------------------
@@ -35,15 +46,65 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Helvetica, Arial, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
       display: flex;
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
+      line-height: 1.5;
     }
-    button { background: none; border: none; cursor: pointer; }
+    button { 
+      background: none; 
+      border: none; 
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+    button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    button:focus-visible {
+      outline: 2px solid var(--focus-color);
+    }
+    a:focus-visible {
+      outline: 2px solid var(--focus-color);
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .visually-hidden {
+      position: absolute !important;
+      height: 1px;
+      width: 1px;
+      overflow: hidden;
+      clip: rect(1px 1px 1px 1px);
+      clip: rect(1px, 1px, 1px, 1px);
+    }
 
     /*---------------------------------------
       3. HEADER + NAV
@@ -60,11 +121,19 @@
       align-items: center;
       justify-content: center;
       gap: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 100;
+      transition: background-color 0.3s;
     }
     #toggleSidebar {
       position: absolute;
       left: 1rem;
       font-size: 1.5rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
     }
     #toggleSidebar[aria-expanded="true"] {
       transform: rotate(45deg);
@@ -73,6 +142,10 @@
       position: absolute;
       right: 1rem;
       font-size: 1.5rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /*---------------------------------------
@@ -82,13 +155,14 @@
       position: fixed;
       top: 0; left: 0;
       height: 100%;
-      width: 220px;
+      width: 250px;
       background: var(--sidebar-bg);
       color: white;
       padding: 1rem;
       transform: translateX(-100%);
-      transition: transform 0.3s ease-in-out;
+      transition: transform 0.3s ease-in-out, background 0.3s;
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       box-shadow: 4px 0 20px rgba(0,0,0,0.4);
       z-index: 1000;
       display: flex;
@@ -99,11 +173,33 @@
       transform: translateX(0);
     }
     #sidebar h2 {
-      margin: 0;
+      margin: 0 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
     }
     #sidebar a {
       color: white;
       text-decoration: none;
+      padding: 0.5rem;
+      border-radius: 6px;
+      transition: background-color 0.2s;
+      display: block;
+    }
+    #sidebar a:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+    #sidebar button {
+      color: white;
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 0.5rem;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.8rem;
+      opacity: 0.7;
+      text-align: center;
     }
 
     /*---------------------------------------
@@ -114,15 +210,18 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       overflow-y: auto;
       padding: 1rem;
-      padding-bottom: 200px;
+      padding-bottom: 110px;
       scroll-behavior: smooth;
+      scroll-padding-bottom: 120px;
+      transition: background-color 0.3s;
     }
     #logo {
       font-size: 4rem;
       margin-bottom: 0.5rem;
+      transition: opacity 0.3s;
     }
     #quote {
       font-size: 1rem;
@@ -130,6 +229,8 @@
       color: var(--bot-bubble-start);
       text-align: center;
       margin-bottom: 2rem;
+      max-width: 500px;
+      transition: opacity 0.3s, color 0.3s;
     }
     #chat {
       width: 100%;
@@ -137,68 +238,141 @@
       display: flex;
       flex-direction: column;
     }
+    #empty-state {
+      color: var(--text-color);
+      opacity: 0.7;
+      text-align: center;
+      margin-top: 2rem;
+      display: none;
+    }
 
     /*---------------------------------------
       6. MESSAGE BUBBLES
     ---------------------------------------*/
     .message {
-      padding: 0.5rem;
+      padding: 0.8rem 1rem;
       margin: 0.5rem 0;
       border-radius: 12px;
-      max-width: 65%;
+      max-width: 75%;
       word-wrap: break-word;
       box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: message-fade-in 0.3s ease-out forwards;
+      opacity: 0;
+    }
+    @keyframes message-fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .user {
       align-self: flex-end;
       background-color: var(--user-bubble);
+      color: var(--user-text);
     }
-    .user:hover { transform: translateY(-2px); }
+    .user:hover { 
+      transform: translateY(-2px); 
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
     .bot {
       align-self: flex-start;
       background: linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end));
+      color: var(--bot-text);
     }
-    .bot:hover { transform: translateY(-2px); }
+    .bot:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    }
+    .thinking {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      opacity: 0.8;
+    }
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+    }
+    .typing-indicator span {
+      height: 8px;
+      width: 8px;
+      margin: 0 2px;
+      background-color: var(--bot-text);
+      border-radius: 50%;
+      display: inline-block;
+      opacity: 0.7;
+      animation: typing-bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing-bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
 
     /*---------------------------------------
       7. INPUT FORM
     ---------------------------------------*/
-    #form {
+    #form-container {
       position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 50px;
+      left: 0;
+      width: 100%;
+      background: var(--bg-color);
+      padding: 1rem;
+      border-top: 1px solid rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
+      display: flex;
+      justify-content: center;
+      z-index: 50;
+    }
+    #form {
       width: 100%;
       max-width: 700px;
       display: flex;
-      border-top: 1px solid var(--header-bg);
-      background: var(--bg-color);
-      padding: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 8px;
     }
     #input {
       flex: 1;
-      padding: 0.5rem;
+      padding: 0.75rem 1rem;
       border: 1px solid var(--header-bg);
+      border-right: none;
       border-radius: 8px 0 0 8px;
       outline: none;
-      transition: border 0.3s, box-shadow 0.3s;
+      transition: border 0.3s, box-shadow 0.3s, background-color 0.3s;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+    }
+    #input::placeholder {
+      color: var(--placeholder-color);
+      opacity: 0.8;
     }
     #input:focus {
       border-color: var(--bot-bubble-start);
       box-shadow: 0 0 5px rgba(0,0,0,0.2);
     }
     #send {
-      padding: 0 1rem;
+      padding: 0 1.2rem;
       background: var(--header-bg);
       color: white;
       border-radius: 0 8px 8px 0;
-      transition: transform 0.3s, box-shadow 0.3s;
+      transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    #send:hover {
+    #send:hover:not(:disabled) {
       transform: scale(1.05);
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       background: var(--bot-bubble-start);
+    }
+    #send:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    #send-icon {
+      display: inline-block;
     }
 
     /*---------------------------------------
@@ -206,114 +380,170 @@
     ---------------------------------------*/
     #fact {
       position: fixed;
-      bottom: 50px;
+      bottom: 30px;
       width: 100%;
       text-align: center;
       font-size: 0.9rem;
       font-style: italic;
       padding: 0 1rem;
       color: var(--text-color);
+      transition: color 0.3s;
+      opacity: 0.8;
     }
     #copyright {
       position: fixed;
-      bottom: 20px;
+      bottom: 10px;
       width: 100%;
       text-align: center;
       font-size: 0.8rem;
       color: var(--bot-bubble-start);
+      transition: color 0.3s;
     }
 
     /*---------------------------------------
       9. RESPONSIVE TWEAKS
     ---------------------------------------*/
     @media (max-width: 600px) {
-      #form { bottom: 20px; }
+      #form-container { bottom: 40px; }
+      .message { max-width: 85%; }
+      #fact { font-size: 0.8rem; bottom: 25px; }
+      #copyright { font-size: 0.7rem; bottom: 5px; }
+      #sidebar { width: 80%; max-width: 300px; }
+      #chat-container { padding-bottom: 90px; }
+    }
+    @media (max-width: 400px) {
       .message { max-width: 90%; }
+      #form { max-width: 95%; }
     }
   </style>
 </head>
 <body>
   <!-- HEADER + CONTROLS -->
-  <div id="header">
-    <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false">☰</button>
-    GriotBot
-    <button id="themeToggle" aria-label="Toggle dark/light mode">🌗</button>
+  <div id="header" role="banner">
+    <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
+    <span aria-label="GriotBot">GriotBot</span>
+    <button id="themeToggle" aria-label="Toggle dark/light mode"></button>
   </div>
 
   <!-- SIDEBAR -->
-  <nav id="sidebar" aria-hidden="true">
+  <nav id="sidebar" aria-hidden="true" aria-label="Main navigation">
     <h2>GriotBot</h2>
-    <button onclick="location.reload()">New Chat</button>
+    <button id="newChat" aria-label="Start new chat">
+      <span aria-hidden="true">+</span> New Chat
+    </button>
     <a href="about.html">About GriotBot</a>
     <a href="feedback.html">Share Feedback</a>
+    <div class="sidebar-footer">
+      Preserving cultural wisdom through conversations
+    </div>
   </nav>
 
   <!-- MAIN CHAT AREA -->
-  <main id="chat-container">
-    <div id="logo">🌿</div>
-    <div id="quote">
+  <main id="chat-container" aria-label="Chat messages">
+    <div id="logo" aria-hidden="true">🌿</div>
+    <div id="quote" aria-label="Inspirational quote">
       "A people without the knowledge of their past history,<br>
       origin and culture is like a tree without roots." <br>
-      — Marcus Mosiah Garvey
+      — Marcus Mosiah Garvey
     </div>
-    <div id="chat"></div>
+    <div id="chat" aria-live="polite"></div>
+    <div id="empty-state">
+      <p>Start a conversation with GriotBot</p>
+    </div>
   </main>
 
   <!-- MESSAGE INPUT -->
-  <form id="form">
-    <input id="input" type="text" placeholder="Ask GriotBot…" required />
-    <button id="send" type="submit">Send</button>
-  </form>
+  <div id="form-container">
+    <form id="form" aria-label="Message form">
+      <input 
+        id="input" 
+        type="text" 
+        placeholder="Ask GriotBot…" 
+        required 
+        aria-label="Message to send" 
+      />
+      <button id="send" type="submit" aria-label="Send message">
+        <div id="send-icon">➤</div>
+        <div id="send-loading" class="spinner" style="display: none;"></div>
+      </button>
+    </form>
+  </div>
 
   <!-- RANDOM PROVERB & COPYRIGHT -->
-  <div id="fact"></div>
-  <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
+  <div id="fact" aria-label="Random proverb"></div>
+  <div id="copyright" aria-label="Copyright information">© 2025 GriotBot. All rights reserved.</div>
 
   <script>
-    //–– SANITIZER TO PREVENT XSS ––
+    //–– ELEMENT REFERENCES ––
+    const sidebar      = document.getElementById('sidebar');
+    const toggleBtn    = document.getElementById('toggleSidebar');
+    const themeToggle  = document.getElementById('themeToggle');
+    const chatContainer= document.getElementById('chat-container');
+    const logo         = document.getElementById('logo');
+    const quote        = document.getElementById('quote');
+    const chat         = document.getElementById('chat');
+    const emptyState   = document.getElementById('empty-state');
+    const form         = document.getElementById('form');
+    const input        = document.getElementById('input');
+    const sendBtn      = document.getElementById('send');
+    const sendIcon     = document.getElementById('send-icon');
+    const sendLoading  = document.getElementById('send-loading');
+    const factElement  = document.getElementById('fact');
+    const newChatBtn   = document.getElementById('newChat');
+
+    //–– 1. SANITIZER TO PREVENT XSS ––
     function sanitize(text) {
       const d = document.createElement('div');
       d.textContent = text;
       return d.innerHTML;
     }
 
-    //–– ELEMENT REFERENCES ––
-    const sidebar      = document.getElementById('sidebar');
-    const toggleBtn    = document.getElementById('toggleSidebar');
-    const themeToggle  = document.getElementById('themeToggle');
-    const chatContainer= document.getElementById('chat-container');
-    const chat         = document.getElementById('chat');
-    const form         = document.getElementById('form');
-    const input        = document.getElementById('input');
-    const factElement  = document.getElementById('fact');
-
-    //–– 1. SIDEBAR TOGGLE ––
+    //–– 2. SIDEBAR TOGGLE ––
     toggleBtn.addEventListener('click', () => {
       const visible = sidebar.classList.toggle('visible');
       toggleBtn.setAttribute('aria-expanded', visible);
       sidebar.setAttribute('aria-hidden', !visible);
     });
-    chatContainer.addEventListener('click', () => {
-      sidebar.classList.remove('visible');
-      toggleBtn.setAttribute('aria-expanded','false');
-      sidebar.setAttribute('aria-hidden','true');
+    
+    // Close sidebar when clicking outside
+    document.addEventListener('click', (event) => {
+      if (sidebar.classList.contains('visible') && 
+          !sidebar.contains(event.target) && 
+          !toggleBtn.contains(event.target)) {
+        sidebar.classList.remove('visible');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        sidebar.setAttribute('aria-hidden', 'true');
+      }
     });
 
-    //–– 2. THEME TOGGLE ––
+    //–– 3. THEME TOGGLE ––
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('griotbot-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌗';
+      themeToggle.setAttribute('aria-label', 
+        theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+    
+    // Initialize theme from localStorage or user preference
     (function() {
-      const saved = localStorage.getItem('griotbot-theme') || 'light';
-      document.documentElement.setAttribute('data-theme', saved);
-      themeToggle.textContent = saved === 'dark' ? '☀️' : '🌗';
+      const savedTheme = localStorage.getItem('griotbot-theme');
+      if (savedTheme) {
+        setTheme(savedTheme);
+      } else {
+        // Check for system preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setTheme(prefersDark ? 'dark' : 'light');
+      }
     })();
+    
+    // Handle theme toggle click
     themeToggle.addEventListener('click', () => {
-      const cur = document.documentElement.getAttribute('data-theme');
-      const next = cur === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('griotbot-theme', next);
-      themeToggle.textContent = next === 'dark' ? '☀️' : '🌗';
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      setTheme(currentTheme === 'light' ? 'dark' : 'light');
     });
 
-    //–– 3. RANDOM PROVERB ––
+    //–– 4. RANDOM PROVERB ––
     const facts = [
       "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
       "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
@@ -322,81 +552,177 @@
       "Unity is strength. — Ghanaian Proverb",
       "Knowledge is power, but wisdom is peace. — African Proverb",
       "Truth is like a drum, it can be heard from afar. — African Proverb",
-      "A bird will always use another bird’s feathers to feather its nest. — Kenyan Proverb",
+      "A bird will always use another bird's feathers to feather its nest. — Kenyan Proverb",
       "You must act as if it is impossible to fail. — African Proverb",
       "The child who is not embraced by the village will burn it down to feel its warmth. — African Proverb"
     ];
+    
     function showRandomProverb() {
-      factElement.textContent = facts[Math.floor(Math.random() * facts.length)];
+      const randomIndex = Math.floor(Math.random() * facts.length);
+      factElement.textContent = facts[randomIndex];
+      factElement.setAttribute('aria-label', `Proverb: ${facts[randomIndex]}`);
     }
-    window.addEventListener('load', showRandomProverb);
 
-    //–– 4. CHAT HISTORY (localStorage) ––
+    //–– 5. CHAT HISTORY (localStorage) ––
+    const HISTORY_LIMIT = 50; // Maximum number of messages to store
+    
     function loadChatHistory() {
-      const hist = JSON.parse(localStorage.getItem('griotbot-history')||'[]');
-      hist.forEach(m => appendMessage(m.role, m.content, false));
+      try {
+        const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
+        if (hist.length > 0) {
+          hideIntro();
+          hist.forEach(m => appendMessage(m.role, m.content, false));
+        } else {
+          showEmptyState();
+        }
+      } catch (err) {
+        console.error('Error loading chat history:', err);
+        localStorage.removeItem('griotbot-history');
+      }
     }
+    
     function saveChatHistory() {
-      const msgs = Array.from(chat.querySelectorAll('.message'))
-        .map(el => ({ role: el.classList.contains('user')? 'user':'bot', content: el.textContent }));
+      const msgs = Array.from(chat.querySelectorAll('.message:not(.thinking)'))
+        .map(el => ({ 
+          role: el.classList.contains('user') ? 'user' : 'bot', 
+          content: el.textContent 
+        }))
+        .slice(-HISTORY_LIMIT); // Keep only the most recent messages
+        
       localStorage.setItem('griotbot-history', JSON.stringify(msgs));
     }
-    window.addEventListener('load', loadChatHistory);
 
-    //–– 5. APPEND MESSAGE & AUTO‑SCROLL ––
+    //–– 6. APPEND MESSAGE & AUTO‑SCROLL ––
     function appendMessage(role, text, save=true) {
       const msg = document.createElement('div');
       msg.className = `message ${role}`;
       msg.innerHTML = sanitize(text);
+      
+      if (role === 'user') {
+        msg.setAttribute('aria-label', `You: ${text}`);
+      } else {
+        msg.setAttribute('aria-label', `GriotBot: ${text}`);
+      }
+      
       chat.appendChild(msg);
-      chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+      scrollToBottom();
+      
       if (save) saveChatHistory();
+      return msg;
+    }
+    
+    function scrollToBottom() {
+      chatContainer.scrollTo({ 
+        top: chatContainer.scrollHeight, 
+        behavior: 'smooth' 
+      });
     }
 
-    //–– 6. SEND MESSAGE HANDLER ––
+    //–– 7. UI STATE MANAGEMENT ––
+    function hideIntro() {
+      logo.style.display = 'none';
+      quote.style.display = 'none';
+      emptyState.style.display = 'none';
+    }
+    
+    function showEmptyState() {
+      logo.style.display = 'block';
+      quote.style.display = 'block';
+      if (chat.childElementCount === 0) {
+        emptyState.style.display = 'block';
+      }
+    }
+    
+    function setLoadingState(isLoading) {
+      input.disabled = isLoading;
+      sendBtn.disabled = isLoading;
+      sendIcon.style.display = isLoading ? 'none' : 'inline-block';
+      sendLoading.style.display = isLoading ? 'inline-block' : 'none';
+    }
+
+    //–– 8. SEND MESSAGE HANDLER ––
     form.addEventListener('submit', async e => {
       e.preventDefault();
       const userInput = input.value.trim();
       if (!userInput) return;
-      // Disable while sending
-      input.disabled = true;
-      const sendBtn = document.getElementById('send');
-      sendBtn.disabled = true;
-
-      // Hide intro
-      document.getElementById('logo').style.display = 'none';
-      document.getElementById('quote').style.display = 'none';
-
+      
+      // Set UI to loading state
+      setLoadingState(true);
+      hideIntro();
+      
+      // Add user message
       appendMessage('user', userInput);
       input.value = '';
-
-      // Placeholder while waiting
-      const botMsg = document.createElement('div');
-      botMsg.className = 'message bot';
-      botMsg.textContent = 'GriotBot is thinking…';
-      chat.appendChild(botMsg);
-      chatContainer.scrollTo({ top: chatContainer.scrollHeight });
-
+      
+      // Add thinking indicator
+      const thinkingMsg = document.createElement('div');
+      thinkingMsg.className = 'message bot thinking';
+      thinkingMsg.innerHTML = `
+        <div class="typing-indicator" aria-label="GriotBot is thinking">
+          <span></span><span></span><span></span>
+        </div>`;
+      chat.appendChild(thinkingMsg);
+      scrollToBottom();
+      
       try {
-        // CALL YOUR SERVERLESS PROXY ENDPOINT
+        // API call to chatbot backend
         const res = await fetch('/api/chat', {
           method: 'POST',
-          headers: {'Content-Type':'application/json'},
+          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ prompt: userInput })
         });
-        if (!res.ok) throw new Error(`Status ${res.status}`);
+        
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || `Error: Status ${res.status}`);
+        }
+        
         const data = await res.json();
-        botMsg.textContent = data.choices?.[0]?.message?.content || 'GriotBot is silent for now…';
+        const botResponse = data.choices?.[0]?.message?.content || 
+                           'I apologize, but I seem to be having trouble processing your request.';
+        
+        // Replace thinking with actual response
+        thinkingMsg.remove();
+        appendMessage('bot', botResponse);
       } catch (err) {
-        botMsg.textContent = `Error: ${err.message}`;
-        console.error('Detailed error:', err);
+        console.error('API error:', err);
+        
+        // Replace thinking with error message
+        thinkingMsg.remove();
+        appendMessage('bot', `I'm sorry, I encountered an error: ${err.message}. Please try again later.`);
       } finally {
-        // Re-enable
-        input.disabled = false;
-        sendBtn.disabled = false;
+        setLoadingState(false);
         input.focus();
-        saveChatHistory();
       }
+    });
+
+    //–– 9. NEW CHAT HANDLER ––
+    newChatBtn.addEventListener('click', () => {
+      // Clear chat UI
+      chat.innerHTML = '';
+      
+      // Clear local storage history
+      localStorage.removeItem('griotbot-history');
+      
+      // Show intro elements
+      logo.style.display = 'block';
+      quote.style.display = 'block';
+      showEmptyState();
+      
+      // Close sidebar
+      sidebar.classList.remove('visible');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+      sidebar.setAttribute('aria-hidden', 'true');
+      
+      // Focus on input
+      input.focus();
+    });
+
+    //–– 10. INITIALIZE ––
+    window.addEventListener('DOMContentLoaded', () => {
+      showRandomProverb();
+      loadChatHistory();
+      input.focus();
     });
   </script>
 </body>
