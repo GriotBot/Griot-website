@@ -7,7 +7,19 @@ export default async function handler(req, res) {
 
   const userMessage = req.body.message;
   const response = await fetch(
-    'https://openrouter.ai/api/v1/chat/completions',
+   // OLD (exposes your key!):
+// await fetch('https://openrouter.ai/api/v1/chat/completions', { … })
+
+// NEW (serverless proxy):
+await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ prompt: userInput })
+})
+  .then(r => r.json())
+  .then(data => {
+    // handle data.choices[0].message.content…
+  });,
     {
       method: 'POST',
       headers: {
