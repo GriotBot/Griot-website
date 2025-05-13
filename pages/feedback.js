@@ -25,6 +25,7 @@ export default function Feedback() {
     const toggleBtn = document.getElementById('toggleSidebar');
     const themeToggle = document.getElementById('themeToggle');
     const factElement = document.getElementById('fact');
+    const newChatBtn = document.getElementById('newChat');
 
     // If any element is missing, return
     if (!sidebar || !toggleBtn || !factElement) {
@@ -103,6 +104,16 @@ export default function Feedback() {
     }
     
     showRandomProverb(); // Show proverb on init
+    
+    // Handle new chat button if it exists
+    if (newChatBtn) {
+      newChatBtn.addEventListener('click', () => {
+        // Close sidebar
+        sidebar.classList.remove('visible');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        sidebar.setAttribute('aria-hidden', 'true');
+      });
+    }
   }
 
   return (
@@ -120,11 +131,13 @@ export default function Feedback() {
       <div id="header" role="banner">
         <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
         
-        {/* BACK ARROW IN HEADER - NEW POSITION */}
+        {/* BACK ARROW IN HEADER - MODERN CIRCULAR STYLE */}
         <div className="backButton">
           <Link href="/">
             <a aria-label="Back to chat">
-              <span className="arrow">←</span>
+              <span className="backCircle">
+                <span className="backIcon">&lt;</span>
+              </span>
               <span className="hoverText">Back to Chat</span>
             </a>
           </Link>
@@ -151,6 +164,9 @@ export default function Feedback() {
         
         <div className="nav-section">
           <h3>Conversations</h3>
+          <button id="newChat" aria-label="Start new chat">
+            <span aria-hidden="true">+</span> New Chat
+          </button>
           <Link href="/" passHref>
             <a id="homeLink">
               <span aria-hidden="true">💬</span> Chat
@@ -197,28 +213,19 @@ export default function Feedback() {
           fontFamily: 'var(--body-font)',
           textAlign: 'center'
         }}>
-          <h1 style={{
-            color: 'var(--bot-text)',
-            fontFamily: 'var(--heading-font)',
-            fontSize: '2rem',
-            marginBottom: '1rem'
-          }}>We'd Love Your Feedback</h1>
+          <h1 className="page-title">We'd Love Your Feedback</h1>
           
-          <p style={{ 
-            marginBottom: '2rem',
-            fontSize: '1.1rem',
-            color: 'var(--bot-text)'
-          }}>
+          <p className="page-subtitle">
             GriotBot is growing, and your voice helps shape the journey.
           </p>
           
           <div style={{ 
-            background: 'var(--input-bg)',
+            background: 'var(--card-bg)',
             borderRadius: '12px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+            boxShadow: '0 4px 15px var(--shadow-color)',
             overflow: 'hidden',
             marginBottom: '2rem',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid var(--input-border)'
           }}>
             <iframe
               src="https://docs.google.com/forms/d/e/1FAIpQLSdTfuVK9qk0lfin5xMfTQoakoZOPrcbrCQTswt3oDSTyp4i0w/viewform?embedded=true"
@@ -283,7 +290,7 @@ export default function Feedback() {
           background-color: var(--accent-hover);
         }
         
-        /* Back arrow button styling */
+        /* Modern circular back button */
         .backButton {
           position: absolute;
           left: 60px;
@@ -296,21 +303,31 @@ export default function Feedback() {
           display: flex;
           align-items: center;
           text-decoration: none;
-          font-size: 1.2rem;
         }
         
-        .backButton .arrow {
-          font-size: 1.4rem;
-          transition: transform 0.2s ease;
+        .backCircle {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.2);
+          transition: background-color 0.2s ease;
         }
         
-        .backButton a:hover .arrow {
-          transform: translateX(-3px);
+        .backIcon {
+          font-size: 1rem;
+          font-weight: bold;
+        }
+        
+        .backButton a:hover .backCircle {
+          background-color: rgba(255, 255, 255, 0.3);
         }
         
         .backButton .hoverText {
           position: absolute;
-          left: 25px;
+          left: 35px;
           opacity: 0;
           transform: translateX(-10px);
           transition: opacity 0.2s, transform 0.2s;
@@ -323,7 +340,52 @@ export default function Feedback() {
           transform: translateX(0);
         }
         
-        /* Fix for sidebar a elements */
+        /* Sidebar styles matching index.js */
+        #sidebar {
+          position: fixed;
+          top: 0; left: 0;
+          height: 100%;
+          width: 280px;
+          background: var(--sidebar-bg);
+          color: var(--sidebar-text);
+          padding: 1.5rem;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease-in-out, background 0.3s;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          box-shadow: 4px 0 20px var(--shadow-color);
+          z-index: 1000;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+        
+        #sidebar.visible {
+          transform: translateX(0);
+        }
+        
+        #sidebar h2 {
+          margin: 0 0 1rem 0;
+          padding-bottom: 0.5rem;
+          border-bottom: 1px solid rgba(255,255,255,0.2);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-family: var(--heading-font);
+        }
+        
+        .nav-section {
+          margin-bottom: 1rem;
+        }
+        
+        .nav-section h3 {
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 0.5rem;
+          opacity: 0.8;
+        }
+        
         #sidebar a {
           color: var(--sidebar-text);
           text-decoration: none;
@@ -344,6 +406,89 @@ export default function Feedback() {
         #sidebar a.active {
           background-color: rgba(255,255,255,0.15);
           font-weight: 500;
+        }
+        
+        #sidebar button {
+          color: var(--sidebar-text);
+          display: flex;
+          width: 100%;
+          text-align: left;
+          margin-bottom: 0.5rem;
+          align-items: center;
+          gap: 0.5rem;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0.5rem;
+          border-radius: 6px;
+          transition: background-color 0.2s;
+        }
+        
+        #sidebar button:hover {
+          background-color: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-footer {
+          margin-top: auto;
+          font-size: 0.8rem;
+          opacity: 0.7;
+          text-align: center;
+          font-style: italic;
+          font-family: var(--quote-font);
+        }
+        
+        .sidebar-profile {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+        
+        .free-badge {
+          background-color: var(--accent-color);
+          color: white;
+          padding: 3px 8px;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          margin-top: 0.5rem;
+        }
+        
+        .upgrade-btn {
+          background-color: var(--accent-color);
+          color: white;
+          border-radius: 6px;
+          padding: 0.5rem 1rem;
+          margin-top: 1rem;
+          text-align: center;
+          font-weight: 500;
+          width: 100%;
+          transition: background-color 0.2s;
+        }
+        
+        .upgrade-btn:hover {
+          background-color: var(--accent-hover);
+        }
+        
+        /* Page title styles with proper contrast for both modes */
+        .page-title {
+          color: var(--text-color);
+          font-family: var(--heading-font);
+          font-size: 2rem;
+          margin-bottom: 1rem;
+          font-weight: 600;
+        }
+        
+        .page-subtitle {
+          margin-bottom: 2rem;
+          font-size: 1.1rem;
+          color: var(--text-color);
+          opacity: 0.9;
+        }
+        
+        /* Dark mode overrides to ensure visibility */
+        [data-theme="dark"] .page-title,
+        [data-theme="dark"] .page-subtitle {
+          color: var(--sidebar-text);
         }
       `}</style>
     </>
