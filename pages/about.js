@@ -327,7 +327,8 @@ export default function About() {
         .left-controls {
           display: flex;
           align-items: center;
-          gap: 0.5rem; /* Creates spacing between hamburger and back button */
+          gap: 1.5rem; /* Increased spacing between hamburger and back button */
+          padding-left: 0.5rem; /* Add some padding on the left */
         }
         
         #toggleSidebar {
@@ -336,7 +337,8 @@ export default function About() {
           background: none;
           border: none;
           cursor: pointer;
-          padding: 8px 12px;
+          padding: 8px;
+          min-width: 40px; /* Ensure minimum width */
           border-radius: 6px;
           transition: transform 0.3s ease;
         }
@@ -359,6 +361,8 @@ export default function About() {
         .backButton {
           display: flex;
           align-items: center;
+          position: relative; /* Ensure proper positioning */
+          min-width: 40px; /* Ensure minimum width */
         }
         
         .backButton a {
@@ -603,6 +607,10 @@ export default function About() {
           
           .backButton .hoverText {
             display: none;
+          }
+          
+          .left-controls {
+            gap: 1rem; /* Slightly reduce gap on mobile */
           }
         }
       `}</style>
