@@ -865,6 +865,88 @@ export default function Home() {
               height: calc(100vh - 140px) !important;
             }
           }
+
+          /* Target and remove the brown element in the middle of the page */
+          .welcome-container::after,
+          #welcome::after,
+          #quote::after,
+          .suggestion-cards::before,
+          .suggestion-cards::after,
+          div.suggestion-cards::before,
+          div.suggestion-cards::after,
+          [class="welcome-container"]::after,
+          [id="welcome"]::after,
+          [id="quote"]::after {
+            display: none !important;
+            content: none !important;
+            background: transparent !important;
+            border: none !important;
+            height: 0 !important;
+            width: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Additional fixes for the quote container */
+          #quote,
+          div#quote,
+          [id="quote"] {
+            margin-bottom: 0 !important;
+            border-bottom: none !important;
+            padding-bottom: 10px !important;
+            background: transparent !important;
+          }
+
+          /* Ensure no brown bar between quote and cards */
+          .welcome-container > *,
+          #welcome > * {
+            background-color: transparent !important;
+            border: none !important;
+            border-bottom: none !important;
+            border-top: none !important;
+            box-shadow: none !important;
+          }
+
+          /* Ensure the suggestion cards container has no background */
+          .suggestion-cards,
+          div.suggestion-cards,
+          [class="suggestion-cards"] {
+            background-color: transparent !important;
+            border: none !important;
+            margin-top: 20px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
+
+          /* Special fix for any potential horizontal rule elements */
+          hr, 
+          div.welcome-container hr, 
+          #welcome hr,
+          .welcome-container hr {
+            display: none !important;
+            height: 0 !important;
+            border: none !important;
+            background: transparent !important;
+          }
+
+          /* Adjust spacing between elements */
+          .welcome-title,
+          h1.welcome-title,
+          [class="welcome-title"] {
+            margin-bottom: 10px !important;
+          }
+
+          .welcome-subtitle,
+          p.welcome-subtitle,
+          [class="welcome-subtitle"] {
+            margin-bottom: 20px !important;
+          }
+
+          .quote-attribution,
+          span.quote-attribution,
+          [class="quote-attribution"] {
+            margin-bottom: 20px !important;
+          }
         `}} />
       </Head>
       
