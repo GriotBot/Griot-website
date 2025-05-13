@@ -108,10 +108,7 @@ export default function Feedback() {
     // Handle new chat button if it exists
     if (newChatBtn) {
       newChatBtn.addEventListener('click', () => {
-        // Close sidebar
-        sidebar.classList.remove('visible');
-        toggleBtn.setAttribute('aria-expanded', 'false');
-        sidebar.setAttribute('aria-hidden', 'true');
+        window.location.href = '/';
       });
     }
   }
@@ -127,30 +124,27 @@ export default function Feedback() {
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
       </Head>
       
-      {/* HEADER + CONTROLS */}
+      {/* HEADER WITH HAMBURGER AND BACK BUTTON ON LEFT SIDE */}
       <div id="header" role="banner">
-        <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
-        
-        {/* BACK ARROW IN HEADER - MODERN CIRCULAR STYLE */}
-        <div className="backButton">
-          <Link href="/">
-            <a aria-label="Back to chat">
-              <span className="backCircle">
-                <span className="backIcon">&lt;</span>
-              </span>
-              <span className="hoverText">Back to Chat</span>
-            </a>
-          </Link>
+        <div className="left-controls">
+          <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
+          
+          <div className="backButton">
+            <Link href="/">
+              <a aria-label="Back to chat">
+                <span className="backCircle">
+                  <span className="backIcon">&lt;</span>
+                </span>
+                <span className="hoverText">Back to Chat</span>
+              </a>
+            </Link>
+          </div>
         </div>
         
-        <div className="logo-container">
-          <span className="logo-icon" aria-hidden="true">🌿</span>
-          <span>GriotBot</span>
-        </div>
         <button id="themeToggle" aria-label="Toggle dark/light mode"></button>
       </div>
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR - Identical to index.js */}
       <nav id="sidebar" aria-hidden="true" aria-label="Main navigation">
         <h2>
           <span className="logo-icon" aria-hidden="true">🌿</span>
@@ -164,7 +158,7 @@ export default function Feedback() {
         
         <div className="nav-section">
           <h3>Conversations</h3>
-          <button id="newChat" aria-label="Start new chat">
+          <button id="newChat">
             <span aria-hidden="true">+</span> New Chat
           </button>
           <Link href="/" passHref>
@@ -197,44 +191,17 @@ export default function Feedback() {
         </div>
       </nav>
 
-      <div style={{
-        height: 'calc(100vh - 160px)',
-        overflowY: 'auto',
-        backgroundColor: 'var(--bg-color)',
-        color: 'var(--text-color)',
-        padding: '1.5rem',
-        scrollbarWidth: 'thin',
-        scrollbarColor: 'var(--accent-color) var(--bg-color)'
-      }}>
-        <main style={{
-          maxWidth: '800px',
-          margin: '0 auto',
-          padding: '1.5rem',
-          fontFamily: 'var(--body-font)',
-          textAlign: 'center'
-        }}>
+      <div className="content-container">
+        <main className="content-wrapper">
           <h1 className="page-title">We'd Love Your Feedback</h1>
           
           <p className="page-subtitle">
             GriotBot is growing, and your voice helps shape the journey.
           </p>
           
-          <div style={{ 
-            background: 'var(--card-bg)',
-            borderRadius: '12px',
-            boxShadow: '0 4px 15px var(--shadow-color)',
-            overflow: 'hidden',
-            marginBottom: '2rem',
-            border: '1px solid var(--input-border)'
-          }}>
+          <div className="form-container">
             <iframe
               src="https://docs.google.com/forms/d/e/1FAIpQLSdTfuVK9qk0lfin5xMfTQoakoZOPrcbrCQTswt3oDSTyp4i0w/viewform?embedded=true"
-              style={{
-                width: '100%',
-                height: '60vh',
-                border: 'none',
-                backgroundColor: '#f8f5f0'
-              }}
               loading="lazy"
               title="GriotBot Feedback Form"
             >Loading…</iframe>
@@ -243,57 +210,108 @@ export default function Feedback() {
       </div>
 
       {/* RANDOM PROVERB & COPYRIGHT */}
-      <div id="fact" aria-label="Random proverb" style={{
-        position: 'fixed',
-        bottom: '30px',
-        width: '100%',
-        textAlign: 'center',
-        fontSize: '0.9rem',
-        fontStyle: 'italic',
-        padding: '0 1rem',
-        color: 'var(--wisdom-color)',
-        transition: 'color 0.3s',
-        opacity: '0.9',
-        fontFamily: 'var(--quote-font)',
-        pointerEvents: 'none'
-      }}></div>
-
-      <div id="copyright" style={{
-        position: 'fixed',
-        bottom: '10px',
-        width: '100%',
-        textAlign: 'center',
-        fontSize: '0.8rem',
-        color: 'var(--text-color)',
-        opacity: '0.6',
-        transition: 'color 0.3s',
-        pointerEvents: 'none'
-      }}>© 2025 GriotBot. All rights reserved.</div>
+      <div id="fact" aria-label="Random proverb"></div>
+      <div id="copyright">© 2025 GriotBot. All rights reserved.</div>
 
       <style jsx>{`
-        /* Custom scrollbar for Webkit browsers */
-        ::-webkit-scrollbar {
-          width: 8px;
+        /* CONTENT AREA STYLES */
+        .content-container {
+          height: calc(100vh - 160px);
+          overflow-y: auto;
+          background-color: var(--bg-color);
+          color: var(--text-color);
+          padding: 1.5rem;
+          scrollbar-width: thin;
+          scrollbar-color: var(--accent-color) var(--bg-color);
         }
         
-        ::-webkit-scrollbar-track {
-          background: var(--bg-color);
+        .content-wrapper {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 1.5rem;
+          font-family: var(--body-font);
+          text-align: center;
         }
         
-        ::-webkit-scrollbar-thumb {
-          background-color: var(--accent-color);
-          border-radius: 4px;
-          border: 2px solid var(--bg-color);
+        .page-title {
+          color: var(--text-color);
+          font-family: var(--heading-font);
+          font-size: 2rem;
+          margin-bottom: 1rem;
+          font-weight: 600;
         }
         
-        ::-webkit-scrollbar-thumb:hover {
-          background-color: var(--accent-hover);
+        .page-subtitle {
+          margin-bottom: 2rem;
+          font-size: 1.1rem;
+          color: var(--text-color);
+          opacity: 0.9;
         }
         
-        /* Modern circular back button */
+        .form-container {
+          background: var(--card-bg);
+          border-radius: 12px;
+          box-shadow: 0 4px 15px var(--shadow-color);
+          overflow: hidden;
+          margin-bottom: 2rem;
+          border: 1px solid var(--input-border);
+        }
+        
+        .form-container iframe {
+          width: 100%;
+          height: 60vh;
+          border: none;
+          background-color: #f8f5f0;
+        }
+        
+        /* HEADER STYLES */
+        #header {
+          position: relative;
+          background-color: var(--header-bg);
+          color: var(--header-text);
+          padding: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between; /* Changed to space-between */
+          box-shadow: 0 2px 10px var(--shadow-color);
+          z-index: 100;
+          transition: background-color 0.3s;
+          font-family: var(--heading-font);
+        }
+        
+        .left-controls {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem; /* Creates spacing between hamburger and back button */
+        }
+        
+        #toggleSidebar {
+          font-size: 1.5rem;
+          color: var(--header-text);
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px 12px;
+          border-radius: 6px;
+          transition: transform 0.3s ease;
+        }
+        
+        #toggleSidebar[aria-expanded="true"] {
+          transform: rotate(45deg);
+        }
+        
+        #themeToggle {
+          font-size: 1.5rem;
+          color: var(--header-text);
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px 12px;
+          border-radius: 6px;
+        }
+        
+        /* BACK BUTTON STYLES */
         .backButton {
-          position: absolute;
-          left: 60px;
           display: flex;
           align-items: center;
         }
@@ -303,6 +321,7 @@ export default function Feedback() {
           display: flex;
           align-items: center;
           text-decoration: none;
+          position: relative;
         }
         
         .backCircle {
@@ -340,7 +359,7 @@ export default function Feedback() {
           transform: translateX(0);
         }
         
-        /* Sidebar styles matching index.js */
+        /* SIDEBAR STYLES - IDENTICAL TO INDEX.JS */
         #sidebar {
           position: fixed;
           top: 0; left: 0;
@@ -469,26 +488,72 @@ export default function Feedback() {
           background-color: var(--accent-hover);
         }
         
-        /* Page title styles with proper contrast for both modes */
-        .page-title {
-          color: var(--text-color);
-          font-family: var(--heading-font);
-          font-size: 2rem;
-          margin-bottom: 1rem;
-          font-weight: 600;
-        }
-        
-        .page-subtitle {
-          margin-bottom: 2rem;
-          font-size: 1.1rem;
-          color: var(--text-color);
+        /* FOOTER STYLES */
+        #fact {
+          position: fixed;
+          bottom: 30px;
+          width: 100%;
+          text-align: center;
+          font-size: 0.9rem;
+          font-style: italic;
+          padding: 0 1rem;
+          color: var(--wisdom-color);
+          transition: color 0.3s;
           opacity: 0.9;
+          font-family: var(--quote-font);
+          pointer-events: none;
         }
         
-        /* Dark mode overrides to ensure visibility */
+        #copyright {
+          position: fixed;
+          bottom: 10px;
+          width: 100%;
+          text-align: center;
+          font-size: 0.8rem;
+          color: var(--text-color);
+          opacity: 0.6;
+          transition: color 0.3s;
+          pointer-events: none;
+        }
+        
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: var(--bg-color);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background-color: var(--accent-color);
+          border-radius: 4px;
+          border: 2px solid var(--bg-color);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background-color: var(--accent-hover);
+        }
+        
+        /* DARK MODE TEXT CONTRAST FIX */
         [data-theme="dark"] .page-title,
         [data-theme="dark"] .page-subtitle {
           color: var(--sidebar-text);
+        }
+        
+        /* MOBILE RESPONSIVENESS */
+        @media (max-width: 600px) {
+          .page-title {
+            font-size: 1.8rem;
+          }
+          
+          .form-container iframe {
+            height: 50vh;
+          }
+          
+          .backButton .hoverText {
+            display: none;
+          }
         }
       `}</style>
     </>
