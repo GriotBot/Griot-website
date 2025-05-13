@@ -1196,67 +1196,67 @@
     }
 
     //–– 9. SEND MESSAGE HANDLER ––
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const userInput = input.value.trim();
-      if (!userInput) return;
-      
-      // Set UI to loading state
-      setLoadingState(true);
-      hideWelcome();
-      
-      // Get storyteller mode state
-      const isStorytellerMode = storyMode.checked;
-      
-      // Add user message
-      appendMessage('user', userInput);
-      input.value = '';
-      input.style.height = 'inherit'; // Reset height
-      
-      // Add thinking indicator
-      const thinkingMsg = document.createElement('div');
-      thinkingMsg.className = 'message bot thinking';
-      thinkingMsg.innerHTML = `
-        <div class="typing-indicator" aria-label="GriotBot is thinking">
-          <span></span><span></span><span></span>
-        </div>`;
-      chat.appendChild(thinkingMsg);
-      scrollToBottom();
-      
-      try {
-        // API call to chatbot backend
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ 
-            prompt: userInput,
-            storytellerMode: isStorytellerMode
-          })
-        });
-        
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.message || `Error: Status ${res.status}`);
-        }
-        
-        const data = await res.json();
-        const botResponse = data.choices?.[0]?.message?.content || 
-                           'I apologize, but I seem to be having trouble processing your request.';
-        
-        // Replace thinking with actual response
-        thinkingMsg.remove();
-        appendMessage('bot', botResponse);
-      } catch (err) {
-        console.error('API error:', err);
-        
-        // Replace thinking with error message
-        thinkingMsg.remove();
-        appendMessage('bot', `I'm sorry, I encountered an error: ${err.message}. Please try again later.`);
-      } finally {
-        setLoadingState(false);
-        input.focus();
-      }
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const userInput = input.value.trim();
+  if (!userInput) return;
+  
+  // Set UI to loading state
+  setLoadingState(true);
+  hideWelcome();
+  
+  // Get storyteller mode state
+  const isStorytellerMode = storyMode.checked;
+  
+  // Add user message
+  appendMessage('user', userInput);
+  input.value = '';
+  input.style.height = 'inherit'; // Reset height
+  
+  // Add thinking indicator
+  const thinkingMsg = document.createElement('div');
+  thinkingMsg.className = 'message bot thinking';
+  thinkingMsg.innerHTML = `
+    <div class="typing-indicator" aria-label="GriotBot is thinking">
+      <span></span><span></span><span></span>
+    </div>`;
+  chat.appendChild(thinkingMsg);
+  scrollToBottom();
+  
+  try {
+    // API call to our serverless function
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ 
+        prompt: userInput,
+        storytellerMode: isStorytellerMode
+      })
     });
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error: Status ${res.status}`);
+    }
+    
+    const data = await res.json();
+    const botResponse = data.choices?.[0]?.message?.content || 
+                       'I apologize, but I seem to be having trouble processing your request.';
+    
+    // Replace thinking with actual response
+    thinkingMsg.remove();
+    appendMessage('bot', botResponse);
+  } catch (err) {
+    console.error('API error:', err);
+    
+    // Replace thinking with error message
+    thinkingMsg.remove();
+    appendMessage('bot', `I'm sorry, I encountered an error: ${err.message}. Please try again later.`);
+  } finally {
+    setLoadingState(false);
+    input.focus();
+  }
+});
 
     //–– 10. SUGGESTION CARDS HANDLER ––
     suggestionCards.forEach(card => {
