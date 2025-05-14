@@ -1,0 +1,16 @@
+/* styles/components/Header.module.css */
+.header {
+  position: relative;
+  background-color: var(--color-earth-300);
+  color: var(--color-earth-600);
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  font-family: var(--font-family-prose);
+  height: 60px;
+}
+
+/* Rest of component styles */
