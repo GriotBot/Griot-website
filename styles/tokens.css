@@ -1,1 +1,82 @@
+/* styles/tokens.css */
+:root {
+  /* Color System - Extended from current palette */
+  --color-earth-100: #f8f5f0;
+  --color-earth-200: #e5d9c5;
+  --color-earth-300: #c49a6c;
+  --color-earth-400: #9c6d3d;
+  --color-earth-500: #6b4226;
+  --color-earth-600: #4b2e2a;
+  
+  --color-forest-100: #e3e7dc;
+  --color-forest-200: #a5b394;
+  --color-forest-300: #7d8765;
+  --color-forest-400: #5e6e4f;
+  --color-forest-500: #3e4a38;
+  
+  --color-accent-100: #f9d7c0;
+  --color-accent-200: #f0b08e;
+  --color-accent-300: #e08e59;
+  --color-accent-400: #d7722c;
+  --color-accent-500: #c86520;
+  
+  /* Semantic Colors */
+  --text-primary: var(--color-earth-600);
+  --text-secondary: var(--color-earth-500);
+  --background-primary: var(--color-earth-100);
+  --background-secondary: white;
+  --accent-primary: var(--color-accent-400);
+  --accent-secondary: var(--color-forest-300);
+  
+  /* Spacing System - Based on 8px grid */
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 1rem;     /* 16px */
+  --space-4: 1.5rem;   /* 24px */
+  --space-5: 2rem;     /* 32px */
+  --space-6: 3rem;     /* 48px */
+  --space-7: 4rem;     /* 64px */
+  
+  /* Typography - Using golden ratio */
+  --font-family-prose: 'Lora', serif;
+  --font-family-ui: 'Montserrat', sans-serif;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-md: 1.125rem;   /* 18px */
+  --font-size-lg: 1.25rem;    /* 20px */
+  --font-size-xl: 1.5rem;     /* 24px */
+  --font-size-2xl: 1.875rem;  /* 30px */
+  --font-size-3xl: 2.25rem;   /* 36px */
+  --font-size-4xl: 3rem;      /* 48px */
+  
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Animation */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+  
+  /* Effects */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+}
 
+/* Dark theme */
+[data-theme="dark"] {
+  --text-primary: var(--color-earth-100);
+  --text-secondary: var(--color-earth-200);
+  --background-primary: var(--color-earth-600);
+  --background-secondary: #352e29;
+  /* other dark theme values */
+}
