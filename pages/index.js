@@ -1,6 +1,7 @@
 // File: /pages/index.js
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 
 export default function Home() {
   // State to ensure we can access DOM elements after mounting
@@ -527,6 +528,10 @@ export default function Home() {
             color: var(--sidebar-text) !important;
             padding: 1.5rem !important;
             transform: translateX(-100%) !important;
+            transition: transform 0.3s ease-in-out, background 0.3s !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            box-shadow: 4px 0 20px var(--shadow-color) !important;
             z-index: 1000 !important;
             display: flex !important;
             flex-direction: column !important;
@@ -977,6 +982,11 @@ export default function Home() {
           <button id="newChat" aria-label="Start new chat">
             <span aria-hidden="true">+</span> New Chat
           </button>
+          <Link href="/" passHref>
+            <a id="homeLink" className="active">
+              <span aria-hidden="true">💬</span> Chat
+            </a>
+          </Link>
           <a href="#" id="savedChats">Saved Conversations</a>
         </div>
         
@@ -989,8 +999,12 @@ export default function Home() {
         
         <div className="nav-section">
           <h3>About</h3>
-          <a href="about">About GriotBot</a>
-          <a href="feedback">Share Feedback</a>
+          <Link href="/about" passHref>
+            <a>About GriotBot</a>
+          </Link>
+          <Link href="/feedback" passHref>
+            <a>Share Feedback</a>
+          </Link>
         </div>
         
         <div className="sidebar-footer">
