@@ -158,7 +158,7 @@ export default function About() {
         
         <div className="nav-section">
           <h3>Conversations</h3>
-          <button id="newChat">
+          <button id="newChat" aria-label="Start new chat">
             <span aria-hidden="true">+</span> New Chat
           </button>
           <Link href="/" passHref>
