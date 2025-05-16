@@ -1,0 +1,132 @@
+/* styles/components/Layout.module.css */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--color-earth-300);
+  color: var(--color-earth-600);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  box-shadow: var(--shadow-md);
+}
+
+.leftControls {
+  width: 80px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  color: var(--color-earth-600);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.backIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 0.5rem;
+}
+
+.backIcon img {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0.2);
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menuButton img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0.2);
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  filter: brightness(0.2);
+}
+
+.logoText {
+  font-family: var(--font-family-prose);
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+}
+
+.themeToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.themeToggle img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0.2);
+}
+
+.main {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.footer {
+  padding: 1rem;
+  text-align: center;
+  margin-top: auto;
+}
+
+.proverb {
+  font-family: var(--font-family-prose);
+  font-style: italic;
+  color: var(--color-earth-500);
+  margin-bottom: 0.5rem;
+}
+
+.copyright {
+  font-size: var(--font-size-sm);
+  opacity: 0.7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .backButton span:not(.backIcon) {
+    display: none;
+  }
+  
+  .leftControls {
+    width: 40px;
+  }
+}
