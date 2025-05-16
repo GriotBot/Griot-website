@@ -1,7 +1,12 @@
 /* File: /styles/globals.css */
 /* All CSS content from style/globals.css goes here */
 /*---------------------------------------
-  1. THEME VARIABLES & COLOR PALETTE
+/* Add to the top of styles/globals.css */
+@import './tokens.css';
+
+/* Keep the rest of the existing CSS */
+
+1. THEME VARIABLES & COLOR PALETTE
 ---------------------------------------*/
 :root {
   /* Light theme - Earthy, warm palette inspired by African textiles */
