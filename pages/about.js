@@ -1,13 +1,46 @@
+import { useEffect } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
 import styles from '../styles/About.module.css';
-import Layout from '../components/layout/Layout';
-import Button from '../components/ui/Button';
 
 export default function About() {
+  // Ensure page is scrollable
+  useEffect(() => {
+    // Reset any overflow restrictions
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.overflow = 'auto';
+    
+    return () => {
+      // Cleanup
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
+
   return (
-    <Layout 
-      title="About GriotBot | Your Digital Griot"
-      description="About GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora"
-    >
+    <>
+      <Head>
+        <title>About GriotBot | Your Digital Griot</title>
+        <meta name="description" content="About GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Head>
+
+      {/* Header */}
+      <header id="header" role="banner">
+        <Link href="/">
+          <a id="backButton" className={styles.backButton} aria-label="Back to home">
+            <span className={styles.backIcon}>←</span>
+            <span className={styles.backText}>Back to Chat</span>
+          </a>
+        </Link>
+        <div className="logo-container">
+          <span className="logo-icon" aria-hidden="true">🌿</span>
+          <span>GriotBot</span>
+        </div>
+        <button id="themeToggle" aria-label="Toggle dark/light mode">🌙</button>
+      </header>
+
+      {/* Main Content */}
       <div className={styles.aboutContainer}>
         <section className={styles.heroSection}>
           <div className={styles.logoWrapper}>
@@ -16,6 +49,7 @@ export default function About() {
               alt="" 
               className={styles.logoIcon} 
               aria-hidden="true" 
+              onError={(e) => { e.target.onerror = null; e.target.src = ''; e.target.className = styles.fallbackIcon; }}
             />
           </div>
           <h1 className={styles.title}>About GriotBot</h1>
@@ -49,7 +83,7 @@ export default function About() {
             </p>
 
             <div className={styles.patternDivider} aria-hidden="true">
-              <div className={styles.adinkraSymbol}></div>
+              <span className={styles.adinkraSymbol}>✦</span>
             </div>
 
             <h2 className={styles.sectionHeading}>Who Is It For?</h2>
@@ -60,7 +94,7 @@ export default function About() {
             </p>
 
             <div className={styles.patternDivider} aria-hidden="true">
-              <div className={styles.adinkraSymbol}></div>
+              <span className={styles.adinkraSymbol}>✦</span>
             </div>
 
             <h2 className={styles.sectionHeading}>How It Works</h2>
@@ -73,7 +107,7 @@ export default function About() {
             </p>
 
             <div className={styles.patternDivider} aria-hidden="true">
-              <div className={styles.adinkraSymbol}></div>
+              <span className={styles.adinkraSymbol}>✦</span>
             </div>
 
             <h2 className={styles.sectionHeading}>How to Get Involved</h2>
@@ -90,11 +124,22 @@ export default function About() {
           <p className={styles.ctaText}>
             Return to the chat to start a conversation with your digital griot
           </p>
-          <Button href="/" variant="primary" size="large" icon="arrow-left">
-            Return to Chat
-          </Button>
+          <Link href="/">
+            <a className={styles.ctaButton}>
+              <span className={styles.ctaButtonIcon}>←</span>
+              <span>Return to Chat</span>
+            </a>
+          </Link>
         </section>
       </div>
-    </Layout>
+
+      {/* Footer */}
+      <div id="fact" className={styles.proverb} aria-label="Random proverb">
+        "Knowledge is like a garden; if it is not cultivated, it cannot be harvested." — West African Proverb
+      </div>
+      <div id="copyright" className={styles.copyright} aria-label="Copyright information">
+        © {new Date().getFullYear()} GriotBot. All rights reserved.
+      </div>
+    </>
   );
 }
