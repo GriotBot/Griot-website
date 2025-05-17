@@ -81,42 +81,44 @@ export default function EnhancedSidebar({ visible, closeSidebar }) {
         overflowY: 'auto'
       }}
     >
-      {/* Return to chat button at top */}
-      <Link href="/">
-        <a
-          id="return-to-chat"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--accent-color)',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            borderRadius: '4px',
-            textDecoration: 'none',
-            marginBottom: '0.75rem',
-            fontWeight: '500',
-            transition: 'background-color 0.2s, transform 0.1s',
-            transform: hoveredItems['return-button'] ? 'translateY(-2px)' : 'none',
-            boxShadow: hoveredItems['return-button'] ? '0 4px 8px rgba(0,0,0,0.2)' : 'none'
-          }}
-          onClick={closeSidebar}
-          onMouseEnter={() => handleHover('return-button', true)}
-          onMouseLeave={() => handleHover('return-button', false)}
-          aria-label="Return to chat"
-        >
-          Return to chat
-        </a>
-      </Link>
+      {/* Return to chat button at top with more space */}
+      <div style={{ marginTop: '1.5rem' }}>
+        <Link href="/">
+          <a
+            id="return-to-chat"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'var(--accent-color)',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              textDecoration: 'none',
+              fontWeight: '500',
+              transition: 'background-color 0.2s, transform 0.1s',
+              transform: hoveredItems['return-button'] ? 'translateY(-2px)' : 'none',
+              boxShadow: hoveredItems['return-button'] ? '0 4px 8px rgba(0,0,0,0.2)' : 'none'
+            }}
+            onClick={closeSidebar}
+            onMouseEnter={() => handleHover('return-button', true)}
+            onMouseLeave={() => handleHover('return-button', false)}
+            aria-label="Return to chat"
+          >
+            Return to chat
+          </a>
+        </Link>
+      </div>
 
-      {/* Tagline at top */}
+      {/* Tagline with increased spacing */}
       <div 
         style={{
           fontStyle: 'italic',
           fontSize: '0.95rem',
           opacity: '0.9',
           fontFamily: 'Lora, serif',
-          marginBottom: '0.25rem',
+          marginTop: '2.5rem',
+          marginBottom: '2.5rem',
           borderLeft: '2px solid var(--accent-color)',
           paddingLeft: '0.75rem',
         }}
@@ -124,13 +126,13 @@ export default function EnhancedSidebar({ visible, closeSidebar }) {
         Preserving our stories,<br/>empowering our future.
       </div>
 
-      {/* Vertical line divider */}
+      {/* Vertical line divider - adjusted for more space at top */}
       <div
         aria-hidden="true"
         style={{
           position: 'absolute',
           left: '25px',
-          top: '160px',
+          top: '250px', /* Moved down to account for more space at top */
           bottom: '25px',
           width: '1px',
           backgroundColor: 'rgba(255,255,255,0.25)'
