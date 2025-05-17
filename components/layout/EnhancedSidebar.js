@@ -81,8 +81,8 @@ export default function EnhancedSidebar({ visible, closeSidebar }) {
         overflowY: 'auto'
       }}
     >
-      {/* Return to chat button at top with more space */}
-      <div style={{ marginTop: '1.5rem' }}>
+      {/* Return to chat button at top with more space - increased by 25% */}
+      <div style={{ marginTop: '3rem' }}>
         <Link href="/">
           <a
             id="return-to-chat"
