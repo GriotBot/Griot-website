@@ -1,5 +1,6 @@
 // File: /components/layout/Header.js
 import Link from 'next/link';
+import NewChatButton from './NewChatButton';
 
 export default function Header({ theme, toggleTheme, sidebarVisible, toggleSidebar }) {
   return (
@@ -64,6 +65,16 @@ export default function Header({ theme, toggleTheme, sidebarVisible, toggleSideb
           />
         </a>
       </Link>
+
+      {/* New Chat Button */}
+      <div style={{
+        position: 'absolute',
+        right: '8rem', // Position between theme toggle and sign in
+        display: 'flex',
+        alignItems: 'center',
+      }}>
+        <NewChatButton />
+      </div>
       
       <button 
         onClick={toggleTheme}
