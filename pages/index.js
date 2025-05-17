@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
 import ChatInput from '../components/ChatInput';
+import FooterProverb from '../components/FooterProverb';
+import FooterCopyright from '../components/FooterCopyright';
 
 export default function Home() {
   // State to ensure we can access DOM elements after mounting
@@ -17,9 +19,24 @@ export default function Home() {
     // Load chat history from localStorage
     loadChatHistory();
 
-    // Initialize remaining chat functionality
+    // Handle suggestion cards
+    const handleSuggestionCards = () => {
+      const suggestionCards = document.querySelectorAll('.suggestion-card');
+      if (suggestionCards) {
+        suggestionCards.forEach(card => {
+          card.addEventListener('click', () => {
+            const prompt = card.getAttribute('data-prompt');
+            if (prompt) {
+              handleSendMessage(prompt, false);
+            }
+          });
+        });
+      }
+    };
+
+    // Initialize suggestion cards
     if (typeof window !== 'undefined') {
-      initializeChat();
+      handleSuggestionCards();
     }
   }, []);
 
@@ -300,42 +317,10 @@ export default function Home() {
 
         {/* Input component */}
         <ChatInput onSubmit={handleSendMessage} />
-        
-        {/* Footer elements with visible proverb */}
-        <div id="fact" aria-label="Random proverb" style={{
-          position: 'fixed',
-          bottom: '30px',
-          width: '100%',
-          textAlign: 'center',
-          fontSize: '0.9rem',
-          fontStyle: 'italic',
-          padding: '0 1rem',
-          color: 'var(--wisdom-color)',
-          transition: 'color 0.3s',
-          opacity: 0.8,
-          fontFamily: 'Lora, serif',
-          background: 'linear-gradient(transparent, var(--bg-color) 50%)', // Gradient background
-          pointerEvents: 'none',
-          zIndex: 35, // Below input but above copyright
-        }}>
-          Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb
-        </div>
-        
-        <div id="copyright" aria-label="Copyright information" style={{
-          position: 'fixed',
-          bottom: '10px',
-          width: '100%',
-          textAlign: 'center',
-          fontSize: '0.8rem',
-          color: 'var(--text-color)',
-          opacity: 0.6,
-          transition: 'color 0.3s',
-          backgroundColor: 'transparent',
-          pointerEvents: 'none',
-          zIndex: 30,
-        }}>
-          © 2025 GriotBot. All rights reserved.
-        </div>
+
+        {/* Direct footer components */}
+        <FooterProverb />
+        <FooterCopyright />
       </Layout>
     </>
   );
