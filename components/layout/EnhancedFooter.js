@@ -102,12 +102,12 @@ export default function EnhancedFooter({ page = 'index' }) {
       proverbContainer: {
         width: '100%',
         textAlign: 'center',
-        marginBottom: '0.25rem',
+        marginBottom: '0.1rem', // Reduced space between proverb and copyright
         backgroundColor: 'var(--bg-color)', // Ensure opacity
       },
       proverbText: {
         fontFamily: 'Lora, serif',
-        fontSize: '0.85rem',
+        fontSize: '1.05rem', // Increased by 2 points (from 0.85rem)
         fontStyle: 'italic',
         color: 'var(--wisdom-color)',
         opacity: 0.85,
