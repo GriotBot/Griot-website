@@ -78,7 +78,7 @@ export default function Layout({ children }) {
         closeSidebar={closeSidebar}
       />
       
-      {/* Overlay to close sidebar on mobile */}
+      {/* Overlay to close sidebar on mobile - without blur */}
       {sidebarVisible && (
         <div 
           style={{
@@ -89,7 +89,6 @@ export default function Layout({ children }) {
             height: '100%',
             background: 'rgba(0,0,0,0.5)',
             zIndex: 100,
-            backdropFilter: 'blur(3px)',
             transition: 'opacity 0.3s',
             opacity: sidebarVisible ? 1 : 0,
           }}
