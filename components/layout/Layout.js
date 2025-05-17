@@ -1,7 +1,7 @@
-// File: /components/layout/Layout.js
+// File: /components/layout/Layout.js - Updated to use Enhanced Sidebar
 import { useState, useEffect } from 'react';
 import Header from './Header';
-import Sidebar from './Sidebar';
+import EnhancedSidebar from './EnhancedSidebar';
 
 export default function Layout({ children }) {
   // Shared state for theme and sidebar visibility
@@ -37,6 +37,33 @@ export default function Layout({ children }) {
     }
   };
 
+  // Handle escape key to close sidebar
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && sidebarVisible) {
+        closeSidebar();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleEscape);
+      
+      // Lock body scroll when sidebar is open
+      if (sidebarVisible) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      }
+    };
+  }, [sidebarVisible]);
+
   return (
     <>
       <Header 
@@ -46,10 +73,30 @@ export default function Layout({ children }) {
         toggleSidebar={toggleSidebar} 
       />
       
-      <Sidebar 
+      <EnhancedSidebar 
         visible={sidebarVisible} 
-        currentPath={typeof window !== 'undefined' ? window.location.pathname : '/'}
+        closeSidebar={closeSidebar}
       />
+      
+      {/* Overlay to close sidebar on mobile */}
+      {sidebarVisible && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 100,
+            backdropFilter: 'blur(3px)',
+            transition: 'opacity 0.3s',
+            opacity: sidebarVisible ? 1 : 0,
+          }}
+          onClick={closeSidebar}
+          aria-hidden="true"
+        />
+      )}
       
       {/* Main content area that closes sidebar when clicked */}
       <main onClick={closeSidebar}>
