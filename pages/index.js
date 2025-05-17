@@ -1,76 +1,55 @@
-// File: /pages/index.js - Updated
+// File: /pages/index.js - Updated with New Components
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
+import ChatInput from '../components/ChatInput';
 
 export default function Home() {
   // State to ensure we can access DOM elements after mounting
   const [isClient, setIsClient] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
     // Mark as client-side after mount
     setIsClient(true);
 
-    // Initialize the chat functionality
+    // Load chat history from localStorage
+    loadChatHistory();
+
+    // Initialize remaining chat functionality
     if (typeof window !== 'undefined') {
-      // We need to wait for the DOM to be ready
       initializeChat();
     }
   }, []);
 
-  // Function that initializes all chat functionality
+  // Load chat history from localStorage
+  function loadChatHistory() {
+    try {
+      const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
+      if (hist.length > 0) {
+        setMessages(hist);
+        setShowWelcome(false);
+      } else {
+        setShowWelcome(true);
+      }
+    } catch (err) {
+      console.error('Error loading chat history:', err);
+      localStorage.removeItem('griotbot-history');
+    }
+  }
+
+  // Save chat history to localStorage
+  function saveChatHistory(msgs) {
+    const HISTORY_LIMIT = 50; // Maximum number of messages to store
+    localStorage.setItem('griotbot-history', JSON.stringify(msgs.slice(-HISTORY_LIMIT)));
+  }
+
+  // Function that initializes remaining chat functionality
   function initializeChat() {
-    // Get DOM elements
-    const chatContainer = document.getElementById('chat-container');
-    const welcomeDiv = document.getElementById('welcome');
-    const chat = document.getElementById('chat');
-    const emptyState = document.getElementById('empty-state');
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
-    const sendBtn = document.getElementById('send');
-    const sendIcon = document.getElementById('send-icon');
-    const sendLoading = document.getElementById('send-loading');
-    const factElement = document.getElementById('fact');
-    const newChatBtn = document.getElementById('newChat');
-    const storyMode = document.getElementById('storytellerMode');
+    // Get DOM elements for things not yet converted to React components
     const suggestionCards = document.querySelectorAll('.suggestion-card');
-
-    // If any element is missing, return (may happen during initial mounting)
-    if (!form || !input) {
-      console.warn('DOM elements not found, initialization delayed');
-      return;
-    }
-
-    // Initialize the rest of the chat functionality as in the original code
-    // ...
-
-    // 1. SANITIZER TO PREVENT XSS
-    function sanitize(text) {
-      const d = document.createElement('div');
-      d.textContent = text;
-      return d.innerHTML;
-    }
-
-    // 2. AUTO-EXPAND TEXTAREA
-    function autoExpand(field) {
-      // Reset field height
-      field.style.height = 'inherit';
-    
-      // Calculate the height
-      const computed = window.getComputedStyle(field);
-      const height = parseInt(computed.getPropertyValue('border-top-width'), 10)
-                   + parseInt(computed.getPropertyValue('padding-top'), 10)
-                   + field.scrollHeight
-                   + parseInt(computed.getPropertyValue('padding-bottom'), 10)
-                   + parseInt(computed.getPropertyValue('border-bottom-width'), 10);
-    
-      field.style.height = `${Math.min(height, 120)}px`;
-    }
-    
-    // Apply auto-expand to input field
-    input.addEventListener('input', () => {
-      autoExpand(input);
-    });
+    const factElement = document.getElementById('fact');
 
     // 5. RANDOM PROVERB
     const proverbs = [
@@ -101,18 +80,91 @@ export default function Home() {
     
     showRandomProverb(); // Show proverb on init
 
-    // Continue with the rest of the chat functionality
-    // ...
-
-    // 6. CHAT HISTORY (localStorage)
-    // 7. APPEND MESSAGE & AUTO‑SCROLL
-    // 8. UI STATE MANAGEMENT
-    // 9. SEND MESSAGE HANDLER
     // 10. SUGGESTION CARDS HANDLER
-    // 11. NEW CHAT HANDLER
+    if (suggestionCards) {
+      suggestionCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const prompt = card.getAttribute('data-prompt');
+          if (prompt) {
+            handleSendMessage(prompt, false);
+          }
+        });
+      });
+    }
+  }
 
-    // Initialize input focus
-    if (input) input.focus();
+  // Handle sending a message
+  async function handleSendMessage(text, storytellerMode) {
+    // Hide welcome screen
+    setShowWelcome(false);
+    
+    // Add user message to state
+    const userMessage = {
+      role: 'user',
+      content: text,
+      time: new Date().toISOString()
+    };
+    
+    // Add thinking indicator
+    const thinkingMessage = {
+      role: 'bot',
+      content: '...',
+      time: new Date().toISOString(),
+      thinking: true
+    };
+    
+    const updatedMessages = [...messages, userMessage, thinkingMessage];
+    setMessages(updatedMessages);
+    
+    try {
+      // API call to our serverless function
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ 
+          prompt: text,
+          storytellerMode
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Error: Status ${res.status}`);
+      }
+      
+      const data = await res.json();
+      const botResponse = data.choices?.[0]?.message?.content || 
+                        'I apologize, but I seem to be having trouble processing your request.';
+      
+      // Replace thinking with actual response
+      const finalMessages = updatedMessages.slice(0, -1).concat({
+        role: 'bot',
+        content: botResponse,
+        time: new Date().toISOString()
+      });
+      
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
+    } catch (err) {
+      console.error('API error:', err);
+      
+      // Replace thinking with error message
+      const finalMessages = updatedMessages.slice(0, -1).concat({
+        role: 'bot',
+        content: `I'm sorry, I encountered an error: ${err.message}. Please try again later.`,
+        time: new Date().toISOString()
+      });
+      
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
+    }
+  }
+
+  // Handle starting a new chat
+  function handleNewChat() {
+    setMessages([]);
+    setShowWelcome(true);
+    localStorage.removeItem('griotbot-history');
   }
 
   return (
@@ -147,164 +199,110 @@ export default function Home() {
             backgroundColor: 'var(--bg-color)',
           }}
         >
-          <div className="welcome-container" id="welcome">
-            <div id="logo" aria-hidden="true">🌿</div>
-            <h1 className="welcome-title">Welcome to GriotBot</h1>
-            <p className="welcome-subtitle">Your AI companion for culturally rich conversations and wisdom</p>
-            
-            <div id="quote" aria-label="Inspirational quote">
-              "A people without the knowledge of their past history,<br/>
-              origin and culture is like a tree without roots."
-              <span className="quote-attribution">— Marcus Mosiah Garvey</span>
+          {showWelcome ? (
+            <div className="welcome-container" id="welcome">
+              <div id="logo" aria-hidden="true">🌿</div>
+              <h1 className="welcome-title">Welcome to GriotBot</h1>
+              <p className="welcome-subtitle">Your AI companion for culturally rich conversations and wisdom</p>
+              
+              <div id="quote" aria-label="Inspirational quote">
+                "A people without the knowledge of their past history,<br/>
+                origin and culture is like a tree without roots."
+                <span className="quote-attribution">— Marcus Mosiah Garvey</span>
+              </div>
+              
+              <div className="suggestion-cards">
+                <div className="suggestion-card" data-prompt="Tell me a story about resilience from the African diaspora">
+                  <div className="suggestion-category">Storytelling</div>
+                  <h3 className="suggestion-title">Tell me a diaspora story about resilience</h3>
+                </div>
+                
+                <div className="suggestion-card" data-prompt="Share some wisdom about community building from African traditions">
+                  <div className="suggestion-category">Wisdom</div>
+                  <h3 className="suggestion-title">African wisdom on community building</h3>
+                </div>
+                
+                <div className="suggestion-card" data-prompt="How can I connect more with my cultural heritage?">
+                  <div className="suggestion-category">Personal Growth</div>
+                  <h3 className="suggestion-title">Connect with my cultural heritage</h3>
+                </div>
+                
+                <div className="suggestion-card" data-prompt="Explain the historical significance of Juneteenth">
+                  <div className="suggestion-category">History</div>
+                  <h3 className="suggestion-title">The historical significance of Juneteenth</h3>
+                </div>
+              </div>
             </div>
-            
-            <div className="suggestion-cards">
-              <div className="suggestion-card" data-prompt="Tell me a story about resilience from the African diaspora">
-                <div className="suggestion-category">Storytelling</div>
-                <h3 className="suggestion-title">Tell me a diaspora story about resilience</h3>
-              </div>
-              
-              <div className="suggestion-card" data-prompt="Share some wisdom about community building from African traditions">
-                <div className="suggestion-category">Wisdom</div>
-                <h3 className="suggestion-title">African wisdom on community building</h3>
-              </div>
-              
-              <div className="suggestion-card" data-prompt="How can I connect more with my cultural heritage?">
-                <div className="suggestion-category">Personal Growth</div>
-                <h3 className="suggestion-title">Connect with my cultural heritage</h3>
-              </div>
-              
-              <div className="suggestion-card" data-prompt="Explain the historical significance of Juneteenth">
-                <div className="suggestion-category">History</div>
-                <h3 className="suggestion-title">The historical significance of Juneteenth</h3>
-              </div>
+          ) : (
+            <div id="chat" aria-live="polite" style={{ width: '100%', maxWidth: '700px' }}>
+              {messages.map((message, index) => (
+                <div 
+                  key={index} 
+                  className={`message ${message.role} ${message.thinking ? 'thinking' : ''}`}
+                  style={{
+                    padding: '1rem 1.2rem',
+                    margin: '0.5rem 0',
+                    borderRadius: '12px',
+                    maxWidth: '80%',
+                    wordWrap: 'break-word',
+                    boxShadow: '0 3px 6px var(--shadow-color)',
+                    alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
+                    backgroundColor: message.role === 'user' 
+                      ? 'var(--user-bubble)' 
+                      : 'var(--bot-bubble-start)',
+                    color: message.role === 'user' 
+                      ? 'var(--user-text)' 
+                      : 'var(--bot-text)',
+                    display: 'block',
+                    marginLeft: message.role === 'user' ? 'auto' : '0',
+                    marginRight: message.role === 'bot' ? 'auto' : '0',
+                  }}
+                >
+                  {message.thinking ? (
+                    <div className="typing-indicator" aria-label="GriotBot is thinking">
+                      <span></span><span></span><span></span>
+                    </div>
+                  ) : (
+                    <>
+                      {message.role === 'bot' && (
+                        <div className="bot-header" style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          marginBottom: '0.8rem',
+                          paddingBottom: '0.5rem',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                        }}>
+                          <span className="logo-icon" aria-hidden="true" style={{ fontSize: '1.2rem' }}>🌿</span>
+                          <span className="bot-name" style={{ fontWeight: 600, marginLeft: '0.5rem' }}>GriotBot</span>
+                        </div>
+                      )}
+                      <div>{message.content}</div>
+                      {message.role === 'bot' && (
+                        <div className="message-time" style={{
+                          fontSize: '0.7rem',
+                          opacity: 0.7,
+                          marginTop: '0.5rem',
+                          textAlign: 'right',
+                        }}>
+                          {new Date(message.time).toLocaleTimeString([], { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
             </div>
-          </div>
-          
-          <div id="chat" aria-live="polite"></div>
-          <div id="empty-state">
-            <p>Start a conversation with GriotBot</p>
-          </div>
+          )}
         </main>
 
-        {/* MESSAGE INPUT */}
-        <div id="form-container" style={{
-          position: 'fixed',
-          bottom: '50px',
-          left: 0,
-          width: '100%',
-          background: 'var(--bg-color)',
-          padding: '1rem',
-          borderTop: '1px solid var(--input-border)',
-          transition: 'background-color 0.3s',
-          display: 'flex',
-          justifyContent: 'center',
-          zIndex: 50,
-        }}>
-          <form id="form" aria-label="Message form" style={{
-            width: '100%',
-            maxWidth: '700px',
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            <div className="input-wrapper" style={{
-              position: 'relative',
-              display: 'flex',
-              boxShadow: '0 4px 12px var(--shadow-color)',
-              borderRadius: '12px',
-              backgroundColor: 'var(--input-bg)',
-            }}>
-              <textarea 
-                id="input" 
-                placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
-                required 
-                aria-label="Message to send"
-                rows="1"
-                style={{
-                  flex: 1,
-                  padding: '0.9rem 1rem',
-                  border: '1px solid var(--input-border)',
-                  borderRight: 'none',
-                  borderRadius: '12px 0 0 12px',
-                  outline: 'none',
-                  resize: 'none',
-                  minHeight: '55px',
-                  maxHeight: '120px',
-                  backgroundColor: 'var(--input-bg)',
-                  color: 'var(--input-text)',
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontSize: '1rem',
-                  lineHeight: 1.5,
-                }}
-              ></textarea>
-              <button id="send" type="submit" aria-label="Send message" style={{
-                width: '55px',
-                background: 'var(--accent-color)',
-                color: 'white',
-                borderRadius: '0 12px 12px 0',
-                transition: 'background-color 0.3s, transform 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: 'none',
-                cursor: 'pointer',
-              }}>
-                <div id="send-icon">↑</div>
-                <div id="send-loading" className="spinner" style={{display: 'none'}}></div>
-              </button>
-            </div>
-            
-            <div className="form-actions" style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '0.5rem',
-              fontSize: '0.8rem',
-            }}>
-              <div className="form-info" style={{
-                color: 'var(--text-color)',
-                opacity: 0.7,
-              }}>Free users: 30 messages per day</div>
-              
-              <div className="storyteller-mode" style={{
-                display: 'flex',
-                alignItems: 'center',
-              }}>
-                <label htmlFor="storytellerMode" style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                }}>
-                  Storyteller Mode
-                  <div className="toggle-switch" style={{
-                    position: 'relative',
-                    display: 'inline-block',
-                    width: '36px',
-                    height: '20px',
-                    marginLeft: '0.5rem',
-                  }}>
-                    <input type="checkbox" id="storytellerMode" style={{
-                      opacity: 0,
-                      width: 0,
-                      height: 0,
-                    }} />
-                    <span className="slider" style={{
-                      position: 'absolute',
-                      cursor: 'pointer',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: 'rgba(0,0,0,0.25)',
-                      transition: '.3s',
-                      borderRadius: '20px',
-                    }}></span>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </form>
-        </div>
+        {/* Input component */}
+        <ChatInput onSubmit={handleSendMessage} />
+        
+        {/* Make sure the proverb element exists for the JavaScript to find */}
+        <div id="fact" style={{ display: 'none' }}></div>
       </Layout>
     </>
   );
