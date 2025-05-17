@@ -117,12 +117,18 @@ export default function About() {
           <a style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            justifyContent: 'center',
             color: 'var(--header-text)',
             textDecoration: 'none',
           }}>
-            <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
-            <span>GriotBot</span>
+            <img 
+              src="/images/GriotBot logo horiz wht.svg" 
+              alt="GriotBot" 
+              style={{
+                height: '32px',
+                width: 'auto',
+              }}
+            />
           </a>
         </Link>
         
@@ -343,16 +349,21 @@ export default function About() {
       </nav>
 
       {/* MAIN CONTENT */}
-      <div style={{
-        fontFamily: 'Montserrat, sans-serif',
-        backgroundColor: 'var(--bg-color)',
-        color: 'var(--text-color)',
-        margin: 0,
-        padding: '2rem',
-        lineHeight: 1.6,
-        minHeight: 'calc(100vh - 60px)', // Account for header height
-        transition: 'background-color 0.3s, color 0.3s',
-      }}>
+      <div 
+        style={{
+          fontFamily: 'Montserrat, sans-serif',
+          backgroundColor: 'var(--bg-color)',
+          color: 'var(--text-color)',
+          margin: 0,
+          padding: '2rem',
+          lineHeight: 1.6,
+          minHeight: 'calc(100vh - 60px)', // Account for header height
+          transition: 'background-color 0.3s, color 0.3s',
+        }}
+        onClick={() => {
+          if (sidebarVisible) setSidebarVisible(false);
+        }}
+      >
         <div style={{
           maxWidth: '700px',
           margin: 'auto',
