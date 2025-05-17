@@ -1,224 +1,55 @@
-/* Add to globals.css - About page styles */
-.about-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 6rem;
+/* File: /styles/globals.css */
+/* All CSS content from style/globals.css goes here */
+/*---------------------------------------
+  1. THEME VARIABLES & COLOR PALETTE
+---------------------------------------*/
+:root {
+  /* Light theme - Earthy, warm palette inspired by African textiles */
+  --bg-color: #f8f5f0;
+  --text-color: #33302e;
+  --header-bg: #c49a6c;
+  --header-text: #33302e;
+  --accent-color: #d7722c; /* Earthy orange - call to action */
+  --accent-hover: #c86520;
+  --wisdom-color: #6b4226; /* Deep brown for wisdom quotes */
+}
+
+[data-theme="dark"] {
+  /* Dark theme - Inspired by evening gatherings and storytelling */
+  --bg-color: #292420;
+  --text-color: #f0ece4;
+  --header-bg: #50392d;
+  --header-text: #f0ece4;
+  --accent-color: #d7722c;
+  --accent-hover: #e8833d;
+  --wisdom-color: #e0c08f; /* Lighter for better contrast in dark mode */
+}
+
+/*---------------------------------------
+  2. GLOBAL STYLES
+---------------------------------------*/
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
   color: var(--text-color);
   line-height: 1.6;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-.about-hero-section {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.about-logo-wrapper {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end));
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 12px var(--shadow-color);
-}
-
-.about-logo-icon {
-  font-size: 2.5rem;
-  color: white;
-}
-
-.about-title {
-  font-family: var(--heading-font);
-  color: var(--accent-color);
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-.about-subtitle {
-  font-family: var(--body-font);
-  font-size: 1.2rem;
-  opacity: 0.8;
-  margin-top: 0;
-}
-
-.about-content-section {
-  margin-bottom: 3rem;
-}
-
-.about-quote {
-  background-color: rgba(125, 135, 101, 0.1);
-  border-left: 4px solid var(--bot-bubble-start);
-  padding: 1.5rem;
-  margin: 2rem 0;
-  border-radius: 0 var(--radius-md, 8px) var(--radius-md, 8px) 0;
-}
-
-.about-quote blockquote {
-  font-family: var(--quote-font);
-  font-style: italic;
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--wisdom-color);
-  line-height: 1.7;
-}
-
-.about-quote cite {
-  display: block;
-  margin-top: 0.5rem;
-  font-style: normal;
-  font-weight: 500;
-}
-
-.about-main-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.about-lead {
-  font-size: 1.1rem;
-  line-height: 1.7;
-}
-
-.about-section-heading {
-  font-family: var(--heading-font);
-  color: var(--accent-color);
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-.about-pattern-divider {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 1.5rem 0;
-  height: 20px;
-  position: relative;
-}
-
-.about-pattern-divider::before, 
-.about-pattern-divider::after {
-  content: "";
-  height: 1px;
-  background-color: rgba(196, 154, 108, 0.3);
-  flex-grow: 1;
-}
-
-.about-adinkra-symbol {
-  margin: 0 15px;
-  color: var(--accent-color);
-  font-size: 1.2rem;
-}
-
-.about-text-link {
+a {
   color: var(--accent-color);
   text-decoration: none;
-  margin: 0 0.3rem;
-  position: relative;
   transition: color 0.2s;
 }
 
-.about-text-link:hover {
+a:hover {
   color: var(--accent-hover);
-  text-decoration: underline;
 }
 
-.about-cta-section {
-  text-align: center;
-  background-color: var(--card-bg);
-  padding: 2.5rem 2rem;
-  border-radius: var(--radius-lg, 12px);
-  box-shadow: 0 4px 12px var(--shadow-color);
-  margin-top: 3rem;
-}
-
-.about-cta-heading {
-  font-family: var(--heading-font);
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
-  color: var(--accent-color);
-}
-
-.about-cta-text {
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
-.about-cta-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--accent-color);
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: var(--radius-md, 8px);
-  font-weight: 500;
-  text-decoration: none;
-  transition: background-color 0.2s, transform 0.2s;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.about-cta-button:hover {
-  background-color: var(--accent-hover);
-  transform: translateY(-2px);
-}
-
-.about-cta-button-icon {
-  margin-right: 8px;
-}
-
-.about-proverb {
-  text-align: center;
-  font-size: 0.9rem;
-  font-style: italic;
-  padding: 0 1rem;
-  color: var(--wisdom-color);
-  opacity: 0.8;
-  font-family: var(--quote-font);
-  margin-bottom: 0.5rem;
-}
-
-.about-copyright {
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--text-color);
-  opacity: 0.6;
-  padding-bottom: 1rem;
-}
-
-#main-about {
-  margin-bottom: 2rem;
-  overflow-y: auto;
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .about-container {
-    padding: 1.5rem 1rem 6rem;
-  }
-  
-  .about-title {
-    font-size: 2rem;
-  }
-  
-  .about-subtitle {
-    font-size: 1rem;
-  }
-  
-  .about-quote blockquote {
-    font-size: 1rem;
-  }
-  
-  .about-cta-section {
-    padding: 2rem 1.5rem;
-  }
-  
-  .about-cta-heading {
-    font-size: 1.5rem;
-  }
+h1, h2, h3, h4, h5 {
+  font-family: 'Lora', serif;
+  margin-top: 0;
 }
