@@ -83,7 +83,7 @@ export default function EnhancedFooter({ page = 'index' }) {
       },
     },
     other: {
-      // Styles for non-index pages - simpler and more compact
+      // Styles for non-index pages - more opaque background
       container: {
         width: '100%',
         position: 'fixed',
@@ -91,17 +91,19 @@ export default function EnhancedFooter({ page = 'index' }) {
         left: 0,
         right: 0,
         paddingBottom: '0.5rem',
-        background: 'linear-gradient(transparent, var(--bg-color) 50%)',
+        background: 'var(--bg-color)', // Fully opaque background
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         zIndex: 40,
         pointerEvents: 'none',
+        borderTop: '1px solid var(--input-border)',
       },
       proverbContainer: {
         width: '100%',
         textAlign: 'center',
         marginBottom: '0.25rem',
+        backgroundColor: 'var(--bg-color)', // Ensure opacity
       },
       proverbText: {
         fontFamily: 'Lora, serif',
@@ -114,6 +116,7 @@ export default function EnhancedFooter({ page = 'index' }) {
       bottomBar: {
         width: '100%',
         textAlign: 'center',
+        backgroundColor: 'var(--bg-color)', // Ensure opacity
       },
       copyright: {
         fontSize: '0.75rem',
