@@ -301,7 +301,7 @@ export default function Home() {
         {/* Input component */}
         <ChatInput onSubmit={handleSendMessage} />
         
-        {/* Ensure both fact and proverb elements exist for JavaScript to find */}
+        {/* Footer elements with visible proverb */}
         <div id="fact" aria-label="Random proverb" style={{
           position: 'fixed',
           bottom: '30px',
@@ -314,10 +314,12 @@ export default function Home() {
           transition: 'color 0.3s',
           opacity: 0.8,
           fontFamily: 'Lora, serif',
-          backgroundColor: 'transparent',
+          background: 'linear-gradient(transparent, var(--bg-color) 50%)', // Gradient background
           pointerEvents: 'none',
           zIndex: 35, // Below input but above copyright
-        }}></div>
+        }}>
+          Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb
+        </div>
         
         <div id="copyright" aria-label="Copyright information" style={{
           position: 'fixed',
