@@ -1,55 +1,66 @@
-/* File: /styles/globals.css */
-/* All CSS content from style/globals.css goes here */
-/*---------------------------------------
-  1. THEME VARIABLES & COLOR PALETTE
----------------------------------------*/
+// File: /styles/globals.css
 :root {
-  /* Light theme - Earthy, warm palette inspired by African textiles */
+  /* Color System */
   --bg-color: #f8f5f0;
   --text-color: #33302e;
   --header-bg: #c49a6c;
   --header-text: #33302e;
-  --accent-color: #d7722c; /* Earthy orange - call to action */
+  --sidebar-bg: rgba(75, 46, 42, 0.97);
+  --sidebar-text: #f8f5f0;
+  --user-bubble: #bd8735;
+  --user-text: #f8f5f0;
+  --bot-bubble-start: #7d8765;
+  --bot-bubble-end: #5e6e4f;
+  --bot-text: #f8f5f0;
+  --accent-color: #d7722c;
   --accent-hover: #c86520;
-  --wisdom-color: #6b4226; /* Deep brown for wisdom quotes */
+  --wisdom-color: #6b4226;
+  --input-bg: #ffffff;
+  --input-border: rgba(75, 46, 42, 0.2);
+  --input-text: #33302e;
+  --shadow-color: rgba(75, 46, 42, 0.15);
+  --card-bg: #ffffff;
 }
 
 [data-theme="dark"] {
-  /* Dark theme - Inspired by evening gatherings and storytelling */
   --bg-color: #292420;
   --text-color: #f0ece4;
   --header-bg: #50392d;
   --header-text: #f0ece4;
+  --sidebar-bg: rgba(40, 30, 25, 0.97);
+  --sidebar-text: #f0ece4;
+  --user-bubble: #bb7e41;
+  --user-text: #f0ece4;
+  --bot-bubble-start: #5e6e4f;
+  --bot-bubble-end: #3e4a38;
+  --bot-text: #f0ece4;
   --accent-color: #d7722c;
   --accent-hover: #e8833d;
-  --wisdom-color: #e0c08f; /* Lighter for better contrast in dark mode */
+  --wisdom-color: #e0c08f;
+  --input-bg: #352e29;
+  --input-border: rgba(240, 236, 228, 0.2);
+  --input-text: #f0ece4;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --card-bg: #352e29;
 }
 
-/*---------------------------------------
-  2. GLOBAL STYLES
----------------------------------------*/
-* { box-sizing: border-box; }
-
+/* Typography */
 body {
-  margin: 0;
-  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
-  line-height: 1.6;
+  margin: 0;
+  padding: 0;
   transition: background-color 0.3s, color 0.3s;
 }
 
-a {
-  color: var(--accent-color);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-a:hover {
-  color: var(--accent-hover);
-}
-
-h1, h2, h3, h4, h5 {
+h1, h2, h3, h4, h5, h6 {
   font-family: 'Lora', serif;
-  margin-top: 0;
 }
+
+/* Global reset */
+* {
+  box-sizing: border-box;
+}
+
+/* Add existing styles from globals.css here */
