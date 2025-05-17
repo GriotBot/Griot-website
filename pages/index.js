@@ -301,8 +301,39 @@ export default function Home() {
         {/* Input component */}
         <ChatInput onSubmit={handleSendMessage} />
         
-        {/* Make sure the proverb element exists for the JavaScript to find */}
-        <div id="fact" style={{ display: 'none' }}></div>
+        {/* Ensure both fact and proverb elements exist for JavaScript to find */}
+        <div id="fact" aria-label="Random proverb" style={{
+          position: 'fixed',
+          bottom: '30px',
+          width: '100%',
+          textAlign: 'center',
+          fontSize: '0.9rem',
+          fontStyle: 'italic',
+          padding: '0 1rem',
+          color: 'var(--wisdom-color)',
+          transition: 'color 0.3s',
+          opacity: 0.8,
+          fontFamily: 'Lora, serif',
+          backgroundColor: 'transparent',
+          pointerEvents: 'none',
+          zIndex: 35, // Below input but above copyright
+        }}></div>
+        
+        <div id="copyright" aria-label="Copyright information" style={{
+          position: 'fixed',
+          bottom: '10px',
+          width: '100%',
+          textAlign: 'center',
+          fontSize: '0.8rem',
+          color: 'var(--text-color)',
+          opacity: 0.6,
+          transition: 'color 0.3s',
+          backgroundColor: 'transparent',
+          pointerEvents: 'none',
+          zIndex: 30,
+        }}>
+          © 2025 GriotBot. All rights reserved.
+        </div>
       </Layout>
     </>
   );
