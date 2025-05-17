@@ -86,8 +86,10 @@ export default function Layout({ children }) {
         {children}
       </main>
       
-      {/* Enhanced footer replaces the old footer elements */}
-      <EnhancedFooter page={typeof window !== 'undefined' ? window.location.pathname === '/' ? 'index' : 'other' : 'other'} />
+      {/* Only include EnhancedFooter on non-index pages */}
+      {typeof window !== 'undefined' && window.location.pathname !== '/' && (
+        <EnhancedFooter page="other" />
+      )}
     </>
   );
 }
