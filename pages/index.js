@@ -6,24 +6,43 @@ import Link from 'next/link';
 export default function Home() {
   // State to ensure we can access DOM elements after mounting
   const [isClient, setIsClient] = useState(false);
+  const [theme, setTheme] = useState('light');
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   useEffect(() => {
     // Mark as client-side after mount
     setIsClient(true);
 
-    // Immediately run the initialization code after first render
+    // Get theme from localStorage
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+
+    // Initialize the chat functionality
     if (typeof window !== 'undefined') {
       // We need to wait for the DOM to be ready
       initializeChat();
     }
   }, []);
 
+  // Toggle theme function
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('griotbot-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
   // Function that initializes all chat functionality
   function initializeChat() {
     // Get DOM elements
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleSidebar');
-    const themeToggle = document.getElementById('themeToggle');
     const chatContainer = document.getElementById('chat-container');
     const welcomeDiv = document.getElementById('welcome');
     const chat = document.getElementById('chat');
@@ -39,7 +58,7 @@ export default function Home() {
     const suggestionCards = document.querySelectorAll('.suggestion-card');
 
     // If any element is missing, return (may happen during initial mounting)
-    if (!sidebar || !toggleBtn || !form) {
+    if (!form || !input) {
       console.warn('DOM elements not found, initialization delayed');
       return;
     }
@@ -72,50 +91,11 @@ export default function Home() {
       autoExpand(input);
     });
 
-    // 3. SIDEBAR TOGGLE
-    toggleBtn.addEventListener('click', () => {
-      const visible = sidebar.classList.toggle('visible');
-      toggleBtn.setAttribute('aria-expanded', visible);
-      sidebar.setAttribute('aria-hidden', !visible);
-    });
-    
-    // Close sidebar when clicking outside
-    document.addEventListener('click', (event) => {
-      if (sidebar.classList.contains('visible') && 
-          !sidebar.contains(event.target) && 
-          !toggleBtn.contains(event.target)) {
-        sidebar.classList.remove('visible');
-        toggleBtn.setAttribute('aria-expanded', 'false');
-        sidebar.setAttribute('aria-hidden', 'true');
-      }
-    });
-
     // 4. THEME TOGGLE
-    function setTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('griotbot-theme', theme);
-      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-      themeToggle.setAttribute('aria-label', 
-        theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    function setTheme(themeValue) {
+      document.documentElement.setAttribute('data-theme', themeValue);
+      localStorage.setItem('griotbot-theme', themeValue);
     }
-    
-    // Initialize theme from localStorage or user preference
-    (function() {
-      const savedTheme = localStorage.getItem('griotbot-theme');
-      if (savedTheme) {
-        setTheme(savedTheme);
-      } else {
-        // Check for system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        setTheme(prefersDark ? 'dark' : 'light');
-      }
-    })();
-    
-    // Handle theme toggle click
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      setTheme(currentTheme === 'light' ? 'dark' : 'light');
-    });
 
     // 5. RANDOM PROVERB
     const proverbs = [
@@ -137,9 +117,11 @@ export default function Home() {
     ];
     
     function showRandomProverb() {
-      const randomIndex = Math.floor(Math.random() * proverbs.length);
-      factElement.textContent = proverbs[randomIndex];
-      factElement.setAttribute('aria-label', `Proverb: ${proverbs[randomIndex]}`);
+      if (factElement) {
+        const randomIndex = Math.floor(Math.random() * proverbs.length);
+        factElement.textContent = proverbs[randomIndex];
+        factElement.setAttribute('aria-label', `Proverb: ${proverbs[randomIndex]}`);
+      }
     }
     
     showRandomProverb(); // Show proverb on init
@@ -150,10 +132,10 @@ export default function Home() {
     function loadChatHistory() {
       try {
         const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
-        if (hist.length > 0) {
+        if (hist.length > 0 && welcomeDiv && chat) {
           hideWelcome();
           hist.forEach(m => appendMessage(m.role, m.content, m.time, false));
-        } else {
+        } else if (welcomeDiv) {
           showWelcome();
         }
       } catch (err) {
@@ -163,6 +145,8 @@ export default function Home() {
     }
     
     function saveChatHistory() {
+      if (!chat) return;
+      
       const msgs = Array.from(chat.querySelectorAll('.message:not(.thinking)'))
         .map(el => ({ 
           role: el.classList.contains('user') ? 'user' : 'bot', 
@@ -178,6 +162,8 @@ export default function Home() {
 
     // 7. APPEND MESSAGE & AUTO‑SCROLL
     function appendMessage(role, text, timestamp = null, save = true) {
+      if (!chat) return;
+      
       const now = timestamp || new Date().toISOString();
       const msg = document.createElement('div');
       msg.className = `message ${role}`;
@@ -241,132 +227,137 @@ export default function Home() {
     }
     
     function scrollToBottom() {
-      chatContainer.scrollTo({ 
-        top: chatContainer.scrollHeight, 
-        behavior: 'smooth' 
-      });
+      if (chatContainer) {
+        chatContainer.scrollTo({ 
+          top: chatContainer.scrollHeight, 
+          behavior: 'smooth' 
+        });
+      }
     }
 
     // 8. UI STATE MANAGEMENT
     function hideWelcome() {
-      welcomeDiv.style.display = 'none';
-      emptyState.style.display = 'none';
+      if (welcomeDiv) welcomeDiv.style.display = 'none';
+      if (emptyState) emptyState.style.display = 'none';
     }
     
     function showWelcome() {
-      welcomeDiv.style.display = 'flex';
-      if (chat.childElementCount === 0) {
+      if (welcomeDiv) welcomeDiv.style.display = 'flex';
+      if (chat && emptyState && chat.childElementCount === 0) {
         emptyState.style.display = 'none';
       }
     }
     
     function setLoadingState(isLoading) {
-      input.disabled = isLoading;
-      sendBtn.disabled = isLoading;
-      sendIcon.style.display = isLoading ? 'none' : 'inline-block';
-      sendLoading.style.display = isLoading ? 'inline-block' : 'none';
+      if (input && sendBtn && sendIcon && sendLoading) {
+        input.disabled = isLoading;
+        sendBtn.disabled = isLoading;
+        sendIcon.style.display = isLoading ? 'none' : 'inline-block';
+        sendLoading.style.display = isLoading ? 'inline-block' : 'none';
+      }
     }
 
     // 9. SEND MESSAGE HANDLER
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const userInput = input.value.trim();
-      if (!userInput) return;
-      
-      // Set UI to loading state
-      setLoadingState(true);
-      hideWelcome();
-      
-      // Get storyteller mode state
-      const isStorytellerMode = storyMode.checked;
-      
-      // Add user message
-      appendMessage('user', userInput);
-      input.value = '';
-      input.style.height = 'inherit'; // Reset height
-      
-      // Add thinking indicator
-      const thinkingMsg = document.createElement('div');
-      thinkingMsg.className = 'message bot thinking';
-      thinkingMsg.innerHTML = `
-        <div class="typing-indicator" aria-label="GriotBot is thinking">
-          <span></span><span></span><span></span>
-        </div>`;
-      chat.appendChild(thinkingMsg);
-      scrollToBottom();
-      
-      try {
-        // API call to our serverless function
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ 
-            prompt: userInput,
-            storytellerMode: isStorytellerMode
-          })
-        });
+    if (form) {
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const userInput = input.value.trim();
+        if (!userInput) return;
         
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.error || `Error: Status ${res.status}`);
-        }
+        // Set UI to loading state
+        setLoadingState(true);
+        hideWelcome();
         
-        const data = await res.json();
-        const botResponse = data.choices?.[0]?.message?.content || 
-                          'I apologize, but I seem to be having trouble processing your request.';
+        // Get storyteller mode state
+        const isStorytellerMode = storyMode ? storyMode.checked : false;
         
-        // Replace thinking with actual response
-        thinkingMsg.remove();
-        appendMessage('bot', botResponse);
-      } catch (err) {
-        console.error('API error:', err);
+        // Add user message
+        appendMessage('user', userInput);
+        input.value = '';
+        input.style.height = 'inherit'; // Reset height
         
-        // Replace thinking with error message
-        thinkingMsg.remove();
-        appendMessage('bot', `I'm sorry, I encountered an error: ${err.message}. Please try again later.`);
-      } finally {
-        setLoadingState(false);
-        input.focus();
-      }
-    });
-
-    // 10. SUGGESTION CARDS HANDLER
-    suggestionCards.forEach(card => {
-      card.addEventListener('click', () => {
-        const prompt = card.getAttribute('data-prompt');
-        if (prompt) {
-          input.value = prompt;
-          autoExpand(input);
-          input.focus();
+        // Add thinking indicator
+        const thinkingMsg = document.createElement('div');
+        thinkingMsg.className = 'message bot thinking';
+        thinkingMsg.innerHTML = `
+          <div class="typing-indicator" aria-label="GriotBot is thinking">
+            <span></span><span></span><span></span>
+          </div>`;
+        chat.appendChild(thinkingMsg);
+        scrollToBottom();
+        
+        try {
+          // API call to our serverless function
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+              prompt: userInput,
+              storytellerMode: isStorytellerMode
+            })
+          });
+          
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.error || `Error: Status ${res.status}`);
+          }
+          
+          const data = await res.json();
+          const botResponse = data.choices?.[0]?.message?.content || 
+                            'I apologize, but I seem to be having trouble processing your request.';
+          
+          // Replace thinking with actual response
+          thinkingMsg.remove();
+          appendMessage('bot', botResponse);
+        } catch (err) {
+          console.error('API error:', err);
+          
+          // Replace thinking with error message
+          thinkingMsg.remove();
+          appendMessage('bot', `I'm sorry, I encountered an error: ${err.message}. Please try again later.`);
+        } finally {
+          setLoadingState(false);
+          if (input) input.focus();
         }
       });
-    });
+    }
+
+    // 10. SUGGESTION CARDS HANDLER
+    if (suggestionCards) {
+      suggestionCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const prompt = card.getAttribute('data-prompt');
+          if (prompt && input) {
+            input.value = prompt;
+            autoExpand(input);
+            input.focus();
+          }
+        });
+      });
+    }
 
     // 11. NEW CHAT HANDLER
-    newChatBtn.addEventListener('click', () => {
-      // Clear chat UI
-      chat.innerHTML = '';
-      
-      // Clear local storage history
-      localStorage.removeItem('griotbot-history');
-      
-      // Show welcome elements
-      showWelcome();
-      
-      // Close sidebar
-      sidebar.classList.remove('visible');
-      toggleBtn.setAttribute('aria-expanded', 'false');
-      sidebar.setAttribute('aria-hidden', 'true');
-      
-      // Reset storyteller mode
-      storyMode.checked = false;
-      
-      // Focus on input
-      input.focus();
-    });
+    if (newChatBtn) {
+      newChatBtn.addEventListener('click', () => {
+        // Clear chat UI
+        if (chat) chat.innerHTML = '';
+        
+        // Clear local storage history
+        localStorage.removeItem('griotbot-history');
+        
+        // Show welcome elements
+        showWelcome();
+        
+        // Reset storyteller mode
+        if (storyMode) storyMode.checked = false;
+        
+        // Focus on input
+        if (input) input.focus();
+      });
+    }
 
     // Initialize input focus
-    input.focus();
+    if (input) input.focus();
   }
 
   return (
@@ -380,9 +371,8 @@ export default function Home() {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
         
-        {/* CRITICAL INLINE STYLES - to ensure core styling is applied regardless of CSS loading */}
+        {/* Add inline critical CSS */}
         <style dangerouslySetInnerHTML={{ __html: `
-          /* Define critical CSS variables */
           :root {
             --bg-color: #f8f5f0;
             --text-color: #33302e;
@@ -426,594 +416,322 @@ export default function Home() {
             --shadow-color: rgba(0, 0, 0, 0.3);
             --card-bg: #352e29;
           }
-
-          /* Global styles - Applied to everything */
-          * {
-            box-sizing: border-box !important;
-          }
-
-          /* Critical body styles */
-          body, html {
-            margin: 0 !important;
-            padding: 0 !important;
-            font-family: 'Montserrat', sans-serif !important;
-            background-color: var(--bg-color) !important;
-            color: var(--text-color) !important;
-            height: 100vh !important;
-            width: 100% !important;
-            overflow: hidden !important;
-            line-height: 1.6 !important;
-          }
-
-          /* Header styles */
-          #header, 
-          div#header,
-          [id="header"] {
-            position: relative !important;
-            background-color: var(--header-bg) !important;
-            color: var(--header-text) !important;
-            padding: 1rem !important;
-            text-align: center !important;
-            font-weight: bold !important;
-            font-size: 1.2rem !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 1rem !important;
-            box-shadow: 0 2px 10px var(--shadow-color) !important;
-            z-index: 100 !important;
-            font-family: 'Lora', serif !important;
-            height: 60px !important; /* Fixed height for header */
-            width: 100% !important;
-          }
-          
-          .logo-container,
-          div.logo-container,
-          [class="logo-container"] {
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.5rem !important;
-          }
-          
-          .logo-icon,
-          span.logo-icon,
-          [class="logo-icon"] {
-            font-size: 1.5rem !important;
-          }
-          
-          #toggleSidebar,
-          button#toggleSidebar,
-          [id="toggleSidebar"] {
-            position: absolute !important;
-            left: 1rem !important;
-            font-size: 1.5rem !important;
-            color: var(--header-text) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            background: none !important;
-            border: none !important;
-            cursor: pointer !important;
-            padding: 8px 12px !important;
-            border-radius: 6px !important;
-          }
-          
-          #themeToggle,
-          button#themeToggle,
-          [id="themeToggle"] {
-            position: absolute !important;
-            right: 1rem !important;
-            font-size: 1.5rem !important;
-            color: var(--header-text) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            background: none !important;
-            border: none !important;
-            cursor: pointer !important;
-            padding: 8px 12px !important;
-            border-radius: 6px !important;
-          }
-
-          /* Sidebar styles */
-          #sidebar,
-          nav#sidebar,
-          [id="sidebar"] {
-            position: fixed !important;
-            top: 0 !important; 
-            left: 0 !important;
-            height: 100% !important;
-            width: 280px !important;
-            background: var(--sidebar-bg) !important;
-            color: var(--sidebar-text) !important;
-            padding: 1.5rem !important;
-            transform: translateX(-100%) !important;
-            transition: transform 0.3s ease-in-out, background 0.3s !important;
-            backdrop-filter: blur(12px) !important;
-            -webkit-backdrop-filter: blur(12px) !important;
-            box-shadow: 4px 0 20px var(--shadow-color) !important;
-            z-index: 1000 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 1.5rem !important;
-          }
-          
-          #sidebar.visible {
-            transform: translateX(0) !important;
-          }
-          
-          /* Chat container styles - FIX FOR SCROLLING */
-          #chat-container,
-          main#chat-container,
-          [id="chat-container"] {
-            flex: 1 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: flex-start !important;
-            overflow-y: auto !important; /* Enable vertical scrolling */
-            height: calc(100vh - 160px) !important; /* Subtract header + input area heights */
-            position: fixed !important;
-            top: 60px !important; /* Position below header */
-            left: 0 !important;
-            right: 0 !important;
-            padding: 1rem !important;
-            padding-bottom: 140px !important;
-            background-color: var(--bg-color) !important;
-          }
-          
-          .welcome-container,
-          div.welcome-container,
-          [class="welcome-container"],
-          #welcome,
-          [id="welcome"] {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            text-align: center !important;
-            max-width: 700px !important;
-            margin: 1rem auto 2rem !important;
-            width: 100% !important;
-          }
-          
-          #logo,
-          div#logo,
-          [id="logo"] {
-            font-size: 4rem !important;
-            margin-bottom: 0.5rem !important;
-          }
-          
-          .welcome-title,
-          h1.welcome-title,
-          [class="welcome-title"] {
-            font-family: 'Lora', serif !important;
-            font-size: 2rem !important;
-            margin: 0.5rem 0 !important;
-          }
-          
-          .welcome-subtitle,
-          p.welcome-subtitle,
-          [class="welcome-subtitle"] {
-            font-family: 'Montserrat', sans-serif !important;
-            color: var(--text-color) !important;
-            opacity: 0.8 !important;
-            margin-bottom: 1.5rem !important;
-          }
-          
-          #quote,
-          div#quote,
-          [id="quote"] {
-            font-size: 1.1rem !important;
-            font-style: italic !important;
-            color: var(--wisdom-color) !important;
-            text-align: center !important;
-            font-family: 'Lora', serif !important;
-            line-height: 1.7 !important;
-            margin-bottom: 2rem !important;
-            position: relative !important;
-            padding: 0 1.5rem !important;
-            width: 100% !important;
-          }
-          
-          .quote-attribution,
-          span.quote-attribution,
-          [class="quote-attribution"] {
-            font-weight: 500 !important;
-            display: block !important;
-            margin-top: 0.5rem !important;
-          }
-          
-          /* FIX FOR BROWN BAR - Suggestion cards */
-          .suggestion-cards,
-          div.suggestion-cards,
-          [class="suggestion-cards"] {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            justify-content: center !important;
-            gap: 1rem !important;
-            margin-bottom: 2rem !important;
-            width: 100% !important;
-            max-width: 700px !important;
-            border: none !important; /* Remove any borders */
-          }
-          
-          .suggestion-card,
-          div.suggestion-card,
-          [class="suggestion-card"] {
-            background-color: var(--card-bg) !important;
-            padding: 1rem !important;
-            border-radius: 12px !important;
-            width: calc(50% - 0.5rem) !important;
-            min-width: 200px !important;
-            box-shadow: 0 3px 10px var(--shadow-color) !important;
-            cursor: pointer !important;
-            border: none !important; /* Remove any borders */
-          }
-          
-          .suggestion-category,
-          div.suggestion-category,
-          [class="suggestion-category"] {
-            font-size: 0.8rem !important;
-            text-transform: uppercase !important;
-            color: var(--accent-color) !important;
-            font-weight: 500 !important;
-            margin-bottom: 0.5rem !important;
-          }
-          
-          .suggestion-title,
-          h3.suggestion-title,
-          [class="suggestion-title"] {
-            font-family: var(--heading-font), 'Lora', serif !important;
-            font-weight: 600 !important;
-            margin: 0 !important;
-            font-size: 1.1rem !important;
-          }
-          
-          /* Chat styles */
-          #chat,
-          div#chat,
-          [id="chat"] {
-            width: 100% !important;
-            max-width: 700px !important;
-            display: flex !important;
-            flex-direction: column !important;
-          }
-          
-          /* Form container styles - FIXED position */
-          #form-container,
-          div#form-container,
-          [id="form-container"] {
-            position: fixed !important;
-            bottom: 50px !important;
-            left: 0 !important;
-            width: 100% !important;
-            background: var(--bg-color) !important;
-            padding: 1rem !important;
-            border-top: 1px solid var(--input-border) !important;
-            display: flex !important;
-            justify-content: center !important;
-            z-index: 50 !important;
-          }
-          
-          #form,
-          form#form,
-          [id="form"] {
-            width: 100% !important;
-            max-width: 700px !important;
-            display: flex !important;
-            flex-direction: column !important;
-          }
-          
-          .input-wrapper,
-          div.input-wrapper,
-          [class="input-wrapper"] {
-            position: relative !important;
-            display: flex !important;
-            box-shadow: 0 4px 12px var(--shadow-color) !important;
-            border-radius: 12px !important;
-            background-color: var(--input-bg) !important;
-          }
-          
-          #input,
-          textarea#input,
-          [id="input"] {
-            flex: 1 !important;
-            padding: 0.9rem 1rem !important;
-            border: 1px solid var(--input-border) !important;
-            border-right: none !important;
-            border-radius: 12px 0 0 12px !important;
-            outline: none !important;
-            resize: none !important;
-            min-height: 55px !important;
-            max-height: 120px !important;
-            background-color: var(--input-bg) !important;
-            color: var(--input-text) !important;
-            font-family: 'Montserrat', sans-serif !important;
-            font-size: 1rem !important;
-            line-height: 1.5 !important;
-          }
-          
-          #send,
-          button#send,
-          [id="send"] {
-            width: 55px !important;
-            background: var(--accent-color) !important;
-            color: white !important;
-            border-radius: 0 12px 12px 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            border: none !important;
-            cursor: pointer !important;
-          }
-          
-          .form-actions,
-          div.form-actions,
-          [class="form-actions"] {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            margin-top: 0.5rem !important;
-            font-size: 0.8rem !important;
-          }
-          
-          /* FIXING BOTTOM ELEMENTS - Footer elements */
-          #fact,
-          div#fact,
-          [id="fact"] {
-            position: fixed !important;
-            bottom: 30px !important;
-            left: 0 !important;
-            width: 100% !important;
-            text-align: center !important;
-            font-size: 0.9rem !important;
-            font-style: italic !important;
-            padding: 0 1rem !important;
-            color: var(--wisdom-color) !important;
-            opacity: 0.8 !important;
-            font-family: 'Lora', serif !important;
-            background-color: transparent !important;
-            pointer-events: none !important; /* Make transparent to clicks */
-            z-index: 40 !important; /* Below input */
-          }
-          
-          #copyright,
-          div#copyright,
-          [id="copyright"] {
-            position: fixed !important;
-            bottom: 10px !important;
-            left: 0 !important;
-            width: 100% !important;
-            text-align: center !important;
-            font-size: 0.8rem !important;
-            color: var(--text-color) !important;
-            opacity: 0.6 !important;
-            background-color: transparent !important;
-            pointer-events: none !important; /* Make transparent to clicks */
-            z-index: 40 !important; /* Below input */
-          }
-          
-          /* Storyteller toggle styling */
-          .storyteller-mode,
-          div.storyteller-mode,
-          [class="storyteller-mode"] {
-            display: flex !important;
-            align-items: center !important;
-          }
-          
-          .storyteller-mode label {
-            display: flex !important;
-            align-items: center !important;
-            cursor: pointer !important;
-          }
-          
-          .toggle-switch,
-          div.toggle-switch,
-          [class="toggle-switch"] {
-            position: relative !important;
-            display: inline-block !important;
-            width: 36px !important;
-            height: 20px !important;
-            margin-left: 0.5rem !important;
-          }
-          
-          .toggle-switch input { 
-            opacity: 0 !important;
-            width: 0 !important;
-            height: 0 !important;
-          }
-          
-          .slider,
-          span.slider,
-          [class="slider"] {
-            position: absolute !important;
-            cursor: pointer !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            background-color: rgba(0,0,0,0.25) !important;
-            transition: .3s !important;
-            border-radius: 20px !important;
-          }
-          
-          .slider:before {
-            position: absolute !important;
-            content: "" !important;
-            height: 16px !important;
-            width: 16px !important;
-            left: 2px !important;
-            bottom: 2px !important;
-            background-color: white !important;
-            transition: .3s !important;
-            border-radius: 50% !important;
-          }
-          
-          input:checked + .slider {
-            background-color: var(--accent-color) !important;
-          }
-          
-          input:checked + .slider:before {
-            transform: translateX(16px) !important;
-          }
-          
-          /* Mobile responsive adjustments */
-          @media (max-width: 600px) {
-            .suggestion-card, 
-            div.suggestion-card,
-            [class="suggestion-card"] {
-              width: 100% !important;
-              max-width: 100% !important;
-            }
-            
-            #chat-container {
-              height: calc(100vh - 140px) !important;
-            }
-          }
-
-          /* Target and remove the brown element in the middle of the page */
-          .welcome-container::after,
-          #welcome::after,
-          #quote::after,
-          .suggestion-cards::before,
-          .suggestion-cards::after,
-          div.suggestion-cards::before,
-          div.suggestion-cards::after,
-          [class="welcome-container"]::after,
-          [id="welcome"]::after,
-          [id="quote"]::after {
-            display: none !important;
-            content: none !important;
-            background: transparent !important;
-            border: none !important;
-            height: 0 !important;
-            width: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-
-          /* Additional fixes for the quote container */
-          #quote,
-          div#quote,
-          [id="quote"] {
-            margin-bottom: 0 !important;
-            border-bottom: none !important;
-            padding-bottom: 10px !important;
-            background: transparent !important;
-          }
-
-          /* Ensure no brown bar between quote and cards */
-          .welcome-container > *,
-          #welcome > * {
-            background-color: transparent !important;
-            border: none !important;
-            border-bottom: none !important;
-            border-top: none !important;
-            box-shadow: none !important;
-          }
-
-          /* Ensure the suggestion cards container has no background */
-          .suggestion-cards,
-          div.suggestion-cards,
-          [class="suggestion-cards"] {
-            background-color: transparent !important;
-            border: none !important;
-            margin-top: 20px !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-          }
-
-          /* Special fix for any potential horizontal rule elements */
-          hr, 
-          div.welcome-container hr, 
-          #welcome hr,
-          .welcome-container hr {
-            display: none !important;
-            height: 0 !important;
-            border: none !important;
-            background: transparent !important;
-          }
-
-          /* Adjust spacing between elements */
-          .welcome-title,
-          h1.welcome-title,
-          [class="welcome-title"] {
-            margin-bottom: 10px !important;
-          }
-
-          .welcome-subtitle,
-          p.welcome-subtitle,
-          [class="welcome-subtitle"] {
-            margin-bottom: 20px !important;
-          }
-
-          .quote-attribution,
-          span.quote-attribution,
-          [class="quote-attribution"] {
-            margin-bottom: 20px !important;
-          }
         `}} />
       </Head>
       
       {/* HEADER + CONTROLS */}
-      <div id="header" role="banner">
-        <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
-        <div className="logo-container">
-          <span className="logo-icon" aria-hidden="true">🌿</span>
-          <span>GriotBot</span>
-        </div>
-        <button id="themeToggle" aria-label="Toggle dark/light mode"></button>
+      <div style={{
+        position: 'relative',
+        backgroundColor: 'var(--header-bg)',
+        color: 'var(--header-text)',
+        padding: '1rem',
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: '1.2rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1rem',
+        boxShadow: '0 2px 10px var(--shadow-color)',
+        zIndex: 100,
+        fontFamily: 'Lora, serif',
+        transition: 'background-color 0.3s',
+      }} id="header" role="banner">
+        <button 
+          onClick={toggleSidebar}
+          style={{
+            position: 'absolute',
+            left: '1rem',
+            fontSize: '1.5rem',
+            color: 'var(--header-text)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            transition: 'transform 0.3s ease',
+            transform: sidebarVisible ? 'rotate(45deg)' : 'none',
+          }}
+          id="toggleSidebar"
+          aria-label="Toggle sidebar"
+          aria-expanded={sidebarVisible}
+          aria-controls="sidebar"
+        >
+          ☰
+        </button>
+        
+        <Link href="/">
+          <a style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--header-text)',
+            textDecoration: 'none',
+          }}>
+            <img 
+              src="/images/GriotBot logo horiz wht.svg" 
+              alt="GriotBot" 
+              style={{
+                height: '32px',
+                width: 'auto',
+              }}
+            />
+          </a>
+        </Link>
+        
+        <button 
+          onClick={toggleTheme}
+          style={{
+            position: 'absolute',
+            right: '1rem',
+            fontSize: '1.5rem',
+            color: 'var(--header-text)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '8px 12px',
+            borderRadius: '6px',
+          }}
+          id="themeToggle"
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        
+        {/* Sign in button in top-right corner */}
+        <a href="/signin" style={{
+          position: 'absolute',
+          right: '4rem',
+          color: 'var(--header-text)',
+          textDecoration: 'none',
+          fontSize: '1rem',
+          fontWeight: '500',
+          padding: '0.4rem 0.8rem',
+          border: '1px solid var(--header-text)',
+          borderRadius: '4px',
+          transition: 'background-color 0.2s',
+        }}>
+          Sign in
+        </a>
       </div>
 
       {/* SIDEBAR */}
-      <nav id="sidebar" aria-hidden="true" aria-label="Main navigation">
-        <h2>
-          <span className="logo-icon" aria-hidden="true">🌿</span>
+      <nav 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100%',
+          width: '280px',
+          background: 'var(--sidebar-bg)',
+          color: 'var(--sidebar-text)',
+          padding: '1.5rem',
+          transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.3s ease-in-out, background 0.3s',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          boxShadow: '4px 0 20px var(--shadow-color)',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.5rem',
+        }}
+        id="sidebar"
+        aria-hidden={!sidebarVisible}
+        aria-label="Main navigation"
+      >
+        <h2 style={{
+          margin: '0 0 1rem 0',
+          paddingBottom: '0.5rem',
+          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontFamily: 'Lora, serif',
+        }}>
+          <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
           GriotBot
         </h2>
         
-        <div className="sidebar-profile">
-          <span className="free-badge">Free Account</span>
-          <button className="upgrade-btn">Upgrade to Premium</button>
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '0.9rem',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.5rem',
+            opacity: '0.8',
+          }}>
+            Conversations
+          </h3>
+          <button 
+            id="newChat"
+            style={{
+              color: 'var(--sidebar-text)',
+              background: 'none',
+              border: 'none',
+              padding: '0.5rem',
+              borderRadius: '6px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              width: '100%',
+              textAlign: 'left',
+              cursor: 'pointer',
+              marginBottom: '0.5rem',
+              fontSize: 'inherit',
+              fontFamily: 'inherit',
+            }}
+          >
+            <span aria-hidden="true" style={{ marginRight: '0.5rem' }}>+</span> New Chat
+          </button>
+          <a href="#" style={{
+            color: 'var(--sidebar-text)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+            marginBottom: '0.5rem',
+          }}>
+            Saved Conversations
+          </a>
+          <a href="#" style={{
+            color: 'var(--sidebar-text)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+          }}>
+            Saved Stories
+          </a>
         </div>
         
-        <div className="nav-section">
-          <h3>Conversations</h3>
-          <button id="newChat" aria-label="Start new chat">
-            <span aria-hidden="true">+</span> New Chat
-          </button>
-          <Link href="/" passHref>
-            <a id="homeLink" className="active">
-              <span aria-hidden="true">💬</span> Chat
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '0.9rem',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.5rem',
+            opacity: '0.8',
+          }}>
+            Explore
+          </h3>
+          <a href="#" style={{
+            color: 'var(--sidebar-text)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+            marginBottom: '0.5rem',
+          }} id="historicalFigures">
+            Historical Figures
+          </a>
+          <a href="#" style={{
+            color: 'var(--sidebar-text)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+            marginBottom: '0.5rem',
+          }} id="culturalStories">
+            Cultural Stories
+          </a>
+          <a href="#" style={{
+            color: 'var(--sidebar-text)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+          }} id="diasporaMap">
+            Diaspora Community
+          </a>
+        </div>
+        
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '0.9rem',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.5rem',
+            opacity: '0.8',
+          }}>
+            About
+          </h3>
+          <Link href="/about">
+            <a style={{
+              color: 'var(--sidebar-text)',
+              textDecoration: 'none',
+              padding: '0.5rem',
+              borderRadius: '6px',
+              transition: 'background-color 0.2s',
+              display: 'block',
+              marginBottom: '0.5rem',
+            }}>
+              About GriotBot
             </a>
           </Link>
-          <a href="#" id="savedChats">Saved Conversations</a>
-        </div>
-        
-        <div className="nav-section">
-          <h3>Explore</h3>
-          <a href="#" id="historicalFigures">Historical Figures</a>
-          <a href="#" id="culturalStories">Cultural Stories</a>
-          <a href="#" id="diasporaMap">Diaspora Map</a>
-        </div>
-        
-        <div className="nav-section">
-          <h3>About</h3>
-          <Link href="/about" passHref>
-            <a>About GriotBot</a>
-          </Link>
-          <Link href="/feedback" passHref>
-            <a>Share Feedback</a>
+          <Link href="/feedback">
+            <a style={{
+              color: 'var(--sidebar-text)',
+              textDecoration: 'none',
+              padding: '0.5rem',
+              borderRadius: '6px',
+              transition: 'background-color 0.2s',
+              display: 'block',
+            }}>
+              Share Feedback
+            </a>
           </Link>
         </div>
         
-        <div className="sidebar-footer">
+        <div style={{
+          marginTop: 'auto',
+          fontSize: '0.8rem',
+          opacity: '0.7',
+          textAlign: 'center',
+          fontStyle: 'italic',
+          fontFamily: 'Lora, serif',
+        }}>
           "Preserving our stories,<br/>empowering our future."
         </div>
       </nav>
 
       {/* MAIN CHAT AREA */}
-      <main id="chat-container" aria-label="Chat messages">
+      <main 
+        id="chat-container" 
+        aria-label="Chat messages" 
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          overflowY: 'auto',
+          padding: '1rem',
+          paddingBottom: '140px',
+          scrollBehavior: 'smooth',
+          scrollPaddingBottom: '140px',
+          transition: 'background-color 0.3s',
+          height: 'calc(100vh - 160px)',
+          position: 'fixed',
+          top: '60px',
+          left: 0,
+          right: 0,
+          backgroundColor: 'var(--bg-color)',
+        }}
+        onClick={() => {
+          if (sidebarVisible) setSidebarVisible(false);
+        }}
+      >
         <div className="welcome-container" id="welcome">
           <div id="logo" aria-hidden="true">🌿</div>
           <h1 className="welcome-title">Welcome to GriotBot</h1>
@@ -1055,31 +773,117 @@ export default function Home() {
       </main>
 
       {/* MESSAGE INPUT */}
-      <div id="form-container">
-        <form id="form" aria-label="Message form">
-          <div className="input-wrapper">
+      <div id="form-container" style={{
+        position: 'fixed',
+        bottom: '50px',
+        left: 0,
+        width: '100%',
+        background: 'var(--bg-color)',
+        padding: '1rem',
+        borderTop: '1px solid var(--input-border)',
+        transition: 'background-color 0.3s',
+        display: 'flex',
+        justifyContent: 'center',
+        zIndex: 50,
+      }}>
+        <form id="form" aria-label="Message form" style={{
+          width: '100%',
+          maxWidth: '700px',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <div className="input-wrapper" style={{
+            position: 'relative',
+            display: 'flex',
+            boxShadow: '0 4px 12px var(--shadow-color)',
+            borderRadius: '12px',
+            backgroundColor: 'var(--input-bg)',
+          }}>
             <textarea 
               id="input" 
               placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
               required 
               aria-label="Message to send"
               rows="1"
+              style={{
+                flex: 1,
+                padding: '0.9rem 1rem',
+                border: '1px solid var(--input-border)',
+                borderRight: 'none',
+                borderRadius: '12px 0 0 12px',
+                outline: 'none',
+                resize: 'none',
+                minHeight: '55px',
+                maxHeight: '120px',
+                backgroundColor: 'var(--input-bg)',
+                color: 'var(--input-text)',
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.5,
+              }}
             ></textarea>
-            <button id="send" type="submit" aria-label="Send message">
+            <button id="send" type="submit" aria-label="Send message" style={{
+              width: '55px',
+              background: 'var(--accent-color)',
+              color: 'white',
+              borderRadius: '0 12px 12px 0',
+              transition: 'background-color 0.3s, transform 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: 'none',
+              cursor: 'pointer',
+            }}>
               <div id="send-icon">↑</div>
               <div id="send-loading" className="spinner" style={{display: 'none'}}></div>
             </button>
           </div>
           
-          <div className="form-actions">
-            <div className="form-info">Free users: 30 messages per day</div>
+          <div className="form-actions" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '0.5rem',
+            fontSize: '0.8rem',
+          }}>
+            <div className="form-info" style={{
+              color: 'var(--text-color)',
+              opacity: 0.7,
+            }}>Free users: 30 messages per day</div>
             
-            <div className="storyteller-mode">
-              <label htmlFor="storytellerMode">
+            <div className="storyteller-mode" style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <label htmlFor="storytellerMode" style={{
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+              }}>
                 Storyteller Mode
-                <div className="toggle-switch">
-                  <input type="checkbox" id="storytellerMode" />
-                  <span className="slider"></span>
+                <div className="toggle-switch" style={{
+                  position: 'relative',
+                  display: 'inline-block',
+                  width: '36px',
+                  height: '20px',
+                  marginLeft: '0.5rem',
+                }}>
+                  <input type="checkbox" id="storytellerMode" style={{
+                    opacity: 0,
+                    width: 0,
+                    height: 0,
+                  }} />
+                  <span className="slider" style={{
+                    position: 'absolute',
+                    cursor: 'pointer',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.25)',
+                    transition: '.3s',
+                    borderRadius: '20px',
+                  }}></span>
                 </div>
               </label>
             </div>
@@ -1088,8 +892,38 @@ export default function Home() {
       </div>
 
       {/* RANDOM PROVERB & COPYRIGHT */}
-      <div id="fact" aria-label="Random proverb"></div>
-      <div id="copyright" aria-label="Copyright information">© 2025 GriotBot. All rights reserved.</div>
+      <div id="fact" aria-label="Random proverb" style={{
+        position: 'fixed',
+        bottom: '30px',
+        width: '100%',
+        textAlign: 'center',
+        fontSize: '0.9rem',
+        fontStyle: 'italic',
+        padding: '0 1rem',
+        color: 'var(--wisdom-color)',
+        transition: 'color 0.3s',
+        opacity: 0.8,
+        fontFamily: 'Lora, serif',
+        backgroundColor: 'transparent',
+        pointerEvents: 'none',
+        zIndex: 40,
+      }}></div>
+      
+      <div id="copyright" aria-label="Copyright information" style={{
+        position: 'fixed',
+        bottom: '10px',
+        width: '100%',
+        textAlign: 'center',
+        fontSize: '0.8rem',
+        color: 'var(--text-color)',
+        opacity: 0.6,
+        transition: 'color 0.3s',
+        backgroundColor: 'transparent',
+        pointerEvents: 'none',
+        zIndex: 40,
+      }}>
+        © 2025 GriotBot. All rights reserved.
+      </div>
     </>
   );
 }
