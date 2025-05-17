@@ -1,7 +1,5 @@
-// File: /pages/api/feedback-alt.js
-// Alternative implementation using a simple log file instead of email
-import fs from 'fs';
-import path from 'path';
+// File: /pages/api/feedback.js - Updated for Gmail
+import { createTransport } from 'nodemailer';
 
 export default async function handler(req, res) {
   // Only allow POST requests
@@ -18,41 +16,51 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Feedback type and message are required' });
     }
 
-    // Create a feedback entry with timestamp
-    const feedbackEntry = {
-      timestamp: new Date().toISOString(),
-      name: name || 'Anonymous',
-      email: email || 'Not provided',
-      feedbackType,
-      rating,
-      message
+    // Configure Gmail transporter with correct settings
+    const transporter = createTransport({
+      service: 'gmail',  // Use the service name instead of manual host/port
+      auth: {
+        user: chart@griotbot.com,
+        pass: mzbc fryp gtgt gqnx, // This must be an App Password
+      },
+    });
+
+    // Format the feedback message
+    const emailBody = `
+Rating: ${rating}/5
+Type: ${feedbackType}
+From: ${name || 'Anonymous'} ${email ? `(${email})` : ''}
+
+Feedback:
+${message}
+    `;
+
+    const htmlBody = `
+<h2>GriotBot Feedback Received</h2>
+<p><strong>Rating:</strong> ${rating}/5</p>
+<p><strong>Type:</strong> ${feedbackType}</p>
+<p><strong>From:</strong> ${name || 'Anonymous'} ${email ? `(${email})` : ''}</p>
+<p><strong>Feedback:</strong></p>
+<p>${message.replace(/\n/g, '<br>')}</p>
+    `;
+
+    // Send the email
+    const mailOptions = {
+      from: chat@griotbot.com, // Use the same email as the auth user
+      to: process.env.FEEDBACK_EMAIL_TO || process.env.EMAIL_USER, // Default to sending to yourself
+      subject: `GriotBot Feedback: ${feedbackType}`,
+      text: emailBody,
+      html: htmlBody,
     };
 
-    // Format the feedback for logging
-    const logEntry = `
-======== NEW FEEDBACK - ${feedbackEntry.timestamp} ========
-Name: ${feedbackEntry.name}
-Email: ${feedbackEntry.email}
-Type: ${feedbackEntry.feedbackType}
-Rating: ${feedbackEntry.rating}/5
-Message:
-${feedbackEntry.message}
-=================================================
-`;
+    console.log('Attempting to send email with options:', { 
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject
+    });
 
-    // Path to the logs directory and file
-    const logsDir = path.join(process.cwd(), 'logs');
-    const logFile = path.join(logsDir, 'feedback.log');
-
-    // Create logs directory if it doesn't exist
-    if (!fs.existsSync(logsDir)) {
-      fs.mkdirSync(logsDir, { recursive: true });
-    }
-
-    // Append to log file
-    fs.appendFileSync(logFile, logEntry);
-
-    console.log('Feedback saved to log file:', logFile);
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
 
     // Send success response
     return res.status(200).json({ success: true });
