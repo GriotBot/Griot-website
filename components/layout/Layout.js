@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Header from './Header';
 import EnhancedSidebar from './EnhancedSidebar';
+import EnhancedFooter from './EnhancedFooter';
 
 export default function Layout({ children }) {
   // Shared state for theme and sidebar visibility
@@ -85,39 +86,8 @@ export default function Layout({ children }) {
         {children}
       </main>
       
-      {/* Shared footer elements */}
-      <div id="fact" aria-label="Random proverb" style={{
-        position: 'fixed',
-        bottom: '30px',
-        width: '100%',
-        textAlign: 'center',
-        fontSize: '0.9rem',
-        fontStyle: 'italic',
-        padding: '0 1rem',
-        color: 'var(--wisdom-color)',
-        transition: 'color 0.3s',
-        opacity: 0.8,
-        fontFamily: 'Lora, serif',
-        backgroundColor: 'transparent',
-        pointerEvents: 'none',
-        zIndex: 40,
-      }}></div>
-      
-      <div id="copyright" aria-label="Copyright information" style={{
-        position: 'fixed',
-        bottom: '10px',
-        width: '100%',
-        textAlign: 'center',
-        fontSize: '0.8rem',
-        color: 'var(--text-color)',
-        opacity: 0.6,
-        transition: 'color 0.3s',
-        backgroundColor: 'transparent',
-        pointerEvents: 'none',
-        zIndex: 40,
-      }}>
-        © 2025 GriotBot. All rights reserved.
-      </div>
+      {/* Enhanced footer replaces the old footer elements */}
+      <EnhancedFooter page={typeof window !== 'undefined' ? window.location.pathname === '/' ? 'index' : 'other' : 'other'} />
     </>
   );
 }
