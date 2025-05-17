@@ -90,7 +90,7 @@ export default function EnhancedFooter({ page = 'index' }) {
         bottom: 0,
         left: 0,
         right: 0,
-        paddingBottom: '0.5rem',
+        paddingBottom: '0.25rem', // Reduced overall padding
         background: 'var(--bg-color)', // Fully opaque background
         display: 'flex',
         flexDirection: 'column',
@@ -102,7 +102,7 @@ export default function EnhancedFooter({ page = 'index' }) {
       proverbContainer: {
         width: '100%',
         textAlign: 'center',
-        marginBottom: '0.1rem', // Reduced space between proverb and copyright
+        marginBottom: '0', // Eliminated space completely
         backgroundColor: 'var(--bg-color)', // Ensure opacity
       },
       proverbText: {
@@ -112,6 +112,8 @@ export default function EnhancedFooter({ page = 'index' }) {
         color: 'var(--wisdom-color)',
         opacity: 0.85,
         padding: '0 1rem',
+        margin: '0', // Ensure no margin
+        lineHeight: '1.2', // Tighter line height
       },
       bottomBar: {
         width: '100%',
@@ -122,6 +124,8 @@ export default function EnhancedFooter({ page = 'index' }) {
         fontSize: '0.75rem',
         color: 'var(--text-color)',
         opacity: 0.7,
+        margin: '0', // Ensure no margin
+        paddingTop: '0', // No padding on top
       },
     }
   };
