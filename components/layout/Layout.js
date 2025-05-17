@@ -78,24 +78,7 @@ export default function Layout({ children }) {
         closeSidebar={closeSidebar}
       />
       
-      {/* Overlay to close sidebar on mobile - without blur */}
-      {sidebarVisible && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 100,
-            transition: 'opacity 0.3s',
-            opacity: sidebarVisible ? 1 : 0,
-          }}
-          onClick={closeSidebar}
-          aria-hidden="true"
-        />
-      )}
+      {/* Removed the overlay completely */}
       
       {/* Main content area that closes sidebar when clicked */}
       <main onClick={closeSidebar}>
