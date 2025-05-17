@@ -1,13 +1,14 @@
-// File: /pages/feedback.js - Updated
+// File: /pages/feedback.js - Updated with Component
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
+import FeedbackForm from '../components/FeedbackForm';
 
 export default function Feedback() {
   return (
     <>
       <Head>
-        <title>GriotBot Feedback</title>
-        <meta name="description" content="Provide feedback for GriotBot" />
+        <title>Share Your Feedback | GriotBot</title>
+        <meta name="description" content="Help shape GriotBot by sharing your experience and suggestions" />
       </Head>
 
       <Layout>
@@ -17,7 +18,6 @@ export default function Feedback() {
           color: 'var(--text-color)',
           margin: 0,
           padding: '2rem',
-          textAlign: 'center',
           minHeight: 'calc(100vh - 60px)', // Account for header height
           display: 'flex',
           flexDirection: 'column',
@@ -34,44 +34,17 @@ export default function Feedback() {
               fontSize: '2rem',
               marginBottom: '1rem',
               fontFamily: 'Lora, serif',
+              textAlign: 'center'
             }}>We'd Love Your Feedback</h1>
             
             <p style={{
-              marginBottom: '2rem'
+              marginBottom: '2rem',
+              textAlign: 'center'
             }}>
-              GriotBot is growing, and your voice helps shape the journey.
+              Your insights help GriotBot grow and better serve our community.
             </p>
 
-            <div style={{
-              width: '100%',
-              height: '70vh',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              boxShadow: '0 4px 12px var(--shadow-color)',
-              backgroundColor: 'var(--card-bg)',
-            }}>
-              <iframe
-                src="https://docs.google.com/forms/d/e/1FAIpQLSdTfuVK9qk0lfin5xMfTQoakoZOPrcbrCQTswt3oDSTyp4i0w/viewform?embedded=true"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  border: 'none'
-                }}
-                loading="lazy"
-                title="GriotBot Feedback Form"
-              >Loading…</iframe>
-            </div>
-
-            <div style={{ marginTop: '2rem' }}>
-              <a href="/" style={{ 
-                color: 'var(--accent-color)', 
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-              }}>
-                ← Back to GriotBot
-              </a>
-            </div>
+            <FeedbackForm />
           </div>
         </div>
       </Layout>
