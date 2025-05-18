@@ -1,4 +1,4 @@
-// File: /pages/index.js - Full updated version with improved API error handling
+// File: /pages/index.js - Full updated version with enhanced error handling
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
@@ -136,7 +136,7 @@ export default function Home() {
     }
   }
 
-  // Handle sending a message - UPDATED with better error handling
+  // Handle sending a message - UPDATED with enhanced error handling
   async function handleSendMessage(text, storytellerMode) {
     // Hide welcome screen
     setShowWelcome(false);
@@ -160,14 +160,17 @@ export default function Home() {
     setMessages(updatedMessages);
     
     try {
-      console.log('Sending message to API:', { prompt: text, storytellerMode });
+      console.log('Sending message to API:', { 
+        prompt: text, 
+        promptLength: text.length,
+        storytellerMode
+      });
       
       // API call to our serverless function
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Add explicit Accept header
           'Accept': 'application/json'
         },
         body: JSON.stringify({ 
@@ -180,17 +183,25 @@ export default function Home() {
         let errorMessage = `Error: Status ${res.status}`;
         try {
           const errorData = await res.json();
-          errorMessage = errorData.error || errorMessage;
+          if (errorData && errorData.error) {
+            // Extract the error message string
+            errorMessage = typeof errorData.error === 'string' 
+              ? errorData.error 
+              : JSON.stringify(errorData.error);
+          }
           console.error('API error details:', errorData);
         } catch (e) {
           console.error('Failed to parse error response:', e);
+          // Try to get the text response if JSON parsing fails
+          const errorText = await res.text().catch(() => 'Unknown error');
+          errorMessage = `Error: ${errorText}`;
         }
         throw new Error(errorMessage);
       }
       
       const data = await res.json();
       const botResponse = data.choices?.[0]?.message?.content || 
-                         'I apologize, but I seem to be having trouble processing your request.';
+                        'I apologize, but I seem to be having trouble processing your request.';
       
       // Replace thinking with actual response
       const finalMessages = updatedMessages.slice(0, -1).concat({
