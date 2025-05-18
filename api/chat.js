@@ -1,4 +1,4 @@
-// File: /api/chat.js
+// File: /api/chat.js - Fixed version
 import { NextResponse } from 'next/server';
 
 /**
@@ -22,18 +22,25 @@ export default async function handler(req) {
     // Only accept POST requests
     if (req.method !== 'POST') {
       return new NextResponse(
-        JSON.stringify({ error: 'Method not allowed' }),
+        JSON.stringify({ error: `Method not allowed: ${req.method}` }),
         { status: 405, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     // Parse the request body
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { prompt, storytellerMode = false } = body;
 
     if (!prompt || typeof prompt !== 'string') {
       return new NextResponse(
-        JSON.stringify({ error: 'Prompt is required' }),
+        JSON.stringify({ error: 'Prompt is required and must be a string' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -41,6 +48,7 @@ export default async function handler(req) {
     // Get API key from environment variables
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
+      console.error('API key not configured');
       return new NextResponse(
         JSON.stringify({ error: 'API key not configured' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -53,6 +61,14 @@ export default async function handler(req) {
     // Create system instructions based on GriotBot's identity
     const systemInstruction = createSystemInstruction(storytellerMode);
 
+    // Log request details (for debugging)
+    console.log('Sending request to OpenRouter:', {
+      model,
+      messageCount: 2, // system + user message
+      promptLength: prompt.length,
+      storytellerMode
+    });
+
     // Prepare the request to OpenRouter
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -60,7 +76,8 @@ export default async function handler(req) {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000', // Required by OpenRouter
-        'X-Title': 'GriotBot' // Your application name
+        'X-Title': 'GriotBot', // Your application name
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
         model: model,
@@ -70,17 +87,16 @@ export default async function handler(req) {
         ],
         temperature: storytellerMode ? 0.8 : 0.7, // Higher temperature for storyteller mode
         max_tokens: 2000, // Adjust based on expected response length
-        // Add any other OpenRouter parameters as needed
       })
     });
 
     // Check for successful response
     if (!openRouterResponse.ok) {
-      const errorData = await openRouterResponse.json().catch(() => ({}));
+      const errorData = await openRouterResponse.json().catch(() => ({ error: `OpenRouter error: ${openRouterResponse.status} ${openRouterResponse.statusText}` }));
       console.error('OpenRouter API error:', errorData);
       return new NextResponse(
-        JSON.stringify({ error: 'Failed to get response from AI service' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: `Failed to get response from AI service: ${errorData.error || openRouterResponse.statusText}` }),
+        { status: 502, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -102,7 +118,7 @@ export default async function handler(req) {
   } catch (error) {
     console.error('Error in chat API:', error);
     return new NextResponse(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: error.message || 'Internal server error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
