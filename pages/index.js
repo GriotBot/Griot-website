@@ -815,8 +815,7 @@ export default function Home() {
                                   background: 'none',
                                   border: 'none',
                                   color: feedbackGiven[index] === 'positive' ? 'rgba(121, 214, 152, 1)' : 'rgba(255, 255, 255, 0.7)',
-                                  display: '
-                                    display: 'flex',
+                                  display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   width: '30px',
