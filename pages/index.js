@@ -1,5 +1,5 @@
-// File: /pages/index.js - With enhanced thinking indicator
-import { useEffect, useState } from 'react';
+// File: /pages/index.js - With automatic scrolling
+import { useEffect, useState, useRef } from 'react'; // Add useRef import
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
 import ChatInput from '../components/ChatInput';
@@ -20,6 +20,10 @@ export default function Home() {
     "Gathering knowledge...",
     "Remembering the traditions..."
   ];
+  
+  // Create a reference to the chat container
+  const chatContainerRef = useRef(null);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     // Mark as client-side after mount
@@ -63,6 +67,11 @@ export default function Home() {
     }
   }, []);
 
+  // Add effect to scroll to the bottom whenever messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   // Add effect to rotate thinking phrases when a message is in thinking state
   useEffect(() => {
     if (messages.some(m => m.thinking)) {
@@ -72,6 +81,22 @@ export default function Home() {
       return () => clearInterval(interval);
     }
   }, [messages, thinkingPhrases.length]);
+
+  // Smooth scroll to bottom function
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      // Smooth scroll to bottom
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+    
+    // Alternative approach using scrollIntoView for the end element
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   // Load chat history from localStorage
   function loadChatHistory() {
@@ -280,9 +305,10 @@ export default function Home() {
       </Head>
 
       <Layout>
-        {/* MAIN CHAT AREA */}
+        {/* MAIN CHAT AREA - now with ref for scrolling */}
         <main 
           id="chat-container" 
+          ref={chatContainerRef}
           aria-label="Chat messages" 
           style={{
             flex: 1,
@@ -583,6 +609,8 @@ export default function Home() {
                   )}
                 </div>
               ))}
+              {/* Invisible element to scroll to */}
+              <div ref={chatEndRef} style={{ height: '1px', opacity: 0 }} />
             </div>
           )}
         </main>
