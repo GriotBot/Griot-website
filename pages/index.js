@@ -1,5 +1,5 @@
-// File: /pages/index.js - With automatic scrolling
-import { useEffect, useState, useRef } from 'react'; // Add useRef import
+// File: /pages/index.js - With auto-scrolling, enhanced thinking indicator, and modern UI controls
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
 import ChatInput from '../components/ChatInput';
@@ -11,7 +11,8 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [messages, setMessages] = useState([]);
   const [showWelcome, setShowWelcome] = useState(true);
-  // New state for thinking phrases rotation
+  
+  // State for thinking phrases rotation
   const [thinkingPhraseIndex, setThinkingPhraseIndex] = useState(0);
   const thinkingPhrases = [
     "Seeking ancestral wisdom...",
@@ -20,6 +21,10 @@ export default function Home() {
     "Gathering knowledge...",
     "Remembering the traditions..."
   ];
+  
+  // State for UI controls
+  const [copiedMessageId, setCopiedMessageId] = useState(null);
+  const [feedbackGiven, setFeedbackGiven] = useState({});
   
   // Create a reference to the chat container
   const chatContainerRef = useRef(null);
@@ -95,6 +100,104 @@ export default function Home() {
     // Alternative approach using scrollIntoView for the end element
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Function to copy message content to clipboard
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        // Show a temporary "Copied!" message
+        setCopiedMessageId(text.substring(0, 20)); // Use part of the text as an ID
+        setTimeout(() => setCopiedMessageId(null), 2000);
+      })
+      .catch(err => console.error('Failed to copy: ', err));
+  };
+
+  // Function to handle user feedback on responses
+  const handleFeedback = (messageId, isPositive) => {
+    console.log(`Feedback for message ${messageId}: ${isPositive ? 'positive' : 'negative'}`);
+    // Here you would typically send this feedback to your server
+    setFeedbackGiven(prevState => ({
+      ...prevState,
+      [messageId]: isPositive ? 'positive' : 'negative'
+    }));
+  };
+
+  // Function to regenerate a response
+  const regenerateResponse = async (promptText) => {
+    // Remove the last bot message and add a new thinking message
+    const userMessages = messages.filter(m => m.role === 'user');
+    const lastUserMessage = userMessages[userMessages.length - 1];
+    
+    // Keep all messages up to the last user message
+    const messagesUntilLastUser = [];
+    let foundLastUser = false;
+    
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (foundLastUser) {
+        messagesUntilLastUser.unshift(messages[i]);
+      } else if (messages[i].role === 'user' && messages[i].content === lastUserMessage.content) {
+        messagesUntilLastUser.unshift(messages[i]);
+        foundLastUser = true;
+      }
+    }
+    
+    // Add thinking indicator
+    const thinkingMessage = {
+      role: 'bot',
+      content: '...',
+      time: new Date().toISOString(),
+      thinking: true
+    };
+    
+    const updatedMessages = [...messagesUntilLastUser, thinkingMessage];
+    setMessages(updatedMessages);
+    
+    // Send the request to regenerate
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          prompt: promptText,
+          storytellerMode: false,
+          isRegeneration: true
+        })
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Error: Status ${res.status}`);
+      }
+      
+      const data = await res.json();
+      const botResponse = data.choices?.[0]?.message?.content || 
+                        'I apologize, but I seem to be having trouble processing your request.';
+      
+      // Replace thinking with new response
+      const finalMessages = updatedMessages.slice(0, -1).concat({
+        role: 'bot',
+        content: botResponse,
+        time: new Date().toISOString()
+      });
+      
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
+    } catch (err) {
+      console.error('API error during regeneration:', err);
+      
+      // Replace thinking with error message
+      const finalMessages = updatedMessages.slice(0, -1).concat({
+        role: 'bot',
+        content: `I'm sorry, I encountered an error while regenerating: ${err.message}. Please try again later.`,
+        time: new Date().toISOString()
+      });
+      
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
     }
   };
 
@@ -570,40 +673,190 @@ export default function Home() {
                   ) : (
                     <>
                       {message.role === 'bot' && (
-                        <div className="bot-header" style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          marginBottom: '0.8rem',
-                          paddingBottom: '0.5rem',
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                        }}>
-                          {/* Logo image instead of emoji */}
-                          <img 
-                            src="/images/logo-light.svg" 
-                            alt="GriotBot Logo" 
-                            style={{ 
-                              height: '20px',
-                              width: 'auto',
-                              marginRight: '0.5rem'
-                            }} 
-                            aria-hidden="true"
-                          />
-                          <span className="bot-name" style={{ fontWeight: 600, marginLeft: '0.25rem' }}>GriotBot</span>
-                        </div>
+                        <>
+                          <div className="bot-header" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginBottom: '0.8rem',
+                            paddingBottom: '0.5rem',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                          }}>
+                            {/* Logo image */}
+                            <img 
+                              src="/images/logo-light.svg" 
+                              alt="GriotBot Logo" 
+                              style={{ 
+                                height: '20px',
+                                width: 'auto',
+                                marginRight: '0.5rem'
+                              }} 
+                              aria-hidden="true"
+                            />
+                            <span className="bot-name" style={{ fontWeight: 600, marginLeft: '0.25rem' }}>GriotBot</span>
+                          </div>
+                          
+                          <div>{message.content}</div>
+                          
+                          {/* Action buttons row with modern SVG icons */}
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginTop: '0.8rem',
+                            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                            paddingTop: '0.5rem',
+                          }}>
+                            <div className="message-time" style={{
+                              fontSize: '0.7rem',
+                              opacity: 0.7,
+                            }}>
+                              {new Date(message.time).toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </div>
+                            
+                            <div style={{
+                              display: 'flex',
+                              gap: '0.75rem',
+                            }}>
+                              {/* Copy button with SVG icon */}
+                              <button 
+                                onClick={() => copyToClipboard(message.content)} 
+                                aria-label="Copy response"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  opacity: 0.8,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.opacity = 1}
+                                onMouseOut={(e) => e.currentTarget.style.opacity = 0.8}
+                              >
+                                {copiedMessageId === message.content.substring(0, 20) ? (
+                                  // Checkmark SVG for "copied" state
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                ) : (
+                                  // Copy SVG icon
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                  </svg>
+                                )}
+                              </button>
+                              
+                              {/* Thumbs up button with SVG icon */}
+                              <button 
+                                onClick={() => handleFeedback(index, true)} 
+                                aria-label="Helpful response"
+                                disabled={feedbackGiven[index]}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: feedbackGiven[index] === 'positive' ? 'rgba(121, 214, 152, 1)' : 'rgba(255, 255, 255, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '4px',
+                                  cursor: feedbackGiven[index] ? 'default' : 'pointer',
+                                  opacity: feedbackGiven[index] ? 1 : 0.8,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseOver={(e) => {
+                                  if (!feedbackGiven[index]) e.currentTarget.style.opacity = 1;
+                                }}
+                                onMouseOut={(e) => {
+                                  if (!feedbackGiven[index]) e.currentTarget.style.opacity = 0.8;
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
+                              </button>
+                              
+                              {/* Thumbs down button with SVG icon */}
+                              <button 
+                                onClick={() => handleFeedback(index, false)} 
+                                aria-label="Unhelpful response"
+                                disabled={feedbackGiven[index]}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: feedbackGiven[index] === 'negative' ? 'rgba(239, 83, 80, 1)' : 'rgba(255, 255, 255, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '4px',
+                                  cursor: feedbackGiven[index] ? 'default' : 'pointer',
+                                  opacity: feedbackGiven[index] ? 1 : 0.8,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseOver={(e) => {
+                                  if (!feedbackGiven[index]) e.currentTarget.style.opacity = 1;
+                                }}
+                                onMouseOut={(e) => {
+                                  if (!feedbackGiven[index]) e.currentTarget.style.opacity = 0.8;
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm10-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+                                </svg>
+                              </button>
+                              
+                              {/* Regenerate button with SVG icon */}
+                              <button 
+                                onClick={() => {
+                                  // Find the user message that prompted this response
+                                  const userMessageIndex = index - 1;
+                                  if (userMessageIndex >= 0 && messages[userMessageIndex].role === 'user') {
+                                    regenerateResponse(messages[userMessageIndex].content);
+                                  }
+                                }} 
+                                aria-label="Regenerate response"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  opacity: 0.8,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.opacity = 1}
+                                onMouseOut={(e) => e.currentTarget.style.opacity = 0.8}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M23 4v6h-6"></path>
+                                  <path d="M1 20v-6h6"></path>
+                                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </>
                       )}
-                      <div>{message.content}</div>
-                      {message.role === 'bot' && (
-                        <div className="message-time" style={{
-                          fontSize: '0.7rem',
-                          opacity: 0.7,
-                          marginTop: '0.5rem',
-                          textAlign: 'right',
-                        }}>
-                          {new Date(message.time).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </div>
+                      
+                      {message.role === 'user' && (
+                        <div>{message.content}</div>
                       )}
                     </>
                   )}
