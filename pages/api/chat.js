@@ -1,16 +1,12 @@
-// File: /pages/api/chat.js - With improved error handling
+// File: /pages/api/chat.js - Updated to use Claude Haiku
 import { NextApiRequest, NextApiResponse } from 'next';
 
 /**
- * GriotBot Chat API handler - With improved error handling
+ * GriotBot Chat API handler using Claude Haiku model
  */
 
-// OpenRouter models - can be switched based on needs or premium tiers
-const MODELS = {
-  default: 'anthropic/claude-3-opus:beta', // Best quality model
-  fast: 'anthropic/claude-3-haiku:beta',   // Faster, cheaper model
-  premium: 'anthropic/claude-3-sonnet:beta' // Mid-tier model
-};
+// Using only Claude Haiku for all requests
+const MODEL = 'anthropic/claude-3-haiku:beta'; // Faster, cheaper model
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -40,58 +36,59 @@ export default async function handler(req, res) {
 
     // Get API key from environment variables
     const apiKey = process.env.OPENROUTER_API_KEY;
+    
+    // API key validation
     if (!apiKey) {
-      console.error('API key not configured');
-      return res.status(500).json({ error: 'API key not configured' });
+      console.error('OpenRouter API key not configured in environment variables');
+      return res.status(500).json({ error: 'API key not configured in server environment' });
     }
-
-    // Select model to use
-    const model = MODELS.default;
 
     // Create system instructions based on GriotBot's identity
     const systemInstruction = createSystemInstruction(storytellerMode);
 
     // Log request details (for debugging)
-    console.log(`Sending request to OpenRouter (${model}): `, {
+    console.log(`Sending request to OpenRouter using ${MODEL}:`, {
       promptLength: prompt.length,
       storytellerMode,
       messageCount: 2
     });
 
+    // Prepare the headers with API key
+    const headers = {
+      'Authorization': `Bearer ${apiKey.trim()}`, // Ensure no whitespace
+      'Content-Type': 'application/json',
+      'HTTP-Referer': process.env.VERCEL_URL || req.headers.host || 'http://localhost:3000',
+      'X-Title': 'GriotBot',
+      'Accept': 'application/json',
+    };
+
     try {
       // Prepare the request to OpenRouter
       const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.VERCEL_URL || req.headers.host || 'http://localhost:3000', // Required by OpenRouter
-          'X-Title': 'GriotBot', // Your application name
-          'Accept': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify({
-          model: model,
+          model: MODEL, // Always use Claude Haiku
           messages: [
             { role: 'system', content: systemInstruction },
             { role: 'user', content: prompt }
           ],
-          temperature: storytellerMode ? 0.8 : 0.7, // Higher temperature for storyteller mode
-          max_tokens: 2000, // Adjust based on expected response length
+          temperature: storytellerMode ? 0.8 : 0.7,
+          max_tokens: 2000,
         })
       });
 
       // Check for successful response
       if (!openRouterResponse.ok) {
-        // Get the full response body
+        // Get the full response text
         const responseText = await openRouterResponse.text();
         let errorDetail = responseText;
 
         // Try to parse as JSON if possible
         try {
           const errorJson = JSON.parse(responseText);
-          errorDetail = JSON.stringify(errorJson, null, 2);
+          console.log('Error response JSON:', errorJson);
           
-          // Check for specific error patterns in OpenRouter response
           if (errorJson.error) {
             if (typeof errorJson.error === 'string') {
               errorDetail = errorJson.error;
