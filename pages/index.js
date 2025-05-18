@@ -1,4 +1,4 @@
-// File: /pages/index.js - Updated with centered welcome, tabs, and improved chat bubbles
+// File: /pages/index.js - Full updated version with improved API error handling
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
@@ -136,7 +136,7 @@ export default function Home() {
     }
   }
 
-  // Handle sending a message
+  // Handle sending a message - UPDATED with better error handling
   async function handleSendMessage(text, storytellerMode) {
     // Hide welcome screen
     setShowWelcome(false);
@@ -160,24 +160,37 @@ export default function Home() {
     setMessages(updatedMessages);
     
     try {
+      console.log('Sending message to API:', { prompt: text, storytellerMode });
+      
       // API call to our serverless function
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          // Add explicit Accept header
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ 
           prompt: text,
-          storytellerMode
+          storytellerMode: storytellerMode || false
         })
       });
       
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `Error: Status ${res.status}`);
+        let errorMessage = `Error: Status ${res.status}`;
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorMessage;
+          console.error('API error details:', errorData);
+        } catch (e) {
+          console.error('Failed to parse error response:', e);
+        }
+        throw new Error(errorMessage);
       }
       
       const data = await res.json();
       const botResponse = data.choices?.[0]?.message?.content || 
-                        'I apologize, but I seem to be having trouble processing your request.';
+                         'I apologize, but I seem to be having trouble processing your request.';
       
       // Replace thinking with actual response
       const finalMessages = updatedMessages.slice(0, -1).concat({
