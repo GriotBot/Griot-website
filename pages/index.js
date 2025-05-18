@@ -1,4 +1,4 @@
-// File: /pages/index.js - With auto-scrolling, enhanced thinking indicator, modern UI controls, and improved regenerateResponse function
+// File: /pages/index.js - Updated with expanded response area and streamlined UI
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
@@ -649,8 +649,8 @@ export default function Home() {
                     padding: '1rem 1.2rem',
                     margin: '0.5rem 0',
                     borderRadius: '12px',
-                    maxWidth: message.role === 'user' ? '50%' : '60%', // Different max widths
-                    width: 'fit-content', // Expand based on content
+                    maxWidth: message.role === 'user' ? '50%' : '85%', // Increased bot message width to 85%
+                    width: message.role === 'bot' ? '85%' : 'fit-content', // Fixed width for bot messages
                     wordWrap: 'break-word',
                     boxShadow: '0 3px 6px var(--shadow-color)',
                     alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
@@ -672,7 +672,8 @@ export default function Home() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       padding: '1rem 0.5rem',
-                      gap: '0.75rem'
+                      gap: '0.75rem',
+                      width: '100%'
                     }}>
                       <div className="bot-header" style={{
                         display: 'flex',
@@ -688,12 +689,11 @@ export default function Home() {
                           style={{ 
                             height: '20px',
                             width: 'auto',
-                            marginRight: '0.5rem',
                             animation: 'pulse 2s infinite ease-in-out'
                           }} 
                           aria-hidden="true"
                         />
-                        <span style={{ fontWeight: 600, marginLeft: '0.25rem' }}>GriotBot</span>
+                        {/* Removed the GriotBot text */}
                       </div>
                       
                       <div style={{
@@ -734,18 +734,16 @@ export default function Home() {
                             paddingBottom: '0.5rem',
                             borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
                           }}>
-                            {/* Logo image */}
+                            {/* Logo image only - no text */}
                             <img 
                               src="/images/logo-light.svg" 
-                              alt="GriotBot Logo" 
+                              alt="GriotBot" 
                               style={{ 
                                 height: '20px',
-                                width: 'auto',
-                                marginRight: '0.5rem'
+                                width: 'auto'
                               }} 
                               aria-hidden="true"
                             />
-                            <span className="bot-name" style={{ fontWeight: 600, marginLeft: '0.25rem' }}>GriotBot</span>
                           </div>
                           
                           <div>{message.content}</div>
@@ -817,7 +815,8 @@ export default function Home() {
                                   background: 'none',
                                   border: 'none',
                                   color: feedbackGiven[index] === 'positive' ? 'rgba(121, 214, 152, 1)' : 'rgba(255, 255, 255, 0.7)',
-                                  display: 'flex',
+                                  display: '
+                                    display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   width: '30px',
