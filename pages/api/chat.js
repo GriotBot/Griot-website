@@ -1,8 +1,8 @@
-// File: /pages/api/chat.js - Standard API Route Version
+// File: /pages/api/chat.js - With improved error handling
 import { NextApiRequest, NextApiResponse } from 'next';
 
 /**
- * GriotBot Chat API handler - Standard API Route Version
+ * GriotBot Chat API handler - With improved error handling
  */
 
 // OpenRouter models - can be switched based on needs or premium tiers
@@ -52,72 +52,106 @@ export default async function handler(req, res) {
     const systemInstruction = createSystemInstruction(storytellerMode);
 
     // Log request details (for debugging)
-    console.log('Sending request to OpenRouter:', {
-      model,
-      messageCount: 2, // system + user message
+    console.log(`Sending request to OpenRouter (${model}): `, {
       promptLength: prompt.length,
-      storytellerMode
+      storytellerMode,
+      messageCount: 2
     });
 
-    // Prepare the request to OpenRouter
-    const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000', // Required by OpenRouter
-        'X-Title': 'GriotBot', // Your application name
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: prompt }
-        ],
-        temperature: storytellerMode ? 0.8 : 0.7, // Higher temperature for storyteller mode
-        max_tokens: 2000, // Adjust based on expected response length
-      })
-    });
-
-    // Check for successful response
-    if (!openRouterResponse.ok) {
-      const errorText = await openRouterResponse.text();
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch (e) {
-        errorData = { error: errorText };
-      }
-      
-      console.error('OpenRouter API error:', {
-        status: openRouterResponse.status,
-        statusText: openRouterResponse.statusText,
-        errorData
+    try {
+      // Prepare the request to OpenRouter
+      const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': process.env.VERCEL_URL || req.headers.host || 'http://localhost:3000', // Required by OpenRouter
+          'X-Title': 'GriotBot', // Your application name
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: prompt }
+          ],
+          temperature: storytellerMode ? 0.8 : 0.7, // Higher temperature for storyteller mode
+          max_tokens: 2000, // Adjust based on expected response length
+        })
       });
+
+      // Check for successful response
+      if (!openRouterResponse.ok) {
+        // Get the full response body
+        const responseText = await openRouterResponse.text();
+        let errorDetail = responseText;
+
+        // Try to parse as JSON if possible
+        try {
+          const errorJson = JSON.parse(responseText);
+          errorDetail = JSON.stringify(errorJson, null, 2);
+          
+          // Check for specific error patterns in OpenRouter response
+          if (errorJson.error) {
+            if (typeof errorJson.error === 'string') {
+              errorDetail = errorJson.error;
+            } else if (errorJson.error.message) {
+              errorDetail = errorJson.error.message;
+            }
+          }
+        } catch (e) {
+          // If not valid JSON, just use the text
+          console.log('Error response is not JSON:', responseText);
+        }
+
+        // Log the detailed error
+        console.error('OpenRouter API error:', {
+          status: openRouterResponse.status,
+          statusText: openRouterResponse.statusText,
+          detail: errorDetail
+        });
+
+        return res.status(502).json({
+          error: `OpenRouter API error: ${errorDetail}`,
+        });
+      }
+
+      // Parse the successful response
+      const data = await openRouterResponse.json();
       
-      return res.status(502).json({ 
-        error: `Failed to get response from AI service: ${errorData.error || openRouterResponse.statusText}`,
-        status: openRouterResponse.status,
-        details: errorData
+      // Check if we have a valid response with choices
+      if (!data.choices || !data.choices.length || !data.choices[0].message) {
+        console.error('Invalid response from OpenRouter:', data);
+        return res.status(502).json({
+          error: 'Invalid response format from OpenRouter',
+          detail: JSON.stringify(data, null, 2)
+        });
+      }
+
+      // Return the formatted response
+      return res.status(200).json({
+        choices: [
+          {
+            message: {
+              content: data.choices[0].message.content || 'No response from the AI service.'
+            }
+          }
+        ]
+      });
+
+    } catch (fetchError) {
+      // Handle network or other fetch errors
+      console.error('Fetch error:', fetchError);
+      return res.status(502).json({
+        error: `Network error connecting to OpenRouter: ${fetchError.message}`,
       });
     }
 
-    // Format and return the response to match expected format by frontend
-    const data = await openRouterResponse.json();
-    return res.status(200).json({
-      choices: [
-        {
-          message: {
-            content: data.choices[0]?.message?.content || 'No response from the AI service.'
-          }
-        }
-      ]
+  } catch (mainError) {
+    console.error('Error in chat API:', mainError);
+    return res.status(500).json({ 
+      error: `Internal server error: ${mainError.message}` 
     });
-
-  } catch (error) {
-    console.error('Error in chat API:', error);
-    return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 }
 
