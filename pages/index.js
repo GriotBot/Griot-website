@@ -1,4 +1,4 @@
-// File: /pages/index.js - Full updated version with enhanced error handling
+// File: /pages/index.js - With enhanced thinking indicator
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
@@ -11,6 +11,15 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [messages, setMessages] = useState([]);
   const [showWelcome, setShowWelcome] = useState(true);
+  // New state for thinking phrases rotation
+  const [thinkingPhraseIndex, setThinkingPhraseIndex] = useState(0);
+  const thinkingPhrases = [
+    "Seeking ancestral wisdom...",
+    "Consulting the elders...",
+    "Weaving a response...",
+    "Gathering knowledge...",
+    "Remembering the traditions..."
+  ];
 
   useEffect(() => {
     // Mark as client-side after mount
@@ -53,6 +62,16 @@ export default function Home() {
       handleClickableElements();
     }
   }, []);
+
+  // Add effect to rotate thinking phrases when a message is in thinking state
+  useEffect(() => {
+    if (messages.some(m => m.thinking)) {
+      const interval = setInterval(() => {
+        setThinkingPhraseIndex(prev => (prev + 1) % thinkingPhrases.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [messages, thinkingPhrases.length]);
 
   // Load chat history from localStorage
   function loadChatHistory() {
@@ -201,7 +220,7 @@ export default function Home() {
       
       const data = await res.json();
       const botResponse = data.choices?.[0]?.message?.content || 
-                        'I apologize, but I seem to be having trouble processing your request.';
+                         'I apologize, but I seem to be having trouble processing your request.';
       
       // Replace thinking with actual response
       const finalMessages = updatedMessages.slice(0, -1).concat({
@@ -239,6 +258,25 @@ export default function Home() {
       <Head>
         <title>GriotBot - Your Digital Griot</title>
         <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
+        
+        {/* Add animations for thinking indicator */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+          }
+          
+          @keyframes pulse {
+            0% { opacity: 0.6; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.6; transform: scale(0.95); }
+          }
+          
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `}} />
       </Head>
 
       <Layout>
@@ -446,8 +484,62 @@ export default function Home() {
                   }}
                 >
                   {message.thinking ? (
-                    <div className="typing-indicator" aria-label="GriotBot is thinking">
-                      <span></span><span></span><span></span>
+                    // Enhanced thinking indicator with cultural relevance
+                    <div className="thinking-state" style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      padding: '1rem 0.5rem',
+                      gap: '0.75rem'
+                    }}>
+                      <div className="bot-header" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginBottom: '0.8rem',
+                        paddingBottom: '0.5rem',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                        width: '100%'
+                      }}>
+                        <img 
+                          src="/images/logo-light.svg" 
+                          alt="GriotBot Logo" 
+                          style={{ 
+                            height: '20px',
+                            width: 'auto',
+                            marginRight: '0.5rem',
+                            animation: 'pulse 2s infinite ease-in-out'
+                          }} 
+                          aria-hidden="true"
+                        />
+                        <span style={{ fontWeight: 600, marginLeft: '0.25rem' }}>GriotBot</span>
+                      </div>
+                      
+                      <div style={{
+                        fontStyle: 'italic',
+                        marginBottom: '0.5rem',
+                        color: 'rgba(255,255,255,0.9)',
+                        animation: 'fadeIn 0.5s ease-in'
+                      }}>
+                        {thinkingPhrases[thinkingPhraseIndex]}
+                      </div>
+                      
+                      <div className="typing-animation" style={{
+                        display: 'flex',
+                        gap: '0.4rem',
+                        justifyContent: 'center'
+                      }}>
+                        {[0, 1, 2].map((i) => (
+                          <span key={i} style={{
+                            height: '8px',
+                            width: '8px',
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            borderRadius: '50%',
+                            display: 'inline-block',
+                            animation: 'typingBounce 1.4s infinite ease-in-out both',
+                            animationDelay: `${i * 0.2}s`
+                          }}></span>
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <>
