@@ -1,4 +1,4 @@
-// File: /pages/index.js - Updated with centered welcome and tabs
+// File: /pages/index.js - Updated with centered welcome, tabs, and improved chat bubbles
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
@@ -19,8 +19,9 @@ export default function Home() {
     // Load chat history from localStorage
     loadChatHistory();
 
-    // Handle suggestion cards
-    const handleSuggestionCards = () => {
+    // Handle suggestion cards and category tabs
+    const handleClickableElements = () => {
+      // Handle traditional suggestion cards
       const suggestionCards = document.querySelectorAll('.suggestion-card');
       if (suggestionCards) {
         suggestionCards.forEach(card => {
@@ -32,11 +33,24 @@ export default function Home() {
           });
         });
       }
+      
+      // Handle new category tabs
+      const categoryTabs = document.querySelectorAll('.category-tab');
+      if (categoryTabs) {
+        categoryTabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            const prompt = tab.getAttribute('data-prompt');
+            if (prompt) {
+              handleSendMessage(prompt, false);
+            }
+          });
+        });
+      }
     };
 
-    // Initialize suggestion cards
+    // Initialize clickable elements
     if (typeof window !== 'undefined') {
-      handleSuggestionCards();
+      handleClickableElements();
     }
   }, []);
 
@@ -66,6 +80,7 @@ export default function Home() {
   function initializeChat() {
     // Get DOM elements for things not yet converted to React components
     const suggestionCards = document.querySelectorAll('.suggestion-card');
+    const categoryTabs = document.querySelectorAll('.category-tab');
     const factElement = document.getElementById('fact');
 
     // 5. RANDOM PROVERB
@@ -97,11 +112,22 @@ export default function Home() {
     
     showRandomProverb(); // Show proverb on init
 
-    // 10. SUGGESTION CARDS HANDLER
+    // 10. SUGGESTION CARDS & CATEGORY TABS HANDLER
     if (suggestionCards) {
       suggestionCards.forEach(card => {
         card.addEventListener('click', () => {
           const prompt = card.getAttribute('data-prompt');
+          if (prompt) {
+            handleSendMessage(prompt, false);
+          }
+        });
+      });
+    }
+    
+    if (categoryTabs) {
+      categoryTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const prompt = tab.getAttribute('data-prompt');
           if (prompt) {
             handleSendMessage(prompt, false);
           }
@@ -365,7 +391,12 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <div id="chat" aria-live="polite" style={{ width: '100%', maxWidth: '700px' }}>
+            <div id="chat" aria-live="polite" style={{ 
+              width: '100%', 
+              maxWidth: '700px',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
               {messages.map((message, index) => (
                 <div 
                   key={index} 
@@ -374,7 +405,8 @@ export default function Home() {
                     padding: '1rem 1.2rem',
                     margin: '0.5rem 0',
                     borderRadius: '12px',
-                    maxWidth: '80%',
+                    maxWidth: message.role === 'user' ? '50%' : '60%', // Different max widths
+                    width: 'fit-content', // Expand based on content
                     wordWrap: 'break-word',
                     boxShadow: '0 3px 6px var(--shadow-color)',
                     alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
@@ -403,8 +435,18 @@ export default function Home() {
                           paddingBottom: '0.5rem',
                           borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
                         }}>
-                          <span className="logo-icon" aria-hidden="true" style={{ fontSize: '1.2rem' }}>🌿</span>
-                          <span className="bot-name" style={{ fontWeight: 600, marginLeft: '0.5rem' }}>GriotBot</span>
+                          {/* Logo image instead of emoji */}
+                          <img 
+                            src="/images/logo-light.svg" 
+                            alt="GriotBot Logo" 
+                            style={{ 
+                              height: '20px',
+                              width: 'auto',
+                              marginRight: '0.5rem'
+                            }} 
+                            aria-hidden="true"
+                          />
+                          <span className="bot-name" style={{ fontWeight: 600, marginLeft: '0.25rem' }}>GriotBot</span>
                         </div>
                       )}
                       <div>{message.content}</div>
