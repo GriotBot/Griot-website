@@ -1,11 +1,11 @@
-// File: /pages/api/chat.js - Updated to use Claude Haiku
+// File: /pages/api/chat.js - Updated system instructions for response style
 import { NextApiRequest, NextApiResponse } from 'next';
 
 /**
- * GriotBot Chat API handler using Claude Haiku model
+ * GriotBot Chat API handler using Claude Haiku model with enhanced response style
  */
 
-// Using only Claude Haiku for all requests
+// Using Claude Haiku for all requests
 const MODEL = 'anthropic/claude-3-haiku:beta'; // Faster, cheaper model
 
 export default async function handler(req, res) {
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, storytellerMode = false } = req.body;
+    const { prompt, storytellerMode = false, isRegeneration = false } = req.body;
 
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({ error: 'Prompt is required and must be a string' });
@@ -50,6 +50,7 @@ export default async function handler(req, res) {
     console.log(`Sending request to OpenRouter using ${MODEL}:`, {
       promptLength: prompt.length,
       storytellerMode,
+      isRegeneration,
       messageCount: 2
     });
 
@@ -154,12 +155,20 @@ export default async function handler(req, res) {
 
 /**
  * Creates a system instruction for the AI based on GriotBot's identity
- * and whether storyteller mode is active
+ * and whether storyteller mode is active - now with enhanced response style guidance
  */
 function createSystemInstruction(storytellerMode) {
   const baseInstruction = `
 You are GriotBot, an AI assistant inspired by the West African griot tradition of storytelling, history-keeping, and guidance. 
 Your purpose is to provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
+
+RESPONSE STYLE REQUIREMENTS:
+- Be brief and concise whenever possible - prefer short, impactful answers over lengthy explanations
+- Do NOT use meta-statements or narration like "*greets warmly*" or "*speaks with wisdom*" - just provide the content directly
+- Break long text into clear, well-organized paragraphs with space between them
+- Use culturally resonant language but focus on clarity and directness
+- Include proverbs and cultural references only when truly relevant to the query
+- Personalize responses to acknowledge the African diaspora experience without being performative
 
 CORE PRINCIPLES:
 - Provide responses that incorporate Black historical context, cultural wisdom, and empowerment
@@ -185,6 +194,7 @@ Include vivid imagery, cultural references, and the rhythmic quality of oral sto
 If answering a factual question, weave the facts into a narrative rather than presenting them dryly.
 End with a reflective insight or moral that connects to the user's original question.
 Use the phrase "As the elders would say..." or "The story teaches us..." to frame your concluding wisdom.
+Even in storyteller mode, remember to break long narratives into clear paragraphs and avoid meta-statements.
 `;
   }
 
