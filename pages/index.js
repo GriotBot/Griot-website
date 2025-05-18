@@ -1,4 +1,4 @@
-// File: /pages/index.js - With auto-scrolling, enhanced thinking indicator, and modern UI controls
+// File: /pages/index.js - With auto-scrolling, enhanced thinking indicator, modern UI controls, and improved regenerateResponse function
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
@@ -124,38 +124,74 @@ export default function Home() {
     }));
   };
 
-  // Function to regenerate a response
+  // Improved regenerateResponse function
   const regenerateResponse = async (promptText) => {
-    // Remove the last bot message and add a new thinking message
-    const userMessages = messages.filter(m => m.role === 'user');
-    const lastUserMessage = userMessages[userMessages.length - 1];
-    
-    // Keep all messages up to the last user message
-    const messagesUntilLastUser = [];
-    let foundLastUser = false;
+    if (!promptText) {
+      console.error('Cannot regenerate: no prompt text provided');
+      return;
+    }
+
+    // Find the most recent user message with this prompt and the bot response that follows it
+    let userMessageIndex = -1;
+    let botResponseIndex = -1;
     
     for (let i = messages.length - 1; i >= 0; i--) {
-      if (foundLastUser) {
-        messagesUntilLastUser.unshift(messages[i]);
-      } else if (messages[i].role === 'user' && messages[i].content === lastUserMessage.content) {
-        messagesUntilLastUser.unshift(messages[i]);
-        foundLastUser = true;
+      if (messages[i].role === 'user' && messages[i].content === promptText) {
+        userMessageIndex = i;
+        // Check if there's a bot response after this user message
+        if (i + 1 < messages.length && messages[i + 1].role === 'bot') {
+          botResponseIndex = i + 1;
+        }
+        break;
       }
     }
+
+    if (userMessageIndex === -1) {
+      console.error('Cannot regenerate: original user message not found');
+      return;
+    }
+
+    // Create a new array of messages, removing the bot response if it exists
+    let updatedMessages;
+    if (botResponseIndex !== -1) {
+      updatedMessages = [
+        ...messages.slice(0, botResponseIndex),
+        {
+          role: 'bot',
+          content: '...',
+          time: new Date().toISOString(),
+          thinking: true
+        }
+      ];
+    } else {
+      // If no bot response was found, add a thinking indicator after the user message
+      updatedMessages = [
+        ...messages,
+        {
+          role: 'bot',
+          content: '...',
+          time: new Date().toISOString(),
+          thinking: true
+        }
+      ];
+    }
     
-    // Add thinking indicator
-    const thinkingMessage = {
-      role: 'bot',
-      content: '...',
-      time: new Date().toISOString(),
-      thinking: true
-    };
-    
-    const updatedMessages = [...messagesUntilLastUser, thinkingMessage];
+    // Update the UI with the thinking indicator
     setMessages(updatedMessages);
     
-    // Send the request to regenerate
+    // Reset any feedback that might have been given
+    setFeedbackGiven(prevState => {
+      const newState = {...prevState};
+      if (botResponseIndex !== -1) {
+        delete newState[botResponseIndex];
+      }
+      return newState;
+    });
+    
     try {
+      console.log('Regenerating response for prompt:', promptText);
+      
+      // Make the API call to regenerate the response
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -165,19 +201,35 @@ export default function Home() {
         body: JSON.stringify({ 
           prompt: promptText,
           storytellerMode: false,
-          isRegeneration: true
+          isRegeneration: true  // Flag to indicate this is a regeneration
         })
       });
       
       if (!res.ok) {
-        throw new Error(`Error: Status ${res.status}`);
+        let errorMessage = `Error: Status ${res.status}`;
+        
+        try {
+          const errorData = await res.json();
+          if (errorData && errorData.error) {
+            errorMessage = typeof errorData.error === 'string' 
+              ? errorData.error 
+              : JSON.stringify(errorData.error);
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, try to get the text response
+          const errorText = await res.text().catch(() => 'Unknown error');
+          errorMessage = `Error: ${errorText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
       
+      // Process the successful response
       const data = await res.json();
       const botResponse = data.choices?.[0]?.message?.content || 
-                        'I apologize, but I seem to be having trouble processing your request.';
+                        'I apologize, but I seem to be having trouble generating a new response.';
       
-      // Replace thinking with new response
+      // Replace the thinking indicator with the new response
       const finalMessages = updatedMessages.slice(0, -1).concat({
         role: 'bot',
         content: botResponse,
@@ -186,13 +238,14 @@ export default function Home() {
       
       setMessages(finalMessages);
       saveChatHistory(finalMessages);
-    } catch (err) {
-      console.error('API error during regeneration:', err);
       
-      // Replace thinking with error message
+    } catch (error) {
+      console.error('Error regenerating response:', error);
+      
+      // Replace thinking indicator with error message
       const finalMessages = updatedMessages.slice(0, -1).concat({
         role: 'bot',
-        content: `I'm sorry, I encountered an error while regenerating: ${err.message}. Please try again later.`,
+        content: `I'm sorry, I encountered an error while trying to generate a new response: ${error.message}. Please try again later.`,
         time: new Date().toISOString()
       });
       
@@ -283,7 +336,7 @@ export default function Home() {
     }
   }
 
-  // Handle sending a message - UPDATED with enhanced error handling
+  // Handle sending a message
   async function handleSendMessage(text, storytellerMode) {
     // Hide welcome screen
     setShowWelcome(false);
