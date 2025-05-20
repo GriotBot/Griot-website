@@ -198,7 +198,7 @@ export default function ChatInput({ onSubmit }) {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: storyMode ? 'var(--bot-bubble-start)' : 'rgba(0,0,0,0.25)', // Green when active
+                  backgroundColor: storyMode ? 'var(--accent-color)' : 'rgba(0,0,0,0.25)', // Orange when active
                   transition: '.3s',
                   borderRadius: '20px',
                 }}>
