@@ -6,7 +6,7 @@ import { Menu, LogIn, Sun, Moon } from 'react-feather';
 import { MessageCirclePlus } from './icons/MessageCirclePlus';
 import styles from '../styles/components/Header.module.css';
 
-export default function Header({ theme, toggleTheme, sidebarVisible, toggleSidebar }) {
+export default function Header({ theme, toggleTheme, sidebarVisible, toggleSidebar, isIndexPage = true }) {
   const [tooltipVisible, setTooltipVisible] = useState(null);
   
   const handleNewChat = () => {
@@ -25,24 +25,35 @@ export default function Header({ theme, toggleTheme, sidebarVisible, toggleSideb
   };
   
   return (
-    <header className={styles.header} role="banner" id="header">
-      {/* Left side - Menu icon */}
+    <header 
+      className={styles.header} 
+      role="banner" 
+      id="header"
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 110, // Higher than sidebar
+      }}
+    >
+      {/* Left side - Menu icon (only on index page) */}
       <div className={styles.menuContainer}>
-        <button 
-          onClick={toggleSidebar}
-          className={styles.iconButton}
-          onMouseEnter={() => setTooltipVisible('menu')}
-          onMouseLeave={() => setTooltipVisible(null)}
-          aria-label="Toggle sidebar"
-          aria-expanded={sidebarVisible}
-          aria-controls="sidebar"
-          id="toggleSidebar"
-        >
-          <Menu color="white" size={24} />
-          {tooltipVisible === 'menu' && (
-            <span className={styles.tooltip}>Menu</span>
-          )}
-        </button>
+        {isIndexPage && (
+          <button 
+            onClick={toggleSidebar}
+            className={styles.iconButton}
+            onMouseEnter={() => setTooltipVisible('menu')}
+            onMouseLeave={() => setTooltipVisible(null)}
+            aria-label="Toggle sidebar"
+            aria-expanded={sidebarVisible}
+            aria-controls="sidebar"
+            id="toggleSidebar"
+          >
+            <Menu color="white" size={24} />
+            {tooltipVisible === 'menu' && (
+              <span className={styles.tooltip}>Menu</span>
+            )}
+          </button>
+        )}
       </div>
       
       {/* Center - Logo */}
