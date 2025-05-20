@@ -1,12 +1,12 @@
 // components/icons/MessageCirclePlus.js
-export function MessageCirclePlus({ size = 24 }) {
+export function MessageCirclePlus({ size = 24, color = "currentColor" }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
       fill="none"
-      stroke="currentColor"
+      stroke={color}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
