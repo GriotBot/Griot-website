@@ -1,7 +1,7 @@
 // components/layout/Layout.js - Updated to use new Header
 import { useState, useEffect } from 'react';
 import Header from '../Header';
-import EnhancedSidebar from './EnhancedSidebar';
+import ModernSidebar from './ModernSidebar';
 import EnhancedFooter from './EnhancedFooter';
 
 export default function Layout({ children }) {
@@ -74,7 +74,7 @@ export default function Layout({ children }) {
         toggleSidebar={toggleSidebar} 
       />
       
-      <EnhancedSidebar 
+      <ModernSidebar 
         visible={sidebarVisible} 
         closeSidebar={closeSidebar}
       />
