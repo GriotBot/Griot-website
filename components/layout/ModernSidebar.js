@@ -2,11 +2,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Home, Info, MessageSquare, Book, Users, Send, Archive, HelpCircle } from 'react-feather';
+import { Home, Info, MessageSquare, Book, Users, Send, Archive, HelpCircle, XCircle } from 'react-feather';
 
 export default function ModernSidebar({ visible, closeSidebar }) {
   const router = useRouter();
   const currentPath = router.pathname;
+  const isIndexPage = currentPath === '/';
   
   // Track hover states for interactive feedback
   const [hoveredItems, setHoveredItems] = useState({});
@@ -23,7 +24,7 @@ export default function ModernSidebar({ visible, closeSidebar }) {
   const handleBackgroundClick = (e) => {
     // Only close if clicking directly on the nav element (background)
     // and not on any of its children
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && isIndexPage) {
       closeSidebar();
     }
   };
@@ -39,7 +40,7 @@ export default function ModernSidebar({ visible, closeSidebar }) {
         background: 'var(--sidebar-bg)',
         color: 'var(--sidebar-text)',
         padding: '2rem 1.5rem 1.5rem',
-        transform: visible ? 'translateX(0)' : 'translateX(-100%)',
+        transform: visible ? 'translateX(0)' : (isIndexPage ? 'translateX(-100%)' : 'translateX(0)'),
         transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
@@ -51,10 +52,36 @@ export default function ModernSidebar({ visible, closeSidebar }) {
         overflowY: 'auto'
       }}
       id="sidebar"
-      aria-hidden={!visible}
+      aria-hidden={!visible && isIndexPage}
       aria-label="Main navigation"
       onClick={handleBackgroundClick}
     >
+      {/* Close button (X) for non-index pages */}
+      {!isIndexPage && (
+        <button
+          onClick={closeSidebar}
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--sidebar-text)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0.5rem',
+            borderRadius: '50%',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={() => handleHover('close-btn', true)}
+          onMouseLeave={() => handleHover('close-btn', false)}
+          aria-label="Close sidebar"
+        >
+          <XCircle size={24} />
+        </button>
+      )}
       {/* Return to chat button - centered and modernized */}
       <div style={{ 
         display: 'flex',
