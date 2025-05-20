@@ -41,7 +41,7 @@ export default function ModernSidebar({ visible, closeSidebar }) {
         color: 'var(--sidebar-text)',
         padding: '2rem 1.5rem 1.5rem',
         transform: visible ? 'translateX(0)' : 'translateX(-100%)',
-        transition: (visible && router.pathname !== '/' && router.pathname !== '/') ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s',
+        transition: (!visible || currentPath === '/') ? 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s' : 'none',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         boxShadow: '4px 0 20px var(--shadow-color)',
