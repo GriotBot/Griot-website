@@ -1,16 +1,15 @@
 // components/Header.js
-import { useState, useContext } from 'react';
+import { useState } from 'react';
+import Link from 'next/link';
 import { Menu, LogIn, Sun, Moon } from 'react-feather';
-import { ThemeContext } from '../context/ThemeContext';
 import { MessageCirclePlus } from './icons/MessageCirclePlus';
-import styles from './Header.module.css';
+import styles from '../styles/components/Header.module.css';
 
-export default function Header({ toggleSidebar }) {
-  const { theme, toggleTheme } = useContext(ThemeContext);
+export default function Header({ theme, toggleTheme, sidebarVisible, toggleSidebar }) {
   const [tooltipVisible, setTooltipVisible] = useState(null);
   
   return (
-    <header className={styles.header}>
+    <header className={styles.header} role="banner" id="header">
       {/* Left side - Menu icon */}
       <div className={styles.menuContainer}>
         <button 
@@ -19,6 +18,9 @@ export default function Header({ toggleSidebar }) {
           onMouseEnter={() => setTooltipVisible('menu')}
           onMouseLeave={() => setTooltipVisible(null)}
           aria-label="Toggle sidebar"
+          aria-expanded={sidebarVisible}
+          aria-controls="sidebar"
+          id="toggleSidebar"
         >
           <Menu color="white" size={24} />
           {tooltipVisible === 'menu' && (
@@ -29,8 +31,21 @@ export default function Header({ toggleSidebar }) {
       
       {/* Center - Logo */}
       <div className={styles.logoContainer}>
-        <span className={styles.logoIcon} aria-hidden="true">🌿</span>
-        <span className={styles.logoText}>GriotBot</span>
+        <Link href="/">
+          <a style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--header-text)',
+            textDecoration: 'none',
+          }}>
+            <img 
+              src="/images/GriotBot logo horiz wht.svg" 
+              alt="GriotBot" 
+              className={styles.logoIcon}
+            />
+          </a>
+        </Link>
       </div>
       
       {/* Right side - Action icons */}
@@ -65,6 +80,7 @@ export default function Header({ toggleSidebar }) {
           onMouseEnter={() => setTooltipVisible('theme')}
           onMouseLeave={() => setTooltipVisible(null)}
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          id="themeToggle"
         >
           {theme === 'dark' ? (
             <Sun color="white" size={24} />
