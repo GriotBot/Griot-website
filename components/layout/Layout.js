@@ -46,10 +46,10 @@ export default function Layout({ children }) {
     }
   };
 
-  // Handle escape key to close sidebar on index page
+  // Handle escape key to close sidebar on any page
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && sidebarVisible && isIndexPage) {
+      if (e.key === 'Escape' && sidebarVisible) {
         closeSidebar();
       }
     };
@@ -57,8 +57,8 @@ export default function Layout({ children }) {
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', handleEscape);
       
-      // Lock body scroll when sidebar is open on index page
-      if (sidebarVisible && isIndexPage) {
+      // Lock body scroll when sidebar is open
+      if (sidebarVisible) {
         document.body.style.overflow = 'hidden';
       } else {
         document.body.style.overflow = '';
@@ -71,7 +71,7 @@ export default function Layout({ children }) {
         document.body.style.overflow = '';
       }
     };
-  }, [sidebarVisible, isIndexPage]);
+  }, [sidebarVisible]);
 
   return (
     <>
@@ -88,10 +88,9 @@ export default function Layout({ children }) {
         closeSidebar={closeSidebar}
       />
       
-      {/* Main content area that closes sidebar when clicked on index page */}
-      <main onClick={isIndexPage ? closeSidebar : undefined} style={{
-        marginLeft: isIndexPage ? 0 : '280px',
-        transition: 'margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+      {/* Main content area - centered without margin regardless of page */}
+      <main onClick={closeSidebar} style={{
+        marginLeft: 0,
       }}>
         {children}
       </main>
