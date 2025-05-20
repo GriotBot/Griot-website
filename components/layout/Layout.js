@@ -10,10 +10,15 @@ export default function Layout({ children }) {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [isIndexPage, setIsIndexPage] = useState(true);
 
-  // Detect current page
+  // Set sidebar visibility based on page
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsIndexPage(window.location.pathname === '/');
+      const currentPath = window.location.pathname;
+      setIsIndexPage(currentPath === '/');
+      // Set sidebar visible by default on non-index pages
+      if (currentPath !== '/') {
+        setSidebarVisible(true);
+      }
     }
   }, []);
 
