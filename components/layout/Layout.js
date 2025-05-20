@@ -1,6 +1,6 @@
-// File: /components/layout/Layout.js - Updated to use Enhanced Sidebar
+// components/layout/Layout.js - Updated to use new Header
 import { useState, useEffect } from 'react';
-import Header from './Header';
+import Header from '../Header';
 import EnhancedSidebar from './EnhancedSidebar';
 import EnhancedFooter from './EnhancedFooter';
 
@@ -78,8 +78,6 @@ export default function Layout({ children }) {
         visible={sidebarVisible} 
         closeSidebar={closeSidebar}
       />
-      
-      {/* Removed the overlay completely */}
       
       {/* Main content area that closes sidebar when clicked */}
       <main onClick={closeSidebar}>
