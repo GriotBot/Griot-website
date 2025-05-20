@@ -8,6 +8,14 @@ export default function Layout({ children }) {
   // Shared state for theme and sidebar visibility
   const [theme, setTheme] = useState('light');
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [isIndexPage, setIsIndexPage] = useState(true);
+
+  // Detect current page
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsIndexPage(window.location.pathname === '/');
+    }
+  }, []);
 
   // Apply theme from localStorage on component mount
   useEffect(() => {
@@ -38,10 +46,10 @@ export default function Layout({ children }) {
     }
   };
 
-  // Handle escape key to close sidebar
+  // Handle escape key to close sidebar on index page
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && sidebarVisible) {
+      if (e.key === 'Escape' && sidebarVisible && isIndexPage) {
         closeSidebar();
       }
     };
@@ -49,8 +57,8 @@ export default function Layout({ children }) {
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', handleEscape);
       
-      // Lock body scroll when sidebar is open
-      if (sidebarVisible) {
+      // Lock body scroll when sidebar is open on index page
+      if (sidebarVisible && isIndexPage) {
         document.body.style.overflow = 'hidden';
       } else {
         document.body.style.overflow = '';
@@ -63,7 +71,7 @@ export default function Layout({ children }) {
         document.body.style.overflow = '';
       }
     };
-  }, [sidebarVisible]);
+  }, [sidebarVisible, isIndexPage]);
 
   return (
     <>
@@ -72,6 +80,7 @@ export default function Layout({ children }) {
         toggleTheme={toggleTheme} 
         sidebarVisible={sidebarVisible} 
         toggleSidebar={toggleSidebar} 
+        isIndexPage={isIndexPage}
       />
       
       <ModernSidebar 
@@ -79,8 +88,11 @@ export default function Layout({ children }) {
         closeSidebar={closeSidebar}
       />
       
-      {/* Main content area that closes sidebar when clicked */}
-      <main onClick={closeSidebar}>
+      {/* Main content area that closes sidebar when clicked on index page */}
+      <main onClick={isIndexPage ? closeSidebar : undefined} style={{
+        marginLeft: isIndexPage ? 0 : '280px',
+        transition: 'margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}>
         {children}
       </main>
       
