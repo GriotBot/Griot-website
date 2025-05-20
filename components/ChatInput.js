@@ -1,5 +1,6 @@
-// File: /components/ChatInput.js
+// components/ChatInput.js - Updated
 import { useState, useRef, useEffect } from 'react';
+import { ArrowUpCircle } from 'react-feather';
 
 export default function ChatInput({ onSubmit }) {
   const [message, setMessage] = useState('');
@@ -107,7 +108,7 @@ export default function ChatInput({ onSubmit }) {
             value={message}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
+            placeholder="Ask GriotBot about..." 
             required 
             aria-label="Message to send"
             rows="1"
@@ -146,8 +147,7 @@ export default function ChatInput({ onSubmit }) {
               cursor: 'pointer',
             }}
           >
-            <div id="send-icon">↑</div>
-            <div id="send-loading" className="spinner" style={{display: 'none'}}></div>
+            <ArrowUpCircle size={24} /> {/* Feathericon arrow-up-circle */}
           </button>
         </div>
         
@@ -198,7 +198,7 @@ export default function ChatInput({ onSubmit }) {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: 'rgba(0,0,0,0.25)',
+                  backgroundColor: storyMode ? 'var(--bot-bubble-start)' : 'rgba(0,0,0,0.25)', // Green when active
                   transition: '.3s',
                   borderRadius: '20px',
                 }}>
