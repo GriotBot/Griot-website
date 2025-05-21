@@ -1,11 +1,24 @@
-// components/layout/Layout.js
+// components/layout/Layout.js - Updated to use new Header
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
+import Header from '../Header';
+import ModernSidebar from './ModernSidebar';
+import EnhancedFooter from './EnhancedFooter';
 
 export default function Layout({ children }) {
+  // Shared state for theme and sidebar visibility
   const [theme, setTheme] = useState('light');
-  
-  // Initialize theme from localStorage when component mounts (client-side only)
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [isIndexPage, setIsIndexPage] = useState(true);
+
+  // Detect current page
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      setIsIndexPage(currentPath === '/');
+    }
+  }, []);
+
+  // Apply theme from localStorage on component mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
@@ -13,48 +26,80 @@ export default function Layout({ children }) {
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
   }, []);
-  
-  return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      backgroundColor: 'var(--bg-color)',
-      color: 'var(--text-color)',
-      transition: 'background-color 0.3s, color 0.3s',
-    }}>
-      <header style={{
-        backgroundColor: 'var(--header-bg)',
-        color: 'var(--header-text)',
-        padding: '1rem',
-        textAlign: 'center',
-        fontWeight: 'bold',
-        fontSize: '1.2rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '1rem',
-        boxShadow: '0 2px 10px var(--shadow-color)',
-        zIndex: 100,
-        fontFamily: 'var(--heading-font)',
-        height: '60px',
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}>
-          <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
-          <span>GriotBot</span>
-        </div>
-      </header>
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('griotbot-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
+  // Close sidebar
+  const closeSidebar = () => {
+    if (sidebarVisible) {
+      setSidebarVisible(false);
+    }
+  };
+
+  // Handle escape key to close sidebar on any page
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && sidebarVisible) {
+        closeSidebar();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleEscape);
       
-      <main style={{
-        flex: 1,
-        paddingTop: '60px', // Account for header
+      // Lock body scroll when sidebar is open
+      if (sidebarVisible) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = '';
+      }
+    };
+  }, [sidebarVisible]);
+
+  return (
+    <>
+      <Header 
+        theme={theme} 
+        toggleTheme={toggleTheme} 
+        sidebarVisible={sidebarVisible} 
+        toggleSidebar={toggleSidebar} 
+        isIndexPage={isIndexPage}
+      />
+      
+      <ModernSidebar 
+        visible={sidebarVisible} 
+        closeSidebar={closeSidebar}
+      />
+      
+      {/* Main content area - centered without margin regardless of page */}
+      <main onClick={closeSidebar} style={{
+        marginLeft: 0,
       }}>
         {children}
       </main>
-    </div>
+      
+      {/* Only include EnhancedFooter on non-index pages */}
+      {typeof window !== 'undefined' && window.location.pathname !== '/' && (
+        <EnhancedFooter page="other" />
+      )}
+    </>
   );
 }
