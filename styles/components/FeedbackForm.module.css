@@ -1,27 +1,19 @@
 /* styles/components/FeedbackForm.module.css */
+
 .formContainer {
-  /* your existing rules, all scoped under .formContainer */
+  background-color: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--shadow-color);
 }
 
-/* if you need to style native elements, do: */
-:global(label) {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 0.5rem;
-}
-
-/* similarly */
-:global(input),
-:global(select),
-:global(textarea) {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--input-border);
+/* Any other class names you actually reference in JSX */
+.errorMessage {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  padding: 1rem;
   border-radius: 6px;
-  background-color: var(--input-bg);
-  color: var(--input-text);
-  font-family: inherit;
-  font-size: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-/* …and so on for any other plain selectors */
+/* …and so on */
