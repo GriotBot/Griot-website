@@ -1,109 +1,65 @@
-// components/layout/Layout.js - Updated to use new Header
+// components/layout/Layout.js
 import { useState, useEffect } from 'react';
 import Header from '../Header';
 import ModernSidebar from './ModernSidebar';
 import EnhancedFooter from './EnhancedFooter';
+import styles from '../../styles/components/Layout.module.css';
 
 export default function Layout({ children }) {
-  // Shared state for theme and sidebar visibility
   const [theme, setTheme] = useState('light');
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [isIndexPage, setIsIndexPage] = useState(true);
+  const [isHome, setIsHome] = useState(true);
 
-  // Set sidebar visibility based on page
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const currentPath = window.location.pathname;
-      setIsIndexPage(currentPath === '/');
-      // Set sidebar visible by default on non-index pages
-      if (currentPath !== '/') {
-        setSidebarVisible(true);
-      }
-    }
+    if (typeof window === 'undefined') return;
+    const path = window.location.pathname;
+    setIsHome(path === '/');
+    if (path !== '/') setSidebarVisible(true);
   }, []);
 
-  // Apply theme from localStorage on component mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    }
+    if (typeof window === 'undefined') return;
+    const saved = localStorage.getItem('griotbot-theme') || 'light';
+    setTheme(saved);
+    document.documentElement.setAttribute('data-theme', saved);
   }, []);
 
-  // Toggle theme function
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('griotbot-theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    localStorage.setItem('griotbot-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
   };
 
-  // Toggle sidebar visibility
-  const toggleSidebar = () => {
-    setSidebarVisible(!sidebarVisible);
-  };
+  const toggleSidebar = () => setSidebarVisible(v => !v);
+  const closeSidebar = () => sidebarVisible && setSidebarVisible(false);
 
-  // Close sidebar
-  const closeSidebar = () => {
-    if (sidebarVisible) {
-      setSidebarVisible(false);
-    }
-  };
-
-  // Handle escape key to close sidebar on any page
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && sidebarVisible) {
-        closeSidebar();
-      }
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('keydown', handleEscape);
-      
-      // Lock body scroll when sidebar is open
-      if (sidebarVisible) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-    }
-
+    if (typeof window === 'undefined') return;
+    const onEscape = (e) => e.key === 'Escape' && closeSidebar();
+    window.addEventListener('keydown', onEscape);
+    document.body.style.overflow = sidebarVisible ? 'hidden' : '';
     return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('keydown', handleEscape);
-        document.body.style.overflow = '';
-      }
+      window.removeEventListener('keydown', onEscape);
+      document.body.style.overflow = '';
     };
   }, [sidebarVisible]);
 
   return (
-    <>
-      <Header 
-        theme={theme} 
-        toggleTheme={toggleTheme} 
-        sidebarVisible={sidebarVisible} 
-        toggleSidebar={toggleSidebar} 
-        isIndexPage={isIndexPage}
+    <div className={styles.container} onClick={closeSidebar}>
+      <Header
+        theme={theme}
+        toggleTheme={toggleTheme}
+        sidebarVisible={sidebarVisible}
+        toggleSidebar={toggleSidebar}
+        isHome={isHome}
       />
-      
-      <ModernSidebar 
-        visible={sidebarVisible} 
-        closeSidebar={closeSidebar}
-      />
-      
-      {/* Main content area - centered without margin regardless of page */}
-      <main onClick={closeSidebar} style={{
-        marginLeft: 0,
-      }}>
-        {children}
-      </main>
-      
-      {/* Only include EnhancedFooter on non-index pages */}
-      {typeof window !== 'undefined' && window.location.pathname !== '/' && (
-        <EnhancedFooter page="other" />
-      )}
-    </>
+
+      <ModernSidebar visible={sidebarVisible} closeSidebar={closeSidebar} />
+
+      <main className={styles.main}>{children}</main>
+
+      {!isHome && <EnhancedFooter page="other" />}
+    </div>
   );
 }
