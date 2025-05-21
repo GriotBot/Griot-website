@@ -1,93 +1,107 @@
 // components/Header.js
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import Router from 'next/router';
 import { Menu, LogIn, Sun, Moon } from 'react-feather';
 import { MessageCirclePlus } from './icons/MessageCirclePlus';
 import styles from '../styles/components/Header.module.css';
 
-export default function Header({ theme, toggleTheme, sidebarVisible, toggleSidebar, isIndexPage = true }) {
-  const [tooltip, setTooltip] = useState(null);
-  const router = useRouter();
+export default function Header({
+  theme,
+  toggleTheme,
+  sidebarVisible,
+  toggleSidebar,
+  isIndexPage = true
+}) {
+  const [tooltipVisible, setTooltipVisible] = useState(null);
 
   const handleNewChat = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('griotbot-history');
-      if (router.pathname === '/') {
+      if (window.location.pathname === '/') {
         window.location.reload();
       } else {
-        router.push('/');
+        Router.push('/');
       }
     }
   };
 
-  const iconProps = { color: 'currentColor', size: 24 };
-
   return (
-    <header className={styles.header} role="banner">
-      <div className={styles.left}>
+    <header className={styles.header} role="banner" id="header">
+      <div className={styles.menuContainer}>
         {isIndexPage && (
           <button
             onClick={toggleSidebar}
             className={styles.iconButton}
-            onMouseEnter={() => setTooltip('menu')}
-            onMouseLeave={() => setTooltip(null)}
-            aria-label="Toggle menu"
+            onMouseEnter={() => setTooltipVisible('menu')}
+            onMouseLeave={() => setTooltipVisible(null)}
+            aria-label="Toggle sidebar"
             aria-expanded={sidebarVisible}
+            aria-controls="sidebar"
+            id="toggleSidebar"
           >
-            <Menu {...iconProps} />
-            {tooltip === 'menu' && <span className={styles.tooltip}>Menu</span>}
+            <Menu color="white" size={24} />
+            {tooltipVisible === 'menu' && (
+              <span className={styles.tooltip}>Menu</span>
+            )}
           </button>
         )}
       </div>
 
-      <div className={styles.center}>
+      <div className={styles.logoContainer}>
         <Link href="/">
-          <a className={styles.logoLink} aria-label="GriotBot home">
+          <a className={styles.logoLink}>
             <img
               src="/images/GriotBot logo horiz wht.svg"
               alt="GriotBot"
-              className={styles.logo}
+              className={styles.logoIcon}
             />
           </a>
         </Link>
       </div>
 
-      <div className={styles.right}>
+      <div className={styles.actionIcons}>
         <button
           onClick={handleNewChat}
           className={styles.iconButton}
-          onMouseEnter={() => setTooltip('newChat')}
-          onMouseLeave={() => setTooltip(null)}
-          aria-label="New chat"
+          onMouseEnter={() => setTooltipVisible('newChat')}
+          onMouseLeave={() => setTooltipVisible(null)}
+          aria-label="Start new chat"
         >
-          <MessageCirclePlus {...iconProps} />
-          {tooltip === 'newChat' && <span className={styles.tooltip}>New Chat</span>}
+          <MessageCirclePlus color="white" size={24} />
+          {tooltipVisible === 'newChat' && (
+            <span className={styles.tooltip}>New Chat</span>
+          )}
         </button>
 
         <Link href="/comingsoon">
           <a
             className={styles.iconButton}
-            onMouseEnter={() => setTooltip('login')}
-            onMouseLeave={() => setTooltip(null)}
+            onMouseEnter={() => setTooltipVisible('login')}
+            onMouseLeave={() => setTooltipVisible(null)}
             aria-label="Log in"
           >
-            <LogIn {...iconProps} />
-            {tooltip === 'login' && <span className={styles.tooltip}>Log In</span>}
+            <LogIn color="white" size={24} />
+            {tooltipVisible === 'login' && (
+              <span className={styles.tooltip}>Log In</span>
+            )}
           </a>
         </Link>
 
         <button
           onClick={toggleTheme}
           className={styles.iconButton}
-          onMouseEnter={() => setTooltip('theme')}
-          onMouseLeave={() => setTooltip(null)}
-          aria-label={
-            theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-          }
+          onMouseEnter={() => setTooltipVisible('theme')}
+          onMouseLeave={() => setTooltipVisible(null)}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          id="themeToggle"
         >
-          {theme === 'dark' ? <Sun {...iconProps} /> : <Moon {...iconProps} />}
-          {tooltip === 'theme' && (
+          {theme === 'dark' ? (
+            <Sun color="white" size={24} />
+          ) : (
+            <Moon color="white" size={24} />
+          )}
+          {tooltipVisible === 'theme' && (
             <span className={styles.tooltip}>
               {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
             </span>
@@ -95,4 +109,5 @@ export default function Header({ theme, toggleTheme, sidebarVisible, toggleSideb
         </button>
       </div>
     </header>
-);
+  );
+}
