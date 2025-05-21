@@ -1,20 +1,15 @@
-// File: /pages/feedback.js
+// pages/feedback.js
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
 import FeedbackForm from '../components/FeedbackForm';
 
 export default function Feedback() {
-  // Ensure this page only renders on the client (for any window-based logic in Layout)
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  // Early return for SSR loading state (optional)
-  if (!isClient) {
-    return null;
-  }
+  if (!isClient) return null;
 
   const containerStyles = {
     backgroundColor: 'var(--bg-color)',
@@ -30,7 +25,7 @@ export default function Feedback() {
     maxWidth: '700px',
     width: '100%',
     padding: '0 1rem',
-    textAlign: 'center' as const,
+    textAlign: 'center',
   };
 
   const headingStyles = {
