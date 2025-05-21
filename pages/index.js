@@ -2,14 +2,18 @@
 import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import Layout from '../components/layout/Layout';
-import ChatInput from '../components/ChatInput';
+import { Menu, Send } from 'react-feather';
 
 export default function Home() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [text, setText] = useState('');
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [storytellerMode, setStorytellerMode] = useState(false);
   const chatContainerRef = useRef(null);
   const chatEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // Load chat history from localStorage on component mount
   useEffect(() => {
@@ -45,9 +49,31 @@ export default function Home() {
     }
   }, [messages]);
 
+  // Auto-resize the textarea as user types
+  const adjustTextareaHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = Math.min(scrollHeight, 120) + 'px';
+    }
+  };
+
+  // Handle text input change
+  const handleTextChange = (e) => {
+    setText(e.target.value);
+    adjustTextareaHeight();
+  };
+
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setSidebarVisible(prev => !prev);
+  };
+
   // Handle sending user message and getting bot response
-  const handleSendMessage = async (text) => {
-    if (!text.trim()) return;
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    const trimmedText = text.trim();
+    if (!trimmedText) return;
     
     // Hide welcome screen if visible
     setShowWelcome(false);
@@ -55,12 +81,17 @@ export default function Home() {
     // Add user message to chat
     const userMessage = {
       role: 'user',
-      content: text,
+      content: trimmedText,
       timestamp: new Date().toISOString()
     };
     
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setIsLoading(true);
+    setText('');
+    
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '55px';
+    }
     
     try {
       // Call API to get bot response
@@ -70,8 +101,8 @@ export default function Home() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          prompt: text,
-          storytellerMode: document.getElementById('storytellerMode')?.checked || false
+          prompt: trimmedText,
+          storytellerMode: storytellerMode
         })
       });
       
@@ -81,7 +112,7 @@ export default function Home() {
       
       const data = await response.json();
       const botContent = data.choices?.[0]?.message?.content || 
-                         'I apologize, but I seem to be having trouble processing your request.';
+                       'I apologize, but I seem to be having trouble processing your request.';
       
       // Add bot response to chat
       const botMessage = {
@@ -122,7 +153,242 @@ export default function Home() {
         <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <Layout onNewChat={handleNewChat}>
+      
+      {/* Header with Menu Toggle */}
+      <header style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '60px',
+        backgroundColor: 'var(--header-bg, #c49a6c)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '0 1rem',
+        zIndex: 100,
+        boxShadow: '0 2px 10px var(--shadow-color, rgba(75, 46, 42, 0.15))'
+      }}>
+        <button
+          onClick={toggleSidebar}
+          style={{
+            position: 'absolute',
+            left: '1rem',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--header-text, #33302e)',
+          }}
+          aria-label="Toggle menu"
+        >
+          <Menu size={24} />
+        </button>
+        
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <img 
+            src="/images/GriotBot logo horiz wht.svg" 
+            alt="GriotBot" 
+            style={{
+              height: '32px',
+              width: 'auto',
+            }}
+          />
+        </div>
+        
+        <button
+          onClick={handleNewChat}
+          style={{
+            position: 'absolute',
+            right: '1rem',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--header-text, #33302e)',
+          }}
+          aria-label="New chat"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            <line x1="12" y1="8" x2="12" y2="16" />
+            <line x1="8" y1="12" x2="16" y2="12" />
+          </svg>
+        </button>
+      </header>
+      
+      {/* Sidebar */}
+      <nav 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100%',
+          width: '280px',
+          background: 'var(--sidebar-bg, rgba(75, 46, 42, 0.97))',
+          color: 'var(--sidebar-text, #f8f5f0)',
+          padding: '1.5rem',
+          transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.3s ease-in-out, background 0.3s',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          boxShadow: '4px 0 20px var(--shadow-color, rgba(75, 46, 42, 0.15))',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.5rem',
+          paddingTop: '60px',
+        }}
+        aria-hidden={!sidebarVisible}
+        aria-label="Main navigation"
+      >
+        <div style={{
+          marginBottom: '1rem',
+        }}>
+          <h3 style={{
+            fontSize: '0.9rem',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.5rem',
+            opacity: '0.8',
+          }}>
+            Conversations
+          </h3>
+          <a 
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNewChat();
+              setSidebarVisible(false);
+            }}
+            style={{
+              color: 'var(--sidebar-text, #f8f5f0)',
+              textDecoration: 'none',
+              padding: '0.5rem',
+              borderRadius: '6px',
+              transition: 'background-color 0.2s',
+              display: 'block',
+              marginBottom: '0.5rem',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+            }}
+          >
+            <span aria-hidden="true" style={{ marginRight: '0.5rem' }}>+</span> New Chat
+          </a>
+          <a href="#" style={{
+            color: 'var(--sidebar-text, #f8f5f0)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+            marginBottom: '0.5rem',
+          }}>
+            Saved Conversations
+          </a>
+        </div>
+        
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '0.9rem',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.5rem',
+            opacity: '0.8',
+          }}>
+            Explore
+          </h3>
+          <a href="#" style={{
+            color: 'var(--sidebar-text, #f8f5f0)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+            marginBottom: '0.5rem',
+          }}>
+            Historical Figures
+          </a>
+          <a href="#" style={{
+            color: 'var(--sidebar-text, #f8f5f0)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+            marginBottom: '0.5rem',
+          }}>
+            Cultural Stories
+          </a>
+          <a href="#" style={{
+            color: 'var(--sidebar-text, #f8f5f0)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+          }}>
+            Diaspora Community
+          </a>
+        </div>
+        
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '0.9rem',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.5rem',
+            opacity: '0.8',
+          }}>
+            About
+          </h3>
+          <a href="/about" style={{
+            color: 'var(--sidebar-text, #f8f5f0)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+            marginBottom: '0.5rem',
+          }}>
+            About GriotBot
+          </a>
+          <a href="/feedback" style={{
+            color: 'var(--sidebar-text, #f8f5f0)',
+            textDecoration: 'none',
+            padding: '0.5rem',
+            borderRadius: '6px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+          }}>
+            Share Feedback
+          </a>
+        </div>
+        
+        <div style={{
+          marginTop: 'auto',
+          fontSize: '0.8rem',
+          opacity: '0.7',
+          textAlign: 'center',
+          fontStyle: 'italic',
+          fontFamily: 'Lora, serif',
+        }}>
+          "Preserving our stories,<br/>empowering our future."
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main 
+        style={{ 
+          paddingTop: '60px',
+          height: '100vh',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+        onClick={() => sidebarVisible && setSidebarVisible(false)}
+      >
         {showWelcome ? (
           <div
             className="welcome-container"
@@ -211,7 +477,10 @@ export default function Home() {
               ].map((card, index) => (
                 <div
                   key={index}
-                  onClick={() => handleSendMessage(card.prompt)}
+                  onClick={() => {
+                    setText(card.prompt);
+                    handleSendMessage({ preventDefault: () => {} });
+                  }}
                   style={{
                     backgroundColor: 'var(--card-bg, #ffffff)',
                     padding: '1rem',
@@ -258,15 +527,14 @@ export default function Home() {
             ref={chatContainerRef}
             style={{ 
               padding: '1rem', 
-              minHeight: 'calc(100vh - 180px)', 
-              maxHeight: 'calc(100vh - 180px)',
+              height: 'calc(100vh - 140px)',
               overflowY: 'auto',
               display: 'flex',
               flexDirection: 'column',
               width: '100%',
               maxWidth: '700px',
               margin: '0 auto',
-              paddingBottom: '140px', // Make room for the input box
+              paddingBottom: '80px', // Make room for the input box
             }}
           >
             {messages.map((message, index) => (
@@ -397,13 +665,196 @@ export default function Home() {
           </div>
         )}
         
-        {/* Chat input component */}
-        <ChatInput 
+        {/* Chat input form */}
+        <form
           onSubmit={handleSendMessage}
-          disabled={isLoading}
-          showStorytellerMode={true}
-        />
-      </Layout>
+          style={{
+            position: 'fixed',
+            bottom: '50px',
+            left: 0,
+            width: '100%',
+            backgroundColor: 'var(--bg-color, #f8f5f0)',
+            padding: '1rem',
+            borderTop: '1px solid var(--input-border, rgba(75, 46, 42, 0.2))',
+            display: 'flex',
+            justifyContent: 'center',
+            zIndex: 50,
+          }}
+        >
+          <div style={{
+            width: '100%',
+            maxWidth: '700px',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            <div style={{
+              position: 'relative',
+              display: 'flex',
+              boxShadow: '0 4px 12px var(--shadow-color, rgba(75, 46, 42, 0.15))',
+              borderRadius: '12px',
+              backgroundColor: 'var(--input-bg, #ffffff)',
+            }}>
+              <textarea
+                ref={textareaRef}
+                value={text}
+                onChange={handleTextChange}
+                placeholder="Ask GriotBot about Black history, culture, or personal advice..."
+                style={{
+                  flex: 1,
+                  padding: '0.9rem 1rem',
+                  border: '1px solid var(--input-border, rgba(75, 46, 42, 0.2))',
+                  borderRight: 'none',
+                  borderRadius: '12px 0 0 12px',
+                  outline: 'none',
+                  resize: 'none',
+                  height: '55px',
+                  maxHeight: '120px',
+                  backgroundColor: 'var(--input-bg, #ffffff)',
+                  color: 'var(--input-text, #33302e)',
+                  fontFamily: 'inherit',
+                  fontSize: '1rem',
+                  lineHeight: 1.5,
+                }}
+                disabled={isLoading}
+              ></textarea>
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  width: '55px',
+                  backgroundColor: 'var(--accent-color, #d7722c)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0 12px 12px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.7 : 1,
+                }}
+                aria-label="Send message"
+              >
+                <Send size={20} />
+              </button>
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '0.5rem',
+              fontSize: '0.8rem',
+            }}>
+              <div style={{
+                color: 'var(--text-color, #33302e)',
+                opacity: 0.7,
+              }}>
+                Free users: 30 messages per day
+              </div>
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+              }}>
+                <label
+                  htmlFor="storytellerMode"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Storyteller Mode
+                  <div style={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    width: '36px',
+                    height: '20px',
+                    marginLeft: '0.5rem',
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="storytellerMode"
+                      checked={storytellerMode}
+                      onChange={() => setStorytellerMode(!storytellerMode)}
+                      style={{
+                        opacity: 0,
+                        width: 0,
+                        height: 0,
+                      }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      cursor: 'pointer',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: storytellerMode 
+                        ? 'var(--accent-color, #d7722c)' 
+                        : 'rgba(0,0,0,0.25)',
+                      transition: '.3s',
+                      borderRadius: '20px',
+                    }}>
+                    <span style={{
+                      position: 'absolute',
+                      content: '""',
+                      height: '16px',
+                      width: '16px',
+                      left: storytellerMode ? '18px' : '2px', // Move based on checked state
+                      bottom: '2px',
+                      backgroundColor: 'white',
+                      transition: '.3s',
+                      borderRadius: '50%',
+                    }}></span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </form>
+        
+        {/* Random Proverb & Copyright */}
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '30px',
+            width: '100%',
+            textAlign: 'center',
+            fontSize: '0.9rem',
+            fontStyle: 'italic',
+            padding: '0 1rem',
+            color: 'var(--wisdom-color, #6b4226)',
+            transition: 'color 0.3s',
+            opacity: 0.8,
+            fontFamily: 'Lora, serif',
+            pointerEvents: 'none',
+            zIndex: 40,
+          }}
+          aria-label="Random proverb"
+        >
+          It takes a village to raise a child. - African Proverb
+        </div>
+        
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '10px',
+            width: '100%',
+            textAlign: 'center',
+            fontSize: '0.8rem',
+            color: 'var(--text-color, #33302e)',
+            opacity: 0.6,
+            transition: 'color 0.3s',
+            pointerEvents: 'none',
+            zIndex: 40,
+          }}
+          aria-label="Copyright information"
+        >
+          © 2025 GriotBot. All rights reserved.
+        </div>
+      </main>
 
       {/* CSS for animations */}
       <style jsx global>{`
@@ -429,7 +880,6 @@ function formatMessageContent(content) {
   let formatted = content.replace(/\n/g, '<br>');
   
   // Detect and format quoted text/proverbs with a special style
-  // This is a simple implementation - for production, use a more robust approach
   const quoteRegex = /"([^"]+)"/g;
   formatted = formatted.replace(quoteRegex, '<div style="font-style: italic; border-left: 3px solid rgba(255, 255, 255, 0.5); padding-left: 0.8rem; margin: 0.8rem 0; font-family: var(--quote-font, \'Lora\', serif);">"$1"</div>');
   
