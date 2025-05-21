@@ -1,11 +1,13 @@
-// File: /components/FooterProverb.js
+// components/FooterProverb.js
 import { useState, useEffect } from 'react';
 
 export default function FooterProverb() {
-  const [proverb, setProverb] = useState("Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb");
-
+  const [proverb, setProverb] = useState("It takes a village to raise a child. - African Proverb");
+  
   useEffect(() => {
-    // List of proverbs
+    // Only run on client
+    if (typeof window === 'undefined') return;
+    
     const proverbs = [
       "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
       "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
@@ -24,32 +26,30 @@ export default function FooterProverb() {
       "When the music changes, so does the dance. — Haitian Proverb"
     ];
     
-    // Select a random proverb
+    // Get a random proverb
     const randomIndex = Math.floor(Math.random() * proverbs.length);
     setProverb(proverbs[randomIndex]);
   }, []);
-
+  
   return (
     <div 
-      id="footer-proverb"
-      className="footer-proverb-component" 
       style={{
         position: 'fixed',
         bottom: '30px',
-        left: 0,
         width: '100%',
         textAlign: 'center',
         fontSize: '0.9rem',
         fontStyle: 'italic',
         padding: '0 1rem',
         color: 'var(--wisdom-color, #6b4226)',
-        fontFamily: 'Lora, serif',
-        background: 'linear-gradient(transparent, var(--bg-color, #f8f5f0) 50%)',
-        zIndex: 999, // Very high z-index to ensure visibility
+        opacity: 0.8,
+        fontFamily: 'var(--quote-font, "Lora", serif)',
+        zIndex: 40,
         pointerEvents: 'none',
       }}
+      aria-label={`Proverb: ${proverb}`}
     >
-      <span>{proverb}</span>
+      {proverb}
     </div>
   );
 }
