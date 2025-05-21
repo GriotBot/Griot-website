@@ -1,0 +1,13 @@
+/* styles/components/FooterCopyright.module.css */
+.copyright {
+  position: fixed;
+  bottom: var(--space-2);
+  width: 100%;
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-color);
+  opacity: 0.6;
+  z-index: 40;
+  pointer-events: none;
+  font-family: var(--font-family-ui);
+}
