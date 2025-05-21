@@ -66,12 +66,6 @@ function useChatHistory() {
     }
   }, []);
 
-  const saveMessages = useCallback((newMessages) => {
-    const messagesToSave = newMessages.slice(-HISTORY_LIMIT);
-    localStorage.setItem('griotbot-history', JSON.stringify(messagesToSave));
-    setMessages(messagesToSave);
-  }, []);
-
   const addMessage = useCallback((role, content) => {
     const newMessage = {
       role,
@@ -335,7 +329,7 @@ function Sidebar({ visible, onClose, onNewChat }) {
       </nav>
 
       {visible && (
-        <div className="sidebar-overlay" onClick={onClose} aria-hidden="true" />
+        <div className="sidebar-overlay" onClick={onClose} aria-hidden="true"></div>
       )}
     </>
   );
@@ -378,12 +372,6 @@ function ChatInput({ onSendMessage, disabled }) {
     }
   }, [message, storytellerMode, disabled, onSendMessage]);
 
-  const handleSuggestionClick = useCallback((suggestion) => {
-    setMessage(suggestion);
-    adjustHeight();
-    textareaRef.current?.focus();
-  }, [adjustHeight]);
-
   return (
     <div className="form-container">
       <form onSubmit={handleSubmit} aria-label="Message form">
@@ -415,8 +403,7 @@ function ChatInput({ onSendMessage, disabled }) {
                   checked={storytellerMode}
                   onChange={(e) => setStorytellerMode(e.target.checked)}
                 />
-                {/* Fixed: Changed self-closing span syntax */}
-                <span className="slider" />
+                <span className="slider"></span>
               </div>
             </label>
           </div>
@@ -525,7 +512,6 @@ export default function Home() {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
         
-        {/* Critical CSS to prevent FOUC */}
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
             --bg-color: #f8f5f0;
