@@ -1,21 +1,10 @@
 // components/FooterCopyright.js
+import styles from '../styles/components/FooterCopyright.module.css';
+
 export default function FooterCopyright() {
   return (
-    <div 
-      style={{
-        position: 'fixed',
-        bottom: '10px',
-        width: '100%',
-        textAlign: 'center',
-        fontSize: '0.8rem',
-        color: 'var(--text-color, #33302e)',
-        opacity: 0.6,
-        zIndex: 40,
-        pointerEvents: 'none',
-      }}
-      aria-label="Copyright information"
-    >
-      © 2025 GriotBot. All rights reserved.
+    <div className={styles.copyright} aria-label="Copyright information">
+      © {new Date().getFullYear()} GriotBot. All rights reserved.
     </div>
   );
 }
