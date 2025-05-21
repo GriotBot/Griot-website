@@ -1,66 +1,109 @@
-// File: /styles/globals.css
-:root {
-  /* Color System */
-  --bg-color: #f8f5f0;
-  --text-color: #33302e;
-  --header-bg: #c49a6c;
-  --header-text: #33302e;
-  --sidebar-bg: rgba(75, 46, 42, 0.97);
-  --sidebar-text: #f8f5f0;
-  --user-bubble: #bd8735;
-  --user-text: #f8f5f0;
-  --bot-bubble-start: #7d8765;
-  --bot-bubble-end: #5e6e4f;
-  --bot-text: #f8f5f0;
-  --accent-color: #d7722c;
-  --accent-hover: #c86520;
-  --wisdom-color: #6b4226;
-  --input-bg: #ffffff;
-  --input-border: rgba(75, 46, 42, 0.2);
-  --input-text: #33302e;
-  --shadow-color: rgba(75, 46, 42, 0.15);
-  --card-bg: #ffffff;
-}
+/* styles/globals.css */
+@import './tokens.css';
 
-[data-theme="dark"] {
-  --bg-color: #292420;
-  --text-color: #f0ece4;
-  --header-bg: #50392d;
-  --header-text: #f0ece4;
-  --sidebar-bg: rgba(40, 30, 25, 0.97);
-  --sidebar-text: #f0ece4;
-  --user-bubble: #bb7e41;
-  --user-text: #f0ece4;
-  --bot-bubble-start: #5e6e4f;
-  --bot-bubble-end: #3e4a38;
-  --bot-text: #f0ece4;
-  --accent-color: #d7722c;
-  --accent-hover: #e8833d;
-  --wisdom-color: #e0c08f;
-  --input-bg: #352e29;
-  --input-border: rgba(240, 236, 228, 0.2);
-  --input-text: #f0ece4;
-  --shadow-color: rgba(0, 0, 0, 0.3);
-  --card-bg: #352e29;
-}
-
-/* Typography */
-body {
-  font-family: 'Montserrat', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+/* Base reset */
+*, *::before, *::after {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-family-ui);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
   transition: background-color 0.3s, color 0.3s;
 }
 
+/* Headings use prose font */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Lora', serif;
+  font-family: var(--font-family-prose);
+  color: var(--accent-color);
+  margin-bottom: var(--space-3);
 }
 
-/* Global reset */
-* {
-  box-sizing: border-box;
+p {
+  margin-bottom: var(--space-4);
 }
 
-/* Add existing styles from globals.css here */
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* Buttons */
+button {
+  font-family: var(--font-family-ui);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: background-color 0.2s;
+}
+
+button:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Inputs */
+input, textarea, select, button {
+  font-family: inherit;
+}
+
+input, textarea, select {
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: border-color 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-color);
+  outline: none;
+}
+
+/* Card */
+.card {
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+/* Header & Sidebar styling placeholders */
+.header {
+  background-color: var(--header-bg);
+  color: var(--header-text);
+}
+
+.sidebar {
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+}
+
+/* Chat bubbles */
+.message.user {
+  background-color: var(--user-bubble);
+  color: var(--user-text);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-lg);
+}
+
+.message.bot {
+  background-image: linear-gradient(
+    to bottom right,
+    var(--bot-bubble-start),
+    var(--bot-bubble-end)
+  );
+  color: var(--bot-text);
+  border-radius: var(--radius-lg) var(--radius-sm) var(--radius-lg) var(--radius-lg);
+}
