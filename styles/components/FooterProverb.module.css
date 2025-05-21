@@ -1,0 +1,15 @@
+/* styles/components/FooterProverb.module.css */
+.proverb {
+  position: fixed;
+  bottom: var(--space-5);
+  width: 100%;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  padding: 0 var(--space-4);
+  color: var(--wisdom-color);
+  opacity: 0.8;
+  font-family: var(--font-family-prose);
+  z-index: 40;
+  pointer-events: none;
+}
