@@ -1,45 +1,43 @@
-// File: components/layout/Layout.js
-import { useState, useEffect } from 'react'
-import Header from '../Header'
-import ModernSidebar from './ModernSidebar'
-import EnhancedFooter from './EnhancedFooter'
+import { useState, useEffect } from 'react';
+import Header from '../Header';
+import ModernSidebar from './ModernSidebar';
+import EnhancedFooter from './EnhancedFooter';
 
 export default function Layout({ children }) {
-  const [theme, setTheme] = useState('light')
-  const [sidebarVisible, setSidebarVisible] = useState(false)
-  const [isIndexPage, setIsIndexPage] = useState(true)
+  const [theme, setTheme] = useState('light');
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [isIndexPage, setIsIndexPage] = useState(true);
 
-  // Determine current path & default sidebar visibility
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname
-      setIsIndexPage(path === '/')
-      if (path !== '/') setSidebarVisible(true)
+      const p = window.location.pathname;
+      setIsIndexPage(p === '/');
+      if (p !== '/') setSidebarVisible(true);
     }
-  }, [])
+  }, []);
 
-  // Load saved theme
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('griotbot-theme') || 'light'
-      setTheme(saved)
-      document.documentElement.setAttribute('data-theme', saved)
-    }
-  }, [])
+    const saved = localStorage.getItem('griotbot-theme') || 'light';
+    setTheme(saved);
+    document.documentElement.setAttribute('data-theme', saved);
+  }, []);
 
   const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light'
-    setTheme(next)
-    document.documentElement.setAttribute('data-theme', next)
-    localStorage.setItem('griotbot-theme', next)
-  }
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    localStorage.setItem('griotbot-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+  };
 
-  const toggleSidebar = () => setSidebarVisible(v => !v)
-  const closeSidebar = () => setSidebarVisible(false)
+  const toggleSidebar = () => setSidebarVisible(v => !v);
+  const closeSidebar = () => setSidebarVisible(false);
 
-  // Layout constants
-  const HEADER_HEIGHT = 60
-  const SIDEBAR_WIDTH = 280
+  // close on Escape
+  useEffect(() => {
+    const onKey = e => e.key === 'Escape' && closeSidebar();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <>
@@ -53,29 +51,11 @@ export default function Layout({ children }) {
 
       <ModernSidebar visible={sidebarVisible} closeSidebar={closeSidebar} />
 
-      <main
-        onClick={closeSidebar}
-        style={{
-          paddingTop: HEADER_HEIGHT,                     // push content below header
-          marginLeft: isIndexPage ? 0 : SIDEBAR_WIDTH,   // leave space for sidebar
-          transition: 'margin-left 0.3s ease',
-          minHeight: `calc(100vh - ${HEADER_HEIGHT}px)`,
-        }}
-      >
-        <div
-          className="pageContent"
-          style={{
-            maxWidth: '700px',
-            margin: '0 auto',
-            padding: '1rem',
-          }}
-        >
-          {children}
-        </div>
+      <main onClick={closeSidebar} style={{ marginTop: '60px' }}>
+        {children}
       </main>
 
-      {/* Only show footer on non-index pages */}
-      {!isIndexPage && <EnhancedFooter page="other" />}
+      <EnhancedFooter page={isIndexPage ? 'index' : 'other'} />
     </>
-  )
+  );
 }
