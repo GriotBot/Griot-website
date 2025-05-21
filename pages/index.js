@@ -152,7 +152,9 @@ function SendIcon() {
 function TypingIndicator() {
   return (
     <div className="typing-indicator" aria-label="GriotBot is thinking">
-      <span></span><span></span><span></span>
+      <span></span>
+      <span></span>
+      <span></span>
     </div>
   );
 }
@@ -164,7 +166,6 @@ function Message({ message }) {
   };
 
   const formatBotMessage = (text) => {
-    // Simple proverb detection and formatting
     let formattedText = text;
     
     if (text.includes('"') && text.indexOf('"') !== text.lastIndexOf('"')) {
@@ -414,7 +415,8 @@ function ChatInput({ onSendMessage, disabled }) {
                   checked={storytellerMode}
                   onChange={(e) => setStorytellerMode(e.target.checked)}
                 />
-                <span className="slider"></span>
+                {/* Fixed: Changed self-closing span syntax */}
+                <span className="slider" />
               </div>
             </label>
           </div>
