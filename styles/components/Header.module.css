@@ -1,51 +1,40 @@
-/* styles/components/Header.module.css */
 .header {
   position: sticky;
   top: 0;
-  z-index: 110;
-  background: var(--header-bg);
+  z-index: 1000;
+  background-color: var(--header-bg);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-4);
   height: 60px;
+  padding: 0 1rem;
 }
 
-.left,
-.center,
-.right {
+.menuContainer {
   display: flex;
   align-items: center;
 }
 
-.center {
+.logoContainer {
   flex: 1;
+  display: flex;
   justify-content: center;
 }
 
-.logoLink {
+.logoIcon {
+  max-height: 36px;
+  width: auto;
+}
+
+.actionIcons {
   display: flex;
-  align-items: center;
-  text-decoration: none;
+  gap: 0.75rem;
 }
 
-.logo {
-  height: 32px;
-}
-
-.iconBtn {
+.iconButton {
   background: none;
   border: none;
-  color: var(--header-text);
   cursor: pointer;
   position: relative;
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
-  transition: background-color 0.2s;
-}
-
-.iconBtn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .tooltip {
@@ -53,14 +42,10 @@
   bottom: -1.5rem;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--header-text);
-  color: var(--background-primary);
-  font-size: var(--font-size-xs);
-  padding: 0.2rem 0.4rem;
-  border-radius: var(--radius-sm);
+  background: rgba(0,0,0,0.75);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
   white-space: nowrap;
-}
-
-.right > * + * {
-  margin-left: var(--space-3);
 }
