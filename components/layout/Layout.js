@@ -1,65 +1,81 @@
-// components/layout/Layout.js
-import { useState, useEffect } from 'react';
-import Header from '../Header';
-import ModernSidebar from './ModernSidebar';
-import EnhancedFooter from './EnhancedFooter';
-import styles from '../../styles/components/Layout.module.css';
+// File: components/layout/Layout.js
+import { useState, useEffect } from 'react'
+import Header from '../Header'
+import ModernSidebar from './ModernSidebar'
+import EnhancedFooter from './EnhancedFooter'
 
 export default function Layout({ children }) {
-  const [theme, setTheme] = useState('light');
-  const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [isHome, setIsHome] = useState(true);
+  const [theme, setTheme] = useState('light')
+  const [sidebarVisible, setSidebarVisible] = useState(false)
+  const [isIndexPage, setIsIndexPage] = useState(true)
 
+  // Determine current path & default sidebar visibility
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const path = window.location.pathname;
-    setIsHome(path === '/');
-    if (path !== '/') setSidebarVisible(true);
-  }, []);
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname
+      setIsIndexPage(path === '/')
+      if (path !== '/') setSidebarVisible(true)
+    }
+  }, [])
 
+  // Load saved theme
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const saved = localStorage.getItem('griotbot-theme') || 'light';
-    setTheme(saved);
-    document.documentElement.setAttribute('data-theme', saved);
-  }, []);
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('griotbot-theme') || 'light'
+      setTheme(saved)
+      document.documentElement.setAttribute('data-theme', saved)
+    }
+  }, [])
 
   const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    localStorage.setItem('griotbot-theme', next);
-    document.documentElement.setAttribute('data-theme', next);
-  };
+    const next = theme === 'light' ? 'dark' : 'light'
+    setTheme(next)
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('griotbot-theme', next)
+  }
 
-  const toggleSidebar = () => setSidebarVisible(v => !v);
-  const closeSidebar = () => sidebarVisible && setSidebarVisible(false);
+  const toggleSidebar = () => setSidebarVisible(v => !v)
+  const closeSidebar = () => setSidebarVisible(false)
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const onEscape = (e) => e.key === 'Escape' && closeSidebar();
-    window.addEventListener('keydown', onEscape);
-    document.body.style.overflow = sidebarVisible ? 'hidden' : '';
-    return () => {
-      window.removeEventListener('keydown', onEscape);
-      document.body.style.overflow = '';
-    };
-  }, [sidebarVisible]);
+  // Layout constants
+  const HEADER_HEIGHT = 60
+  const SIDEBAR_WIDTH = 280
 
   return (
-    <div className={styles.container} onClick={closeSidebar}>
+    <>
       <Header
         theme={theme}
         toggleTheme={toggleTheme}
         sidebarVisible={sidebarVisible}
         toggleSidebar={toggleSidebar}
-        isHome={isHome}
+        isIndexPage={isIndexPage}
       />
 
       <ModernSidebar visible={sidebarVisible} closeSidebar={closeSidebar} />
 
-      <main className={styles.main}>{children}</main>
+      <main
+        onClick={closeSidebar}
+        style={{
+          paddingTop: HEADER_HEIGHT,                     // push content below header
+          marginLeft: isIndexPage ? 0 : SIDEBAR_WIDTH,   // leave space for sidebar
+          transition: 'margin-left 0.3s ease',
+          minHeight: `calc(100vh - ${HEADER_HEIGHT}px)`,
+        }}
+      >
+        <div
+          className="pageContent"
+          style={{
+            maxWidth: '700px',
+            margin: '0 auto',
+            padding: '1rem',
+          }}
+        >
+          {children}
+        </div>
+      </main>
 
-      {!isHome && <EnhancedFooter page="other" />}
-    </div>
-  );
+      {/* Only show footer on non-index pages */}
+      {!isIndexPage && <EnhancedFooter page="other" />}
+    </>
+  )
 }
