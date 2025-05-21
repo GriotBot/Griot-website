@@ -1,100 +1,27 @@
-.form {
-  background-color: var(--card-bg);
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+/* styles/components/FeedbackForm.module.css */
+.formContainer {
+  /* your existing rules, all scoped under .formContainer */
+}
+
+/* if you need to style native elements, do: */
+:global(label) {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  margin-bottom: 0.5rem;
 }
 
-.error {
-  background-color: rgba(220,53,69,0.1);
-  color: #dc3545;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-}
-
-label {
-  display: flex;
-  flex-direction: column;
-  font-weight: 500;
-  gap: var(--space-1);
-}
-
-.input,
-.select,
-.textarea {
+/* similarly */
+:global(input),
+:global(select),
+:global(textarea) {
   width: 100%;
-  padding: var(--space-2);
+  padding: 0.75rem;
   border: 1px solid var(--input-border);
-  border-radius: var(--radius-md);
+  border-radius: 6px;
   background-color: var(--input-bg);
   color: var(--input-text);
   font-family: inherit;
+  font-size: 1rem;
 }
 
-.hint {
-  opacity: 0.7;
-  font-size: var(--font-size-sm);
-}
-
-.rangeLabels {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--space-1);
-}
-
-.range {
-  width: 100%;
-  accent-color: var(--accent-color);
-}
-
-.actions {
-  display: flex;
-  gap: var(--space-4);
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.submit {
-  background: var(--accent-color);
-  color: var(--background-secondary);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.link {
-  color: var(--accent-color);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Thank you state */
-.thankYou {
-  background-color: var(--card-bg);
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.emoji {
-  font-size: 3rem;
-}
+/* …and so on for any other plain selectors */
