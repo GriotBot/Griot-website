@@ -1,12 +1,9 @@
-// File: /components/layout/EnhancedFooter.js
+// components/layout/EnhancedFooter.js
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import styles from '../../styles/components/EnhancedFooter.module.css';
 
 export default function EnhancedFooter({ page = 'index' }) {
-  // State for the current proverb
   const [proverb, setProverb] = useState('');
-  
-  // Collection of proverbs
   const proverbs = [
     "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
     "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
@@ -25,128 +22,21 @@ export default function EnhancedFooter({ page = 'index' }) {
     "When the music changes, so does the dance. — Haitian Proverb"
   ];
 
-  // Get a random proverb on component mount
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * proverbs.length);
-    setProverb(proverbs[randomIndex]);
+    setProverb(proverbs[Math.floor(Math.random() * proverbs.length)]);
   }, []);
 
-  // Different styles based on the page
-  const footerStyle = {
-    index: {
-      container: {
-        width: '100%',
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        paddingBottom: '1rem', // Space at the bottom
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'linear-gradient(transparent, var(--bg-color) 30%)', // Gradient background for better text visibility
-        marginTop: 'auto',
-        zIndex: 40, // Under the chat form
-        pointerEvents: 'none', // Allow clicking through to elements beneath
-      },
-      proverbContainer: {
-        maxWidth: '700px',
-        width: '100%',
-        textAlign: 'center',
-        marginBottom: '0.5rem',
-        paddingBottom: '0.5rem',
-        position: 'relative',
-      },
-      proverbText: {
-        fontFamily: 'Lora, serif',
-        fontSize: '0.9rem',
-        fontStyle: 'italic',
-        color: 'var(--wisdom-color)',
-        opacity: 0.9,
-        margin: 0,
-        padding: '0 1.5rem',
-        display: 'inline-block',
-        position: 'relative',
-      },
-      bottomBar: {
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '0.5rem 1rem',
-      },
-      copyright: {
-        fontSize: '0.8rem',
-        color: 'var(--text-color)',
-        opacity: 0.7,
-        textAlign: 'center',
-      },
-    },
-    other: {
-      // Styles for non-index pages - more opaque background
-      container: {
-        width: '100%',
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        paddingBottom: '0.25rem', // Reduced overall padding
-        background: 'var(--bg-color)', // Fully opaque background
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        zIndex: 40,
-        pointerEvents: 'none',
-        borderTop: '1px solid var(--input-border)',
-      },
-      proverbContainer: {
-        width: '100%',
-        textAlign: 'center',
-        marginBottom: '0', // Eliminated space completely
-        backgroundColor: 'var(--bg-color)', // Ensure opacity
-      },
-      proverbText: {
-        fontFamily: 'Lora, serif',
-        fontSize: '1.05rem', // Increased by 2 points (from 0.85rem)
-        fontStyle: 'italic',
-        color: 'var(--wisdom-color)',
-        opacity: 0.85,
-        padding: '0 1rem',
-        margin: '0', // Ensure no margin
-        lineHeight: '1.2', // Tighter line height
-      },
-      bottomBar: {
-        width: '100%',
-        textAlign: 'center',
-        backgroundColor: 'var(--bg-color)', // Ensure opacity
-      },
-      copyright: {
-        fontSize: '0.75rem',
-        color: 'var(--text-color)',
-        opacity: 0.7,
-        margin: '0', // Ensure no margin
-        paddingTop: '0', // No padding on top
-      },
-    }
-  };
-
-  // Select the appropriate style based on the page
-  const style = footerStyle[page === 'index' ? 'index' : 'other'];
+  const variant = page === 'index' ? 'index' : 'other';
 
   return (
-    <footer style={style.container}>
-      {/* Proverb Section */}
-      <div style={style.proverbContainer}>
-        <p style={style.proverbText} aria-label="Wisdom proverb">
+    <footer className={styles[`${variant}Container`]}>
+      <div className={styles[`${variant}ProverbContainer`]}>  
+        <p className={styles[`${variant}ProverbText`]} aria-label="Wisdom proverb">
           {proverb}
         </p>
       </div>
-
-      {/* Bottom Bar */}
-      <div style={style.bottomBar}>
-        <p style={style.copyright}>
-          © 2025 GriotBot. All rights reserved.
-        </p>
+      <div className={styles[`${variant}BottomBar`]}>  
+        <p className={styles[`${variant}Copyright`]}>© 2025 GriotBot. All rights reserved.</p>
       </div>
     </footer>
   );
