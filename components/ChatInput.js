@@ -1,6 +1,5 @@
-// components/ChatInput.js - Updated
+// components/ChatInput.js
 import { useState, useRef, useEffect } from 'react';
-import { ArrowUpCircle } from 'react-feather';
 
 export default function ChatInput({ onSubmit }) {
   const [message, setMessage] = useState('');
@@ -8,172 +7,155 @@ export default function ChatInput({ onSubmit }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const textareaRef = useRef(null);
 
-  // Function to handle input changes
+  useEffect(() => {
+    // Focus input on component mount
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+    
+    onSubmit(message.trim(), storyMode);
+    setMessage('');
+    setIsExpanded(false);
+    
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '55px';
+    }
+  };
+
   const handleInputChange = (e) => {
     setMessage(e.target.value);
     
-    // Automatically expand only when text exceeds the single line
-    // or contains a newline character
+    // Automatically expand when content grows
     const hasNewLine = e.target.value.includes('\n');
     const isOverflowing = e.target.scrollHeight > e.target.clientHeight;
     
     setIsExpanded(hasNewLine || isOverflowing);
     
-    // Adjust height only if needed
+    // Adjust height if needed
     if (hasNewLine || isOverflowing) {
-      adjustHeight();
+      // Reset height to calculate proper scrollHeight
+      e.target.style.height = 'inherit';
+      // Set to scrollHeight to fit content
+      const newHeight = Math.min(e.target.scrollHeight, 120);
+      e.target.style.height = `${newHeight}px`;
     } else {
       // Reset to single line
       e.target.style.height = '55px';
     }
   };
 
-  // Function to adjust height based on content
-  const adjustHeight = () => {
-    if (!textareaRef.current) return;
-    
-    // Reset height to auto to get the correct scrollHeight
-    textareaRef.current.style.height = 'auto';
-    
-    // Calculate new height (with max height limit)
-    const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
-    
-    // Set the new height
-    textareaRef.current.style.height = `${newHeight}px`;
-  };
-
-  // Handle key press events (specifically for Enter)
   const handleKeyDown = (e) => {
-    // Handle Enter key (expand textarea)
+    // If Enter is pressed without Shift, submit the form
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (message.trim()) {
-        handleSubmit(e);
-      }
-    } else if (e.key === 'Enter' && e.shiftKey) {
-      // Allow Shift+Enter for new lines
-      setIsExpanded(true);
-    }
-  };
-
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (message.trim()) {
-      onSubmit(message, storyMode);
-      setMessage('');
-      // Reset to single line after submission
-      if (textareaRef.current) {
-        textareaRef.current.style.height = '55px';
-      }
-      setIsExpanded(false);
+      handleSubmit(e);
     }
   };
 
   return (
-    <div id="form-container" style={{
+    <div style={{
       position: 'fixed',
       bottom: '50px',
       left: 0,
       width: '100%',
-      background: 'var(--bg-color)',
+      background: 'var(--bg-color, #f8f5f0)',
       padding: '1rem',
-      borderTop: '1px solid var(--input-border)',
-      transition: 'background-color 0.3s',
+      borderTop: '1px solid var(--input-border, rgba(75, 46, 42, 0.2))',
       display: 'flex',
       justifyContent: 'center',
       zIndex: 50,
     }}>
       <form 
-        id="form" 
-        aria-label="Message form" 
+        onSubmit={handleSubmit}
         style={{
           width: '100%',
           maxWidth: '700px',
           display: 'flex',
           flexDirection: 'column',
         }}
-        onSubmit={handleSubmit}
       >
-        <div className="input-wrapper" style={{
+        <div style={{
           position: 'relative',
           display: 'flex',
-          boxShadow: '0 4px 12px var(--shadow-color)',
+          boxShadow: '0 4px 12px var(--shadow-color, rgba(75, 46, 42, 0.15))',
           borderRadius: '12px',
-          backgroundColor: 'var(--input-bg)',
+          backgroundColor: 'var(--input-bg, #ffffff)',
         }}>
           <textarea 
             ref={textareaRef}
-            id="input" 
             value={message}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask GriotBot about..." 
-            required 
-            aria-label="Message to send"
-            rows="1"
+            placeholder="Ask GriotBot about..."
             style={{
               flex: 1,
               padding: '0.9rem 1rem',
-              border: '1px solid var(--input-border)',
+              border: '1px solid var(--input-border, rgba(75, 46, 42, 0.2))',
               borderRight: 'none',
               borderRadius: '12px 0 0 12px',
               outline: 'none',
               resize: 'none',
-              height: '55px', // Fixed initial height
+              minHeight: '55px',
               maxHeight: '120px',
-              backgroundColor: 'var(--input-bg)',
-              color: 'var(--input-text)',
-              fontFamily: 'Montserrat, sans-serif',
+              backgroundColor: 'var(--input-bg, #ffffff)',
+              color: 'var(--input-text, #33302e)',
+              fontFamily: 'var(--body-font, "Montserrat", sans-serif)',
               fontSize: '1rem',
               lineHeight: 1.5,
-              transition: 'height 0.1s ease',
             }}
-          ></textarea>
+            rows="1"
+          />
           <button 
-            id="send" 
-            type="submit" 
-            aria-label="Send message" 
+            type="submit"
             style={{
               width: '55px',
-              background: 'var(--accent-color)',
+              background: 'var(--accent-color, #d7722c)',
               color: 'white',
+              border: 'none',
               borderRadius: '0 12px 12px 0',
-              transition: 'background-color 0.3s',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: 'none',
-              cursor: 'pointer',
+              cursor: message.trim() ? 'pointer' : 'not-allowed',
+              opacity: message.trim() ? 1 : 0.7,
             }}
+            disabled={!message.trim()}
           >
-            <ArrowUpCircle size={24} /> {/* Feathericon arrow-up-circle */}
+            ↑
           </button>
         </div>
         
-        <div className="form-actions" style={{
+        <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           marginTop: '0.5rem',
           fontSize: '0.8rem',
         }}>
-          <div className="form-info" style={{
-            color: 'var(--text-color)',
+          <div style={{
+            color: 'var(--text-color, #33302e)',
             opacity: 0.7,
-          }}>Free users: 30 messages per day</div>
+          }}>
+            Free users: 30 messages per day
+          </div>
           
-          <div className="storyteller-mode" style={{
+          <div style={{
             display: 'flex',
             alignItems: 'center',
           }}>
-            <label htmlFor="storytellerMode" style={{
+            <label style={{
               display: 'flex',
               alignItems: 'center',
               cursor: 'pointer',
             }}>
               Storyteller Mode
-              <div className="toggle-switch" style={{
+              <div style={{
                 position: 'relative',
                 display: 'inline-block',
                 width: '36px',
@@ -181,40 +163,37 @@ export default function ChatInput({ onSubmit }) {
                 marginLeft: '0.5rem',
               }}>
                 <input 
-                  type="checkbox" 
-                  id="storytellerMode" 
+                  type="checkbox"
                   checked={storyMode}
                   onChange={() => setStoryMode(!storyMode)}
                   style={{
                     opacity: 0,
                     width: 0,
                     height: 0,
-                  }} 
+                  }}
                 />
-                <span className="slider" style={{
+                <span style={{
                   position: 'absolute',
                   cursor: 'pointer',
                   top: 0,
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: storyMode ? 'var(--accent-color)' : 'rgba(0,0,0,0.25)', // Orange when active
-                  transition: '.3s',
+                  backgroundColor: storyMode ? 'var(--accent-color, #d7722c)' : 'rgba(0,0,0,0.25)',
                   borderRadius: '20px',
-                }}>
-                  {/* White toggle circle */}
-                  <span style={{
-                    position: 'absolute',
-                    content: '""',
-                    height: '16px',
-                    width: '16px',
-                    left: storyMode ? '18px' : '2px', // Move based on checked state
-                    bottom: '2px',
-                    backgroundColor: 'white',
-                    transition: '.3s',
-                    borderRadius: '50%',
-                  }}></span>
-                </span>
+                  transition: '.3s',
+                }}></span>
+                <span style={{
+                  position: 'absolute',
+                  content: '""',
+                  height: '16px',
+                  width: '16px',
+                  left: storyMode ? '18px' : '2px',
+                  bottom: '2px',
+                  backgroundColor: 'white',
+                  borderRadius: '50%',
+                  transition: '.3s',
+                }}></span>
               </div>
             </label>
           </div>
