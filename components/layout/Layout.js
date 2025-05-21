@@ -1,61 +1,94 @@
+// components/layout/Layout.js
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
 import Header from '../Header';
-import ModernSidebar from './ModernSidebar';
-import EnhancedFooter from './EnhancedFooter';
+import EnhancedSidebar from '../EnhancedSidebar';
 
-export default function Layout({ children }) {
+export default function Layout({ children, title = 'GriotBot' }) {
   const [theme, setTheme] = useState('light');
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [isIndexPage, setIsIndexPage] = useState(true);
+  const router = useRouter();
+  const { pathname } = router;
 
+  // Initialize theme from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const p = window.location.pathname;
-      setIsIndexPage(p === '/');
-      if (p !== '/') setSidebarVisible(true);
+      const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      // Handle Escape key to close sidebar
+      const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+          setSidebarVisible(false);
+        }
+      };
+      
+      window.addEventListener('keydown', handleEscape);
+      return () => window.removeEventListener('keydown', handleEscape);
     }
   }, []);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('griotbot-theme') || 'light';
-    setTheme(saved);
-    document.documentElement.setAttribute('data-theme', saved);
-  }, []);
-
+  // Toggle theme function
   const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    localStorage.setItem('griotbot-theme', next);
-    document.documentElement.setAttribute('data-theme', next);
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('griotbot-theme', newTheme);
+      document.documentElement.setAttribute('data-theme', newTheme);
+    }
   };
 
-  const toggleSidebar = () => setSidebarVisible(v => !v);
-  const closeSidebar = () => setSidebarVisible(false);
-
-  // close on Escape
-  useEffect(() => {
-    const onKey = e => e.key === 'Escape' && closeSidebar();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  // Handle new chat
+  const handleNewChat = () => {
+    if (typeof window === 'undefined') return;
+    
+    localStorage.removeItem('griotbot-history');
+    if (pathname === '/') {
+      window.location.reload();
+    } else {
+      router.push('/');
+    }
+  };
 
   return (
     <>
-      <Header
+      <Head>
+        <title>{title}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
+      </Head>
+      
+      {/* Main header */}
+      <Header 
         theme={theme}
         toggleTheme={toggleTheme}
+        toggleSidebar={() => setSidebarVisible(prev => !prev)}
         sidebarVisible={sidebarVisible}
-        toggleSidebar={toggleSidebar}
-        isIndexPage={isIndexPage}
+        onNewChat={handleNewChat}
       />
-
-      <ModernSidebar visible={sidebarVisible} closeSidebar={closeSidebar} />
-
-      <main onClick={closeSidebar} style={{ marginTop: '60px' }}>
+      
+      {/* Sidebar navigation */}
+      <EnhancedSidebar 
+        visible={sidebarVisible} 
+        onClose={() => setSidebarVisible(false)} 
+      />
+      
+      {/* Main content */}
+      <main 
+        style={{
+          minHeight: '100vh',
+          paddingTop: '60px', // Header height
+          backgroundColor: 'var(--bg-color)',
+          transition: 'background-color 0.3s',
+        }}
+        onClick={() => sidebarVisible && setSidebarVisible(false)}
+      >
         {children}
       </main>
-
-      <EnhancedFooter page={isIndexPage ? 'index' : 'other'} />
     </>
   );
 }
