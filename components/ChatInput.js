@@ -1,76 +1,70 @@
 // components/ChatInput.js
-import { useState, useRef } from 'react';
-import { ArrowUpCircle } from 'react-feather';
-import styles from '../styles/components/ChatInput.module.css';
+import { useState, useRef } from 'react'
+import { ArrowUpCircle } from 'react-feather'
 
 export default function ChatInput({ onSubmit }) {
-  const [message, setMessage] = useState('');
-  const [storyMode, setStoryMode] = useState(false);
-  const textareaRef = useRef(null);
+  const [text, setText] = useState('')
+  const areaRef = useRef(null)
 
-  const handleInputChange = (e) => {
-    setMessage(e.target.value);
-    adjustHeight();
-  };
+  const send = (e) => {
+    e.preventDefault()
+    if (!text.trim()) return
+    onSubmit(text.trim())
+    setText('')
+    areaRef.current.style.height = '55px'
+  }
 
-  const adjustHeight = () => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      submitMessage();
-    }
-  };
-
-  const submitMessage = () => {
-    if (!message.trim()) return;
-    onSubmit(message, storyMode);
-    setMessage('');
-    if (textareaRef.current) textareaRef.current.style.height = '55px';
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    submitMessage();
-  };
+  const onChange = (e) => {
+    setText(e.target.value)
+    areaRef.current.style.height = 'auto'
+    areaRef.current.style.height = Math.min(areaRef.current.scrollHeight, 120) + 'px'
+  }
 
   return (
-    <div className={styles.container}>
-      <form onSubmit={handleSubmit} className={styles.form} aria-label="Message form">
-        <div className={styles.inputWrapper}>
-          <textarea
-            ref={textareaRef}
-            className={styles.textarea}
-            value={message}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask GriotBot about..."
-            rows={1}
-            required
-          />
-          <button type="submit" className={styles.sendButton} aria-label="Send message">
-            <ArrowUpCircle size={24} />
-          </button>
-        </div>
-        <div className={styles.actions}>
-          <div className={styles.info}>Free users: 30 messages per day</div>
-          <label className={styles.toggleLabel}>
-            Storyteller Mode
-            <input
-              type="checkbox"
-              checked={storyMode}
-              onChange={() => setStoryMode(!storyMode)}
-              className={styles.toggleInput}
-            />
-            <span className={styles.toggleSlider} />
-          </label>
-        </div>
-      </form>
-    </div>
-  );
+    <form
+      onSubmit={send}
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'var(--bg-color)',
+        padding: '1rem',
+        borderTop: '1px solid var(--input-border)',
+      }}
+    >
+      <div style={{ display: 'flex', maxWidth: 700, margin: '0 auto' }}>
+        <textarea
+          ref={areaRef}
+          value={text}
+          onChange={onChange}
+          rows={1}
+          placeholder="Ask GriotBot about Black history, culture, or personal advice…"
+          style={{
+            flex: 1,
+            height: 55,
+            resize: 'none',
+            border: '1px solid var(--input-border)',
+            borderRadius: '8px 0 0 8px',
+            padding: '0.75rem',
+            fontFamily: 'inherit',
+          }}
+        />
+        <button
+          type="submit"
+          style={{
+            width: 55,
+            background: 'var(--accent-color)',
+            border: 'none',
+            borderRadius: '0 8px 8px 0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <ArrowUpCircle size={24} color="white" />
+        </button>
+      </div>
+    </form>
+  )
 }
