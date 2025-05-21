@@ -1,0 +1,105 @@
+/* styles/components/ModernSidebar.module.css */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 100%; width: 280px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: var(--space-6) var(--space-5) var(--space-4);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), background 0.3s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 4px 0 20px var(--shadow-color);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  overflow-y: auto;
+}
+
+.open {
+  transform: translateX(0);
+}
+
+.closeBtn {
+  position: absolute; top: var(--space-4); right: var(--space-4);
+  background: none; border: none;
+  cursor: pointer;
+  color: var(--sidebar-text);
+  padding: var(--space-2);
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+.closeBtn:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+.brandLink {
+  display: flex; align-items: center; gap: var(--space-2);
+  background: var(--accent-color);
+  color: var(--background-secondary);
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+}
+.divider {
+  width: 100%; height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: var(--space-2) 0 var(--space-6);
+}
+
+.section {
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: var(--space-4);
+  opacity: 0.6;
+  padding-left: var(--space-2);
+  font-weight: 600;
+}
+
+.link {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--sidebar-text);
+  transition: background-color 0.2s;
+  font-weight: normal;
+}
+.link:hover {
+  background-color: rgba(255,255,255,0.12);
+}
+.active {
+  background-color: rgba(255,255,255,0.12);
+  font-weight: 500;
+}
+
+.footerQuote {
+  margin-top: auto;
+  font-family: var(--font-family-prose);
+  font-style: italic;
+  text-align: center;
+  padding: var(--space-4);
+  color: rgba(255,255,255,0.7);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.version {
+  font-size: var(--font-size-xs);
+  opacity: 0.5;
+  text-align: center;
+  padding: var(--space-2);
+}
