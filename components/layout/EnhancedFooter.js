@@ -1,10 +1,11 @@
 // components/layout/EnhancedFooter.js
-import { useState, useEffect } from 'react';
-import styles from '../../styles/components/EnhancedFooter.module.css';
+import { useState, useEffect } from 'react'
 
-export default function EnhancedFooter({ page = 'index' }) {
-  const [proverb, setProverb] = useState('');
-  const proverbs = [
+export default function EnhancedFooter() {
+  const [proverb, setProverb] = useState('')
+
+  // Full proverb list
+  const list = [
     "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
     "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
     "We are the drums, we are the dance. — Afro-Caribbean Proverb",
@@ -20,24 +21,36 @@ export default function EnhancedFooter({ page = 'index' }) {
     "It takes a village to raise a child. — African Proverb",
     "The fool speaks, the wise listen. — Ethiopian Proverb",
     "When the music changes, so does the dance. — Haitian Proverb"
-  ];
+  ]
 
   useEffect(() => {
-    setProverb(proverbs[Math.floor(Math.random() * proverbs.length)]);
-  }, []);
-
-  const variant = page === 'index' ? 'index' : 'other';
+    const rotate = () => {
+      setProverb(list[Math.floor(Math.random() * list.length)])
+    }
+    rotate()
+    const id = setInterval(rotate, 30000)
+    return () => clearInterval(id)
+  }, [])
 
   return (
-    <footer className={styles[`${variant}Container`]}>
-      <div className={styles[`${variant}ProverbContainer`]}>  
-        <p className={styles[`${variant}ProverbText`]} aria-label="Wisdom proverb">
-          {proverb}
-        </p>
-      </div>
-      <div className={styles[`${variant}BottomBar`]}>  
-        <p className={styles[`${variant}Copyright`]}>© 2025 GriotBot. All rights reserved.</p>
+    <footer
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'var(--bg-color)',
+        textAlign: 'center',
+        padding: '0.5rem 1rem',
+        fontStyle: 'italic',
+        fontFamily: 'Lora, serif',
+        fontSize: '0.9rem',
+      }}
+    >
+      {proverb}
+      <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '0.25rem' }}>
+        © 2025 GriotBot. All rights reserved.
       </div>
     </footer>
-  );
+  )
 }
