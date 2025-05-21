@@ -4,14 +4,11 @@ import Head from 'next/head';
 import ErrorBoundary from '../components/ErrorBoundary';
 import '../styles/globals.css';
 
-function MyApp({ Component, pageProps }) {
+export default function MyApp({ Component, pageProps }) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Mark as client-side after mount
     setIsClient(true);
-
-    // Apply theme from localStorage
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('griotbot-theme');
       if (savedTheme) {
@@ -20,8 +17,16 @@ function MyApp({ Component, pageProps }) {
     }
   }, []);
 
+  const loadingStyles = {
+    padding: '2rem',
+    textAlign: 'center',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    maxWidth: '600px',
+    margin: '0 auto',
+  };
+
   return (
-    <>
+    <ErrorBoundary>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,26 +40,15 @@ function MyApp({ Component, pageProps }) {
           rel="stylesheet"
         />
       </Head>
-      <ErrorBoundary>
-        {isClient ? (
-          <Component {...pageProps} isClient={isClient} />
-        ) : (
-          <div
-            style={{
-              padding: '2rem',
-              textAlign: 'center',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              maxWidth: '600px',
-              margin: '0 auto',
-            }}
-          >
-            <h1>GriotBot</h1>
-            <p>Loading your digital griot experience...</p>
-          </div>
-        )}
-      </ErrorBoundary>
-    </>
+
+      {isClient ? (
+        <Component {...pageProps} isClient={isClient} />
+      ) : (
+        <div style={loadingStyles}>
+          <h1>GriotBot</h1>
+          <p>Loading your digital griot experience...</p>
+        </div>
+      )}
+    </ErrorBoundary>
   );
 }
-
-export default MyApp;
