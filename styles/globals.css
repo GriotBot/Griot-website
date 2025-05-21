@@ -318,8 +318,15 @@ button:disabled {
 }
 
 .logo {
-  font-size: 4rem;
   margin-bottom: var(--space-sm);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo img {
+  height: 64px;
+  width: auto;
 }
 
 .welcome-title {
