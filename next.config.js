@@ -1,8 +1,11 @@
 // next.config.js
-module.exports = {
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+module.exports = withBundleAnalyzer({
   reactStrictMode: true,
-  // Environment variables that will be exposed to the browser
   env: {
     PUBLIC_URL: process.env.VERCEL_URL || 'http://localhost:3000',
   },
-};
+});
