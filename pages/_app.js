@@ -23,11 +23,18 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
-      </Head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  {/* PREDEFINE isInitialLoad to avoid runtime crash */}
+  <script
+    dangerouslySetInnerHTML={{
+      __html: "if(typeof window!== 'undefined'){ window.isInitialLoad = false; }",
+    }}
+  />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  …
+</Head>
       <ErrorBoundary>
         {/* Conditionally render the actual component only if on the client */}
         {isClient ? (
