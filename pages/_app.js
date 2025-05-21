@@ -1,32 +1,22 @@
 // pages/_app.js
-import { useEffect, useState } from 'react';
-import Head from 'next/head';
-import ErrorBoundary from '../components/ErrorBoundary';
-import '../styles/globals.css';
+import { useEffect, useState } from 'react'
+import Head from 'next/head'
+import ErrorBoundary from '../components/ErrorBoundary'
+import '../styles/globals.css'
 
 export default function MyApp({ Component, pageProps }) {
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    setIsClient(true);
+    setIsClient(true)
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('griotbot-theme');
-      if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      }
+      const t = localStorage.getItem('griotbot-theme') || 'light'
+      document.documentElement.setAttribute('data-theme', t)
     }
-  }, []);
-
-  const loadingStyles = {
-    padding: '2rem',
-    textAlign: 'center',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    maxWidth: '600px',
-    margin: '0 auto',
-  };
+  }, [])
 
   return (
-    <ErrorBoundary>
+    <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,14 +31,22 @@ export default function MyApp({ Component, pageProps }) {
         />
       </Head>
 
-      {isClient ? (
-        <Component {...pageProps} isClient={isClient} />
-      ) : (
-        <div style={loadingStyles}>
-          <h1>GriotBot</h1>
-          <p>Loading your digital griot experience...</p>
-        </div>
-      )}
-    </ErrorBoundary>
-  );
+      <ErrorBoundary>
+        {isClient ? (
+          <Component {...pageProps} />
+        ) : (
+          <div
+            style={{
+              padding: '2rem',
+              textAlign: 'center',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            <h1>GriotBot</h1>
+            <p>Loading your digital griot experience…</p>
+          </div>
+        )}
+      </ErrorBoundary>
+    </>
+  )
 }
