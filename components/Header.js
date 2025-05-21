@@ -1,88 +1,181 @@
 // components/Header.js
-import { useState } from 'react'
-import Link from 'next/link'
-import Router from 'next/router'
-import { Menu, LogIn, Sun, Moon } from 'react-feather'
-import { MessageCirclePlus } from './icons/MessageCirclePlus'
-import styles from '../styles/components/Header.module.css'
+import { useState } from 'react';
+import Link from 'next/link';
+import { Menu, Moon, Sun } from 'react-feather';
+import { MessageCirclePlus } from './icons/MessageCirclePlus';
 
-export default function Header({ theme, toggleTheme }) {
-  const [tooltip, setTooltip] = useState(null)
-
-  const onNewChat = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('griotbot-history')
-      if (window.location.pathname === '/') window.location.reload()
-      else Router.push('/')
-    }
-  }
-
+export default function Header({ 
+  theme = 'light', 
+  toggleTheme, 
+  toggleSidebar, 
+  sidebarVisible = false,
+  onNewChat 
+}) {
+  const [tooltip, setTooltip] = useState(null);
+  
   return (
-    <header className={styles.header}>
-      <div className={styles.menuContainer}>
+    <header style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '60px',
+      backgroundColor: 'var(--header-bg, #c49a6c)',
+      color: 'var(--header-text, #33302e)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 1rem',
+      zIndex: 100,
+      boxShadow: '0 2px 10px var(--shadow-color, rgba(75, 46, 42, 0.15))',
+    }}>
+      {/* Left section with menu button */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative',
+      }}>
         <button
-          onClick={() => {/* open sidebar if you have one */}}
-          className={styles.iconButton}
-          aria-label="Menu"
+          onClick={toggleSidebar}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            color: 'white',
+            position: 'relative',
+          }}
+          aria-label="Toggle menu"
           onMouseEnter={() => setTooltip('menu')}
           onMouseLeave={() => setTooltip(null)}
         >
-          <Menu color="white" size={24} />
-          {tooltip === 'menu' && <span className={styles.tooltip}>Menu</span>}
+          <Menu size={24} />
+          {tooltip === 'menu' && (
+            <span style={{
+              position: 'absolute',
+              bottom: '-25px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+              zIndex: 101,
+            }}>
+              Menu
+            </span>
+          )}
         </button>
       </div>
-
-      <div className={styles.logoContainer}>
+      
+      {/* Center section with logo */}
+      <div style={{
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+      }}>
         <Link href="/">
-          <a>
-            <img
+          <a style={{
+            display: 'block',
+            height: '32px',
+          }}>
+            <img 
               src="/images/GriotBot logo horiz wht.svg"
               alt="GriotBot"
-              className={styles.logoIcon}
+              style={{
+                height: '100%',
+                width: 'auto',
+              }}
             />
           </a>
         </Link>
       </div>
-
-      <div className={styles.actionIcons}>
+      
+      {/* Right section with action buttons */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+      }}>
+        {/* New chat button */}
         <button
           onClick={onNewChat}
-          className={styles.iconButton}
-          aria-label="New Chat"
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            color: 'white',
+            position: 'relative',
+          }}
+          aria-label="New chat"
           onMouseEnter={() => setTooltip('new')}
           onMouseLeave={() => setTooltip(null)}
         >
-          <MessageCirclePlus color="white" size={24} />
-          {tooltip === 'new' && <span className={styles.tooltip}>New Chat</span>}
+          <MessageCirclePlus size={24} />
+          {tooltip === 'new' && (
+            <span style={{
+              position: 'absolute',
+              bottom: '-25px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+              zIndex: 101,
+            }}>
+              New Chat
+            </span>
+          )}
         </button>
-
-        <Link href="/comingsoon">
-          <a
-            className={styles.iconButton}
-            aria-label="Log in"
-            onMouseEnter={() => setTooltip('login')}
-            onMouseLeave={() => setTooltip(null)}
-          >
-            <LogIn color="white" size={24} />
-            {tooltip === 'login' && <span className={styles.tooltip}>Log In</span>}
-          </a>
-        </Link>
-
+        
+        {/* Theme toggle button */}
         <button
           onClick={toggleTheme}
-          className={styles.iconButton}
-          aria-label="Toggle theme"
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            color: 'white',
+            position: 'relative',
+          }}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           onMouseEnter={() => setTooltip('theme')}
           onMouseLeave={() => setTooltip(null)}
         >
-          {theme === 'dark' ? <Sun color="white" size={24} /> : <Moon color="white" size={24} />}
+          {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
           {tooltip === 'theme' && (
-            <span className={styles.tooltip}>
+            <span style={{
+              position: 'absolute',
+              bottom: '-25px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+              zIndex: 101,
+            }}>
               {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
             </span>
           )}
         </button>
       </div>
     </header>
-)
+  );
 }
