@@ -224,7 +224,9 @@ function SuggestionCard({ category, title, prompt, onClick }) {
 function Welcome({ onSuggestionClick }) {
   return (
     <div className="welcome-container">
-      <div className="logo">🌿</div>
+      <div className="logo">
+        <img src="/logo-light.svg" alt="GriotBot" style={{ height: '64px' }} />
+      </div>
       <h1 className="welcome-title">Welcome to GriotBot</h1>
       <p className="welcome-subtitle">Your AI companion for culturally rich conversations and wisdom</p>
       
@@ -520,6 +522,44 @@ export default function Home() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
+        
+        {/* Critical CSS to prevent FOUC */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --bg-color: #f8f5f0;
+            --text-color: #33302e;
+            --header-bg: #c49a6c;
+            --accent-color: #d7722c;
+          }
+
+          [data-theme="dark"] {
+            --bg-color: #292420;
+            --text-color: #f0ece4;
+            --header-bg: #50392d;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          html, body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+          }
+
+          .header {
+            background-color: var(--header-bg);
+            height: 60px;
+            position: relative;
+            z-index: 100;
+          }
+        `}} />
       </Head>
       
       <Header 
