@@ -1,7 +1,6 @@
 // pages/index.js
 import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
-import Layout from '../components/layout/Layout';
 import { Menu, Send } from 'react-feather';
 
 export default function Home() {
@@ -71,7 +70,10 @@ export default function Home() {
 
   // Handle sending user message and getting bot response
   const handleSendMessage = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
     const trimmedText = text.trim();
     if (!trimmedText) return;
     
@@ -479,7 +481,7 @@ export default function Home() {
                   key={index}
                   onClick={() => {
                     setText(card.prompt);
-                    handleSendMessage({ preventDefault: () => {} });
+                    handleSendMessage();
                   }}
                   style={{
                     backgroundColor: 'var(--card-bg, #ffffff)',
@@ -797,9 +799,9 @@ export default function Home() {
                       transition: '.3s',
                       borderRadius: '20px',
                     }}>
+                    </span>
                     <span style={{
                       position: 'absolute',
-                      content: '""',
                       height: '16px',
                       width: '16px',
                       left: storytellerMode ? '18px' : '2px', // Move based on checked state
