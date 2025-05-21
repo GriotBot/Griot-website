@@ -1,0 +1,95 @@
+/* styles/components/EnhancedFooter.module.css */
+
+/* Shared layout */
+.indexContainer,
+.otherContainer {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 40;
+}
+
+/* Index page styles */
+.indexContainer {
+  padding-bottom: 1rem;
+  background: linear-gradient(transparent, var(--bg-color) 30%);
+}
+
+.indexProverbContainer {
+  max-width: 700px;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.indexProverbText {
+  font-family: 'Lora', serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--wisdom-color);
+  opacity: 0.9;
+  margin: 0;
+  padding: 0 1.5rem;
+}
+
+.indexBottomBar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+.indexCopyright {
+  font-size: 0.8rem;
+  color: var(--text-color);
+  opacity: 0.7;
+  text-align: center;
+}
+
+/* Other pages styles */
+.otherContainer {
+  padding-bottom: 0.25rem;
+  background: var(--bg-color);
+  border-top: 1px solid var(--input-border);
+}
+
+.otherProverbContainer {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0;
+  background-color: var(--bg-color);
+}
+
+.otherProverbText {
+  font-family: 'Lora', serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--wisdom-color);
+  opacity: 0.85;
+  padding: 0 1rem;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.otherBottomBar {
+  width: 100%;
+  text-align: center;
+  background-color: var(--bg-color);
+}
+
+.otherCopyright {
+  font-size: 0.75rem;
+  color: var(--text-color);
+  opacity: 0.7;
+  margin: 0;
+  padding-top: 0;
+  text-align: center;
+}
