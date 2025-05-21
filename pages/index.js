@@ -1,7 +1,6 @@
 // pages/index.js
 import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
-import { Menu, Send } from 'react-feather';
 
 export default function Home() {
   const [showWelcome, setShowWelcome] = useState(true);
@@ -10,34 +9,29 @@ export default function Home() {
   const [text, setText] = useState('');
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [storytellerMode, setStorytellerMode] = useState(false);
-  const chatContainerRef = useRef(null);
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  // Load chat history from localStorage on component mount
+  // Load chat history on mount
   useEffect(() => {
     try {
       const savedMessages = localStorage.getItem('griotbot-history');
       if (savedMessages && JSON.parse(savedMessages).length > 0) {
-        const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages);
+        setMessages(JSON.parse(savedMessages));
         setShowWelcome(false);
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
-      // If there's an error, clear the potentially corrupted history
       localStorage.removeItem('griotbot-history');
     }
   }, []);
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Save messages to localStorage whenever they change
+  // Save messages to localStorage
   useEffect(() => {
     if (messages.length > 0) {
       try {
@@ -48,63 +42,56 @@ export default function Home() {
     }
   }, [messages]);
 
-  // Auto-resize the textarea as user types
-  const adjustTextareaHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = Math.min(scrollHeight, 120) + 'px';
-    }
-  };
-
   // Handle text input change
   const handleTextChange = (e) => {
     setText(e.target.value);
-    adjustTextareaHeight();
-  };
-
-  // Toggle sidebar visibility
-  const toggleSidebar = () => {
-    setSidebarVisible(prev => !prev);
-  };
-
-  // Handle sending user message and getting bot response
-  const handleSendMessage = async (e) => {
-    if (e && e.preventDefault) {
-      e.preventDefault();
+    
+    // Auto-adjust height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = 
+        Math.min(textareaRef.current.scrollHeight, 120) + 'px';
     }
+  };
+
+  // Toggle sidebar
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
     const trimmedText = text.trim();
-    if (!trimmedText) return;
+    if (!trimmedText || isLoading) return;
     
-    // Hide welcome screen if visible
+    // Hide welcome and add user message
     setShowWelcome(false);
     
-    // Add user message to chat
     const userMessage = {
       role: 'user',
       content: trimmedText,
       timestamp: new Date().toISOString()
     };
     
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
     setText('');
     
+    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = '55px';
     }
     
     try {
-      // Call API to get bot response
+      // Call API
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompt: trimmedText,
-          storytellerMode: storytellerMode
+          storytellerMode
         })
       });
       
@@ -116,18 +103,18 @@ export default function Home() {
       const botContent = data.choices?.[0]?.message?.content || 
                        'I apologize, but I seem to be having trouble processing your request.';
       
-      // Add bot response to chat
+      // Add bot response
       const botMessage = {
         role: 'bot',
         content: botContent,
         timestamp: new Date().toISOString()
       };
       
-      setMessages(prevMessages => [...prevMessages, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error('Error getting bot response:', error);
       
-      // Add error message to chat
+      // Add error message
       const errorMessage = {
         role: 'bot',
         content: `I'm sorry, I encountered an error: ${error.message}. Please try again later.`,
@@ -135,17 +122,51 @@ export default function Home() {
         isError: true
       };
       
-      setMessages(prevMessages => [...prevMessages, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle starting a new chat
+  // Handle suggestion card click
+  const handleSuggestion = (prompt) => {
+    setText(prompt);
+    
+    // Use setTimeout to ensure setText has completed
+    setTimeout(() => {
+      const form = document.getElementById('chat-form');
+      if (form) form.dispatchEvent(new Event('submit', { cancelable: true }));
+    }, 10);
+  };
+
+  // Handle new chat
   const handleNewChat = () => {
     setMessages([]);
     setShowWelcome(true);
     localStorage.removeItem('griotbot-history');
+  };
+
+  // Format message content (helper function)
+  const formatMessageContent = (content) => {
+    if (!content) return '';
+    
+    // Replace newlines with <br>
+    let formatted = content.replace(/\n/g, '<br>');
+    
+    // Format quotes
+    const quoteRegex = /"([^"]+)"/g;
+    formatted = formatted.replace(quoteRegex, 
+      '<div style="font-style: italic; border-left: 3px solid rgba(255, 255, 255, 0.5); padding-left: 0.8rem; margin: 0.8rem 0; font-family: var(--quote-font, \'Lora\', serif);">"$1"</div>'
+    );
+    
+    return formatted;
+  };
+
+  // Format timestamp (helper function)
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -156,7 +177,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       
-      {/* Header with Menu Toggle */}
+      {/* Header */}
       <header style={{
         position: 'fixed',
         top: 0,
@@ -183,7 +204,11 @@ export default function Home() {
           }}
           aria-label="Toggle menu"
         >
-          <Menu size={24} />
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
         </button>
         
         <div style={{
@@ -246,9 +271,7 @@ export default function Home() {
         aria-hidden={!sidebarVisible}
         aria-label="Main navigation"
       >
-        <div style={{
-          marginBottom: '1rem',
-        }}>
+        <div style={{ marginBottom: '1rem' }}>
           <h3 style={{
             fontSize: '0.9rem',
             textTransform: 'uppercase',
@@ -380,7 +403,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main 
         style={{ 
           paddingTop: '60px',
@@ -445,7 +468,7 @@ export default function Home() {
               </cite>
             </blockquote>
 
-            {/* Suggestion cards grid */}
+            {/* Suggestion cards */}
             <div style={{
               display: 'flex',
               flexWrap: 'wrap',
@@ -479,10 +502,7 @@ export default function Home() {
               ].map((card, index) => (
                 <div
                   key={index}
-                  onClick={() => {
-                    setText(card.prompt);
-                    handleSendMessage();
-                  }}
+                  onClick={() => handleSuggestion(card.prompt)}
                   style={{
                     backgroundColor: 'var(--card-bg, #ffffff)',
                     padding: '1rem',
@@ -526,7 +546,6 @@ export default function Home() {
           </div>
         ) : (
           <div 
-            ref={chatContainerRef}
             style={{ 
               padding: '1rem', 
               height: 'calc(100vh - 140px)',
@@ -536,9 +555,10 @@ export default function Home() {
               width: '100%',
               maxWidth: '700px',
               margin: '0 auto',
-              paddingBottom: '80px', // Make room for the input box
+              paddingBottom: '80px',
             }}
           >
+            {/* Message list */}
             {messages.map((message, index) => (
               <div 
                 key={index} 
@@ -597,7 +617,7 @@ export default function Home() {
               </div>
             ))}
 
-            {/* Loading indicator when waiting for bot response */}
+            {/* Loading indicator */}
             {isLoading && (
               <div 
                 className="message bot thinking"
@@ -625,7 +645,7 @@ export default function Home() {
                   <span style={{ fontWeight: 600, marginLeft: '0.5rem' }}>GriotBot</span>
                 </div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', marginLeft: '0.5rem' }}>
-                  <span style={{
+                  <div className="typing-dot" style={{
                     height: '8px',
                     width: '8px',
                     margin: '0 2px',
@@ -633,10 +653,8 @@ export default function Home() {
                     borderRadius: '50%',
                     display: 'inline-block',
                     opacity: 0.7,
-                    animation: 'typing-bounce 1.4s infinite ease-in-out both',
-                    animationDelay: '0s',
-                  }}></span>
-                  <span style={{
+                  }}></div>
+                  <div className="typing-dot" style={{
                     height: '8px',
                     width: '8px',
                     margin: '0 2px',
@@ -644,10 +662,8 @@ export default function Home() {
                     borderRadius: '50%',
                     display: 'inline-block',
                     opacity: 0.7,
-                    animation: 'typing-bounce 1.4s infinite ease-in-out both',
-                    animationDelay: '0.2s',
-                  }}></span>
-                  <span style={{
+                  }}></div>
+                  <div className="typing-dot" style={{
                     height: '8px',
                     width: '8px',
                     margin: '0 2px',
@@ -655,21 +671,20 @@ export default function Home() {
                     borderRadius: '50%',
                     display: 'inline-block',
                     opacity: 0.7,
-                    animation: 'typing-bounce 1.4s infinite ease-in-out both',
-                    animationDelay: '0.4s',
-                  }}></span>
+                  }}></div>
                 </div>
               </div>
             )}
 
-            {/* Ref element for auto-scrolling */}
+            {/* Scroll anchor */}
             <div ref={chatEndRef} />
           </div>
         )}
         
-        {/* Chat input form */}
+        {/* Chat form */}
         <form
-          onSubmit={handleSendMessage}
+          id="chat-form"
+          onSubmit={handleSubmit}
           style={{
             position: 'fixed',
             bottom: '50px',
@@ -690,7 +705,6 @@ export default function Home() {
             flexDirection: 'column',
           }}>
             <div style={{
-              position: 'relative',
               display: 'flex',
               boxShadow: '0 4px 12px var(--shadow-color, rgba(75, 46, 42, 0.15))',
               borderRadius: '12px',
@@ -736,7 +750,10 @@ export default function Home() {
                 }}
                 aria-label="Send message"
               >
-                <Send size={20} />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
               </button>
             </div>
             
@@ -757,7 +774,6 @@ export default function Home() {
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                cursor: 'pointer',
               }}>
                 <label
                   htmlFor="storytellerMode"
@@ -786,7 +802,7 @@ export default function Home() {
                         height: 0,
                       }}
                     />
-                    <span style={{
+                    <div style={{
                       position: 'absolute',
                       cursor: 'pointer',
                       top: 0,
@@ -799,17 +815,17 @@ export default function Home() {
                       transition: '.3s',
                       borderRadius: '20px',
                     }}>
-                    </span>
-                    <span style={{
-                      position: 'absolute',
-                      height: '16px',
-                      width: '16px',
-                      left: storytellerMode ? '18px' : '2px', // Move based on checked state
-                      bottom: '2px',
-                      backgroundColor: 'white',
-                      transition: '.3s',
-                      borderRadius: '50%',
-                    }}></span>
+                      <div style={{
+                        position: 'absolute',
+                        height: '16px',
+                        width: '16px',
+                        left: storytellerMode ? '18px' : '2px',
+                        bottom: '2px',
+                        backgroundColor: 'white',
+                        transition: '.3s',
+                        borderRadius: '50%',
+                      }}></div>
+                    </div>
                   </div>
                 </label>
               </div>
@@ -858,11 +874,26 @@ export default function Home() {
         </div>
       </main>
 
-      {/* CSS for animations */}
+      {/* Animations */}
       <style jsx global>{`
         @keyframes message-fade-in {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .typing-dot:nth-child(1) {
+          animation: typing-bounce 1.4s infinite ease-in-out both;
+          animation-delay: 0s;
+        }
+        
+        .typing-dot:nth-child(2) {
+          animation: typing-bounce 1.4s infinite ease-in-out both;
+          animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+          animation: typing-bounce 1.4s infinite ease-in-out both;
+          animation-delay: 0.4s;
         }
         
         @keyframes typing-bounce {
@@ -872,26 +903,3 @@ export default function Home() {
       `}</style>
     </>
   );
-}
-
-// Helper function to format message content
-function formatMessageContent(content) {
-  if (!content) return '';
-  
-  // Replace newlines with <br>
-  let formatted = content.replace(/\n/g, '<br>');
-  
-  // Detect and format quoted text/proverbs with a special style
-  const quoteRegex = /"([^"]+)"/g;
-  formatted = formatted.replace(quoteRegex, '<div style="font-style: italic; border-left: 3px solid rgba(255, 255, 255, 0.5); padding-left: 0.8rem; margin: 0.8rem 0; font-family: var(--quote-font, \'Lora\', serif);">"$1"</div>');
-  
-  return formatted;
-}
-
-// Helper function to format timestamps
-function formatTimestamp(timestamp) {
-  if (!timestamp) return '';
-  
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
