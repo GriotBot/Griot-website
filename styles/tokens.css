@@ -7,27 +7,33 @@
   --color-earth-400: #9c6d3d;
   --color-earth-500: #6b4226;
   --color-earth-600: #4b2e2a;
-  
+
   --color-forest-100: #e3e7dc;
   --color-forest-200: #a5b394;
   --color-forest-300: #7d8765;
   --color-forest-400: #5e6e4f;
   --color-forest-500: #3e4a38;
-  
+
   --color-accent-100: #f9d7c0;
   --color-accent-200: #f0b08e;
   --color-accent-300: #e08e59;
   --color-accent-400: #d7722c;
   --color-accent-500: #c86520;
-  
+
   /* Semantic Colors */
   --text-primary: var(--color-earth-600);
   --text-secondary: var(--color-earth-500);
   --background-primary: var(--color-earth-100);
-  --background-secondary: white;
+  --background-secondary: #ffffff;
   --accent-primary: var(--color-accent-400);
   --accent-secondary: var(--color-forest-300);
-  
+
+  /* Semantic Aliases for usage */
+  --text-color: var(--text-primary);
+  --bg-color: var(--background-primary);
+  --accent-color: var(--accent-primary);
+  --wisdom-color: var(--accent-secondary);
+
   /* Spacing System */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -36,11 +42,11 @@
   --space-5: 2rem;
   --space-6: 3rem;
   --space-7: 4rem;
-  
+
   /* Typography */
   --font-family-prose: 'Lora', serif;
   --font-family-ui: 'Montserrat', sans-serif;
-  
+
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -50,12 +56,12 @@
   --font-size-2xl: 1.875rem;
   --font-size-3xl: 2.25rem;
   --font-size-4xl: 3rem;
-  
+
   /* Effects */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  
+
   /* Borders & Radii */
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -63,14 +69,18 @@
   --radius-full: 9999px;
 }
 
-/* Dark theme */
+/* Dark theme overrides */
 [data-theme="dark"] {
   --text-primary: #ffffff;
   --text-secondary: #e5d9c5;
   --background-primary: #1f1c1a;
   --background-secondary: #352e29;
   --accent-primary: #e08e59;
-  
-  --link-color: #f0b08e;
-  --interactive-element-bg: rgba(255, 255, 255, 0.1);
+  --accent-secondary: #7d8765;
+
+  /* Maintain aliases */
+  --text-color: var(--text-primary);
+  --bg-color: var(--background-primary);
+  --accent-color: var(--accent-primary);
+  --wisdom-color: var(--accent-secondary);
 }
