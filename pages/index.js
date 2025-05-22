@@ -1,14 +1,30 @@
 // File: /pages/index.js
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 
 export default function Home() {
   // State to ensure we can access DOM elements after mounting
   const [isClient, setIsClient] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
     // Mark as client-side after mount
     setIsClient(true);
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('griotbot-theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+      // Check for system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = prefersDark ? 'dark' : 'light';
+      setTheme(initialTheme);
+      document.documentElement.setAttribute('data-theme', initialTheme);
+    }
 
     // Immediately run the initialization code after first render
     if (typeof window !== 'undefined') {
@@ -17,12 +33,22 @@ export default function Home() {
     }
   }, []);
 
+  // Toggle theme function
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('griotbot-theme', newTheme);
+  };
+
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
   // Function that initializes all chat functionality
   function initializeChat() {
     // Get DOM elements
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleSidebar');
-    const themeToggle = document.getElementById('themeToggle');
     const chatContainer = document.getElementById('chat-container');
     const welcomeDiv = document.getElementById('welcome');
     const chat = document.getElementById('chat');
@@ -38,7 +64,7 @@ export default function Home() {
     const suggestionCards = document.querySelectorAll('.suggestion-card');
 
     // If any element is missing, return (may happen during initial mounting)
-    if (!sidebar || !toggleBtn || !form) {
+    if (!form) {
       console.warn('DOM elements not found, initialization delayed');
       return;
     }
@@ -71,68 +97,29 @@ export default function Home() {
       autoExpand(input);
     });
 
-    // 3. SIDEBAR TOGGLE
-    toggleBtn.addEventListener('click', () => {
-      const visible = sidebar.classList.toggle('visible');
-      toggleBtn.setAttribute('aria-expanded', visible);
-      sidebar.setAttribute('aria-hidden', !visible);
-    });
-    
-    // Close sidebar when clicking outside
-    document.addEventListener('click', (event) => {
-      if (sidebar.classList.contains('visible') && 
-          !sidebar.contains(event.target) && 
-          !toggleBtn.contains(event.target)) {
-        sidebar.classList.remove('visible');
-        toggleBtn.setAttribute('aria-expanded', 'false');
-        sidebar.setAttribute('aria-hidden', 'true');
-      }
-    });
-
-    // 4. THEME TOGGLE
+    // 4. THEME TOGGLE (now handled by React)
     function setTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('griotbot-theme', theme);
-      themeToggle.textContent = theme === 'dark' ? 'â˜€ï¸' : 'ðŸŒ™';
-      themeToggle.setAttribute('aria-label', 
-        theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
     }
-    
-    // Initialize theme from localStorage or user preference
-    (function() {
-      const savedTheme = localStorage.getItem('griotbot-theme');
-      if (savedTheme) {
-        setTheme(savedTheme);
-      } else {
-        // Check for system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        setTheme(prefersDark ? 'dark' : 'light');
-      }
-    })();
-    
-    // Handle theme toggle click
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      setTheme(currentTheme === 'light' ? 'dark' : 'light');
-    });
 
     // 5. RANDOM PROVERB
     const proverbs = [
-      "Wisdom is like a baobab tree; no one individual can embrace it. â€” African Proverb",
-      "Until the lion learns to write, every story will glorify the hunter. â€” African Proverb",
-      "We are the drums, we are the dance. â€” Afro-Caribbean Proverb",
-      "A tree cannot stand without its roots. â€” Jamaican Proverb",
-      "Unity is strength, division is weakness. â€” Swahili Proverb",
-      "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. â€” West African Proverb",
-      "Truth is like a drum, it can be heard from afar. â€” Kenyan Proverb",
-      "A bird will always use another bird's feathers to feather its nest. â€” Ashanti Proverb",
-      "You must act as if it is impossible to fail. â€” Yoruba Wisdom",
-      "The child who is not embraced by the village will burn it down to feel its warmth. â€” West African Proverb",
-      "However long the night, the dawn will break. â€” African Proverb",
-      "If you want to go fast, go alone. If you want to go far, go together. â€” African Proverb",
-      "It takes a village to raise a child. â€” African Proverb",
-      "The fool speaks, the wise listen. â€” Ethiopian Proverb",
-      "When the music changes, so does the dance. â€” Haitian Proverb"
+      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+      "A tree cannot stand without its roots. — Jamaican Proverb",
+      "Unity is strength, division is weakness. — Swahili Proverb",
+      "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
+      "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
+      "A bird will always use another bird's feathers to feather its nest. — Ashanti Proverb",
+      "You must act as if it is impossible to fail. — Yoruba Wisdom",
+      "The child who is not embraced by the village will burn it down to feel its warmth. — West African Proverb",
+      "However long the night, the dawn will break. — African Proverb",
+      "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
+      "It takes a village to raise a child. — African Proverb",
+      "The fool speaks, the wise listen. — Ethiopian Proverb",
+      "When the music changes, so does the dance. — Haitian Proverb"
     ];
     
     function showRandomProverb() {
@@ -175,7 +162,7 @@ export default function Home() {
     
     loadChatHistory(); // Load history on init
 
-    // 7. APPEND MESSAGE & AUTOâ€‘SCROLL
+    // 7. APPEND MESSAGE & AUTO‑SCROLL
     function appendMessage(role, text, timestamp = null, save = true) {
       const now = timestamp || new Date().toISOString();
       const msg = document.createElement('div');
@@ -191,7 +178,6 @@ export default function Home() {
         const formattedText = formatBotMessage(text);
         msg.innerHTML = `
           <div class="bot-header">
-            <span class="logo-icon" aria-hidden="true">ðŸŒ¿</span>
             <span class="bot-name">GriotBot</span>
           </div>
           ${formattedText}
@@ -342,31 +328,37 @@ export default function Home() {
     });
 
     // 11. NEW CHAT HANDLER
-    newChatBtn.addEventListener('click', () => {
-      // Clear chat UI
-      chat.innerHTML = '';
-      
-      // Clear local storage history
-      localStorage.removeItem('griotbot-history');
-      
-      // Show welcome elements
-      showWelcome();
-      
-      // Close sidebar
-      sidebar.classList.remove('visible');
-      toggleBtn.setAttribute('aria-expanded', 'false');
-      sidebar.setAttribute('aria-hidden', 'true');
-      
-      // Reset storyteller mode
-      storyMode.checked = false;
-      
-      // Focus on input
-      input.focus();
-    });
+    if (newChatBtn) {
+      newChatBtn.addEventListener('click', () => {
+        // Clear chat UI
+        chat.innerHTML = '';
+        
+        // Clear local storage history
+        localStorage.removeItem('griotbot-history');
+        
+        // Show welcome elements
+        showWelcome();
+        
+        // Reset storyteller mode
+        storyMode.checked = false;
+        
+        // Focus on input
+        input.focus();
+      });
+    }
 
     // Initialize input focus
     input.focus();
   }
+
+  // SVG icons for improved UI
+  const menuIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>`;
+  
+  const sunIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+  
+  const moonIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+  
+  const sendIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
 
   return (
     <>
@@ -426,17 +418,22 @@ export default function Home() {
             --card-bg: #352e29;
           }
 
+          /* Global styles - Applied to everything */
+          * {
+            box-sizing: border-box !important;
+          }
+
           /* Critical body styles */
-          body {
-            margin: 0;
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            line-height: 1.6;
+          body, html {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Montserrat', sans-serif !important;
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
+            height: 100vh !important;
+            width: 100% !important;
+            overflow: hidden !important;
+            line-height: 1.6 !important;
           }
 
           /* Header styles */
@@ -457,6 +454,8 @@ export default function Home() {
             box-shadow: 0 2px 10px var(--shadow-color) !important;
             z-index: 100 !important;
             font-family: 'Lora', serif !important;
+            height: 60px !important; /* Fixed height for header */
+            width: 100% !important;
           }
           
           .logo-container,
@@ -524,13 +523,14 @@ export default function Home() {
             display: flex !important;
             flex-direction: column !important;
             gap: 1.5rem !important;
+            transition: transform 0.3s ease-in-out !important;
           }
           
           #sidebar.visible {
             transform: translateX(0) !important;
           }
           
-          /* Chat container styles */
+          /* Chat container styles - FIX FOR SCROLLING */
           #chat-container,
           main#chat-container,
           [id="chat-container"] {
@@ -539,9 +539,15 @@ export default function Home() {
             flex-direction: column !important;
             align-items: center !important;
             justify-content: flex-start !important;
-            overflow-y: auto !important;
+            overflow-y: auto !important; /* Enable vertical scrolling */
+            height: calc(100vh - 160px) !important; /* Subtract header + input area heights */
+            position: fixed !important;
+            top: 60px !important; /* Position below header */
+            left: 0 !important;
+            right: 0 !important;
             padding: 1rem !important;
             padding-bottom: 140px !important;
+            background-color: var(--bg-color) !important;
           }
           
           .welcome-container,
@@ -555,6 +561,7 @@ export default function Home() {
             text-align: center !important;
             max-width: 700px !important;
             margin: 1rem auto 2rem !important;
+            width: 100% !important;
           }
           
           #logo,
@@ -593,6 +600,7 @@ export default function Home() {
             margin-bottom: 2rem !important;
             position: relative !important;
             padding: 0 1.5rem !important;
+            width: 100% !important;
           }
           
           .quote-attribution,
@@ -603,6 +611,7 @@ export default function Home() {
             margin-top: 0.5rem !important;
           }
           
+          /* FIX FOR BROWN BAR - Suggestion cards */
           .suggestion-cards,
           div.suggestion-cards,
           [class="suggestion-cards"] {
@@ -613,6 +622,7 @@ export default function Home() {
             margin-bottom: 2rem !important;
             width: 100% !important;
             max-width: 700px !important;
+            border: none !important; /* Remove any borders */
           }
           
           .suggestion-card,
@@ -625,6 +635,26 @@ export default function Home() {
             min-width: 200px !important;
             box-shadow: 0 3px 10px var(--shadow-color) !important;
             cursor: pointer !important;
+            border: none !important; /* Remove any borders */
+          }
+          
+          .suggestion-category,
+          div.suggestion-category,
+          [class="suggestion-category"] {
+            font-size: 0.8rem !important;
+            text-transform: uppercase !important;
+            color: var(--accent-color) !important;
+            font-weight: 500 !important;
+            margin-bottom: 0.5rem !important;
+          }
+          
+          .suggestion-title,
+          h3.suggestion-title,
+          [class="suggestion-title"] {
+            font-family: var(--heading-font), 'Lora', serif !important;
+            font-weight: 600 !important;
+            margin: 0 !important;
+            font-size: 1.1rem !important;
           }
           
           /* Chat styles */
@@ -637,7 +667,7 @@ export default function Home() {
             flex-direction: column !important;
           }
           
-          /* Form container styles */
+          /* Form container styles - FIXED position */
           #form-container,
           div#form-container,
           [id="form-container"] {
@@ -670,6 +700,7 @@ export default function Home() {
             box-shadow: 0 4px 12px var(--shadow-color) !important;
             border-radius: 12px !important;
             background-color: var(--input-bg) !important;
+            border: 2px solid var(--input-border) !important;
           }
           
           #input,
@@ -677,8 +708,7 @@ export default function Home() {
           [id="input"] {
             flex: 1 !important;
             padding: 0.9rem 1rem !important;
-            border: 1px solid var(--input-border) !important;
-            border-right: none !important;
+            border: none !important;
             border-radius: 12px 0 0 12px !important;
             outline: none !important;
             resize: none !important;
@@ -691,6 +721,11 @@ export default function Home() {
             line-height: 1.5 !important;
           }
           
+          #input::placeholder {
+            color: var(--input-text) !important;
+            opacity: 0.6 !important;
+          }
+          
           #send,
           button#send,
           [id="send"] {
@@ -700,187 +735,4 @@ export default function Home() {
             border-radius: 0 12px 12px 0 !important;
             display: flex !important;
             align-items: center !important;
-            justify-content: center !important;
-            border: none !important;
-            cursor: pointer !important;
-          }
-          
-          .form-actions,
-          div.form-actions,
-          [class="form-actions"] {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            margin-top: 0.5rem !important;
-            font-size: 0.8rem !important;
-          }
-          
-          /* Footer elements */
-          #fact,
-          div#fact,
-          [id="fact"] {
-            position: fixed !important;
-            bottom: 30px !important;
-            width: 100% !important;
-            text-align: center !important;
-            font-size: 0.9rem !important;
-            font-style: italic !important;
-            padding: 0 1rem !important;
-            color: var(--wisdom-color) !important;
-            opacity: 0.8 !important;
-            font-family: 'Lora', serif !important;
-          }
-          
-          #copyright,
-          div#copyright,
-          [id="copyright"] {
-            position: fixed !important;
-            bottom: 10px !important;
-            width: 100% !important;
-            text-align: center !important;
-            font-size: 0.8rem !important;
-            color: var(--text-color) !important;
-            opacity: 0.6 !important;
-          }
-          
-          /* Mobile responsive adjustments */
-          @media (max-width: 600px) {
-            .suggestion-card, 
-            div.suggestion-card,
-            [class="suggestion-card"] {
-              width: 100% !important;
-              max-width: 100% !important;
-            }
-          }
-        `}} />
-      </Head>
-      
-      {/* HEADER + CONTROLS */}
-      <div id="header" role="banner">
-        <button id="toggleSidebar" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">â˜°</button>
-        <div className="logo-container">
-          <span className="logo-icon" aria-hidden="true">ðŸŒ¿</span>
-          <span>GriotBot</span>
-        </div>
-        <button id="themeToggle" aria-label="Toggle dark/light mode"></button>
-      </div>
-
-      {/* SIDEBAR */}
-      <nav id="sidebar" aria-hidden="true" aria-label="Main navigation">
-        <h2>
-          <span className="logo-icon" aria-hidden="true">ðŸŒ¿</span>
-          GriotBot
-        </h2>
-        
-        <div className="sidebar-profile">
-          <span className="free-badge">Free Account</span>
-          <button className="upgrade-btn">Upgrade to Premium</button>
-        </div>
-        
-        <div className="nav-section">
-          <h3>Conversations</h3>
-          <button id="newChat" aria-label="Start new chat">
-            <span aria-hidden="true">+</span> New Chat
-          </button>
-          <a href="#" id="savedChats">Saved Conversations</a>
-        </div>
-        
-        <div className="nav-section">
-          <h3>Explore</h3>
-          <a href="#" id="historicalFigures">Historical Figures</a>
-          <a href="#" id="culturalStories">Cultural Stories</a>
-          <a href="#" id="diasporaMap">Diaspora Map</a>
-        </div>
-        
-        <div className="nav-section">
-          <h3>About</h3>
-          <a href="about">About GriotBot</a>
-          <a href="feedback">Share Feedback</a>
-        </div>
-        
-        <div className="sidebar-footer">
-          "Preserving our stories,<br/>empowering our future."
-        </div>
-      </nav>
-
-      {/* MAIN CHAT AREA */}
-      <main id="chat-container" aria-label="Chat messages">
-        <div className="welcome-container" id="welcome">
-          <div id="logo" aria-hidden="true">ðŸŒ¿</div>
-          <h1 className="welcome-title">Welcome to GriotBot</h1>
-          <p className="welcome-subtitle">Your AI companion for culturally rich conversations and wisdom</p>
-          
-          <div id="quote" aria-label="Inspirational quote">
-            "A people without the knowledge of their past history,<br/>
-            origin and culture is like a tree without roots."
-            <span className="quote-attribution">â€” Marcus Mosiah Garvey</span>
-          </div>
-          
-          <div className="suggestion-cards">
-            <div className="suggestion-card" data-prompt="Tell me a story about resilience from the African diaspora">
-              <div className="suggestion-category">Storytelling</div>
-              <h3 className="suggestion-title">Tell me a diaspora story about resilience</h3>
-            </div>
-            
-            <div className="suggestion-card" data-prompt="Share some wisdom about community building from African traditions">
-              <div className="suggestion-category">Wisdom</div>
-              <h3 className="suggestion-title">African wisdom on community building</h3>
-            </div>
-            
-            <div className="suggestion-card" data-prompt="How can I connect more with my cultural heritage?">
-              <div className="suggestion-category">Personal Growth</div>
-              <h3 className="suggestion-title">Connect with my cultural heritage</h3>
-            </div>
-            
-            <div className="suggestion-card" data-prompt="Explain the historical significance of Juneteenth">
-              <div className="suggestion-category">History</div>
-              <h3 className="suggestion-title">The historical significance of Juneteenth</h3>
-            </div>
-          </div>
-        </div>
-        
-        <div id="chat" aria-live="polite"></div>
-        <div id="empty-state">
-          <p>Start a conversation with GriotBot</p>
-        </div>
-      </main>
-
-      {/* MESSAGE INPUT */}
-      <div id="form-container">
-        <form id="form" aria-label="Message form">
-          <div className="input-wrapper">
-            <textarea 
-              id="input" 
-              placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
-              required 
-              aria-label="Message to send"
-              rows="1"
-            ></textarea>
-            <button id="send" type="submit" aria-label="Send message">
-              <div id="send-icon">â†‘</div>
-              <div id="send-loading" className="spinner" style={{display: 'none'}}></div>
-            </button>
-          </div>
-          
-          <div className="form-actions">
-            <div className="form-info">Free users: 30 messages per day</div>
-            
-            <div className="storyteller-mode">
-              <label htmlFor="storytellerMode">
-                Storyteller Mode
-                <div className="toggle-switch">
-                  <input type="checkbox" id="storytellerMode" />
-                  <span className="slider"></span>
-                </div>
-              </label>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      {/* RANDOM PROVERB & COPYRIGHT */}
-      <div id="fact" aria-label="Random proverb"></div>
-      <div id="copyright" aria-label="Copyright information">Â© 2025 GriotBot. All rights reserved.</div>
-    </>
-  );
-}
+            justify-
