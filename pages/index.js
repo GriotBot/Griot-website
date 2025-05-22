@@ -1,581 +1,931 @@
-// File: /pages/index.js
+// File: /pages/index.js - Updated with expanded response area and streamlined UI
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
-
-// Constants
-const HISTORY_LIMIT = 50;
-const MAX_TEXTAREA_HEIGHT = 120;
-
-// Proverbs array
-const PROVERBS = [
-  "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-  "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-  "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-  "A tree cannot stand without its roots. — Jamaican Proverb",
-  "Unity is strength, division is weakness. — Swahili Proverb",
-  "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
-  "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
-  "A bird will always use another bird's feathers to feather its nest. — Ashanti Proverb",
-  "You must act as if it is impossible to fail. — Yoruba Wisdom",
-  "The child who is not embraced by the village will burn it down to feel its warmth. — West African Proverb",
-  "However long the night, the dawn will break. — African Proverb",
-  "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
-  "It takes a village to raise a child. — African Proverb",
-  "The fool speaks, the wise listen. — Ethiopian Proverb",
-  "When the music changes, so does the dance. — Haitian Proverb"
-];
-
-// Custom hooks
-function useTheme() {
-  const [theme, setTheme] = useState('light');
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('griotbot-theme');
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = prefersDark ? 'dark' : 'light';
-      setTheme(initialTheme);
-      document.documentElement.setAttribute('data-theme', initialTheme);
-    }
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('griotbot-theme', newTheme);
-  }, [theme]);
-
-  return { theme, toggleTheme };
-}
-
-function useChatHistory() {
-  const [messages, setMessages] = useState([]);
-
-  useEffect(() => {
-    try {
-      const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
-      setMessages(hist);
-    } catch (err) {
-      console.error('Error loading chat history:', err);
-      localStorage.removeItem('griotbot-history');
-    }
-  }, []);
-
-  const addMessage = useCallback((role, content) => {
-    const newMessage = {
-      role,
-      content,
-      time: new Date().toISOString()
-    };
-    setMessages(prev => {
-      const updated = [...prev, newMessage];
-      const toSave = updated.slice(-HISTORY_LIMIT);
-      localStorage.setItem('griotbot-history', JSON.stringify(toSave));
-      return updated;
-    });
-  }, []);
-
-  const clearMessages = useCallback(() => {
-    setMessages([]);
-    localStorage.removeItem('griotbot-history');
-  }, []);
-
-  return { messages, addMessage, clearMessages };
-}
-
-function useProverb() {
-  const [proverb, setProverb] = useState('');
-
-  useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
-    setProverb(PROVERBS[randomIndex]);
-  }, []);
-
-  return proverb;
-}
-
-// Components
-function MenuIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="12" x2="21" y2="12"></line>
-      <line x1="3" y1="6" x2="21" y2="6"></line>
-      <line x1="3" y1="18" x2="21" y2="18"></line>
-    </svg>
-  );
-}
-
-function SunIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5"></circle>
-      <line x1="12" y1="1" x2="12" y2="3"></line>
-      <line x1="12" y1="21" x2="12" y2="23"></line>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-      <line x1="1" y1="12" x2="3" y2="12"></line>
-      <line x1="21" y1="12" x2="23" y2="12"></line>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-    </svg>
-  );
-}
-
-function SendIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="22" y1="2" x2="11" y2="13"></line>
-      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-    </svg>
-  );
-}
-
-function TypingIndicator() {
-  return (
-    <div className="typing-indicator" aria-label="GriotBot is thinking">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-  );
-}
-
-function Message({ message }) {
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatBotMessage = (text) => {
-    let formattedText = text;
-    
-    if (text.includes('"') && text.indexOf('"') !== text.lastIndexOf('"')) {
-      const segments = text.split('"');
-      for (let i = 1; i < segments.length; i += 2) {
-        if (segments[i].trim().length > 0) {
-          segments[i] = `<div class="message-proverb">"${segments[i]}"</div>`;
-        }
-      }
-      formattedText = segments.join('');
-    }
-    
-    formattedText = formattedText.split('\n\n').map(para => {
-      if (para.trim().length > 0) {
-        return `<p>${para.replace(/\n/g, '<br>')}</p>`;
-      }
-      return '';
-    }).join('');
-    
-    return formattedText;
-  };
-
-  if (message.role === 'thinking') {
-    return (
-      <div className="message bot thinking">
-        <TypingIndicator />
-      </div>
-    );
-  }
-
-  return (
-    <div className={`message ${message.role}`} aria-label={`${message.role === 'user' ? 'You' : 'GriotBot'}: ${message.content}`}>
-      {message.role === 'bot' && (
-        <div className="bot-header">
-          <span className="bot-name">GriotBot</span>
-        </div>
-      )}
-      {message.role === 'user' ? (
-        <div>{message.content}</div>
-      ) : (
-        <div dangerouslySetInnerHTML={{ __html: formatBotMessage(message.content) }} />
-      )}
-      <div className="message-time">{formatTime(message.time)}</div>
-    </div>
-  );
-}
-
-function SuggestionCard({ category, title, prompt, onClick }) {
-  return (
-    <div className="suggestion-card" onClick={() => onClick(prompt)}>
-      <div className="suggestion-category">{category}</div>
-      <h3 className="suggestion-title">{title}</h3>
-    </div>
-  );
-}
-
-function Welcome({ onSuggestionClick }) {
-  return (
-    <div className="welcome-container">
-      <div className="logo">
-        <img src="/logo-light.svg" alt="GriotBot" style={{ height: '64px' }} />
-      </div>
-      <h1 className="welcome-title">Welcome to GriotBot</h1>
-      <p className="welcome-subtitle">Your AI companion for culturally rich conversations and wisdom</p>
-      
-      <div className="quote" aria-label="Inspirational quote">
-        "A people without the knowledge of their past history,<br/>
-        origin and culture is like a tree without roots."
-        <span className="quote-attribution">— Marcus Mosiah Garvey</span>
-      </div>
-      
-      <div className="suggestion-cards">
-        <SuggestionCard
-          category="Storytelling"
-          title="Tell me a diaspora story about resilience"
-          prompt="Tell me a story about resilience from the African diaspora"
-          onClick={onSuggestionClick}
-        />
-        <SuggestionCard
-          category="Wisdom"
-          title="African wisdom on community building"
-          prompt="Share some wisdom about community building from African traditions"
-          onClick={onSuggestionClick}
-        />
-        <SuggestionCard
-          category="Personal Growth"
-          title="Connect with my cultural heritage"
-          prompt="How can I connect more with my cultural heritage?"
-          onClick={onSuggestionClick}
-        />
-        <SuggestionCard
-          category="History"
-          title="The historical significance of Juneteenth"
-          prompt="Explain the historical significance of Juneteenth"
-          onClick={onSuggestionClick}
-        />
-      </div>
-    </div>
-  );
-}
-
-function Header({ sidebarVisible, onToggleSidebar, theme, onToggleTheme }) {
-  return (
-    <div className="header" role="banner">
-      <button 
-        className="toggle-sidebar"
-        aria-label="Toggle sidebar" 
-        aria-expanded={sidebarVisible}
-        aria-controls="sidebar"
-        onClick={onToggleSidebar}
-      >
-        <MenuIcon />
-      </button>
-      
-      <div className="logo-container">
-        <img src="/logo-light.svg" alt="GriotBot" className="logo-image" />
-      </div>
-      
-      <button 
-        className="theme-toggle"
-        aria-label={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"} 
-        onClick={onToggleTheme}
-      >
-        {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-      </button>
-    </div>
-  );
-}
-
-function Sidebar({ visible, onClose, onNewChat }) {
-  return (
-    <>
-      <nav className={`sidebar ${visible ? 'visible' : ''}`} aria-hidden={!visible} aria-label="Main navigation">
-        <h2>
-          <img src="/logo-light.svg" alt="GriotBot" className="sidebar-logo" />
-        </h2>
-        
-        <div className="sidebar-profile">
-          <span className="free-badge">Free Account</span>
-          <button className="upgrade-btn">Upgrade to Premium</button>
-        </div>
-        
-        <div className="nav-section">
-          <h3>Conversations</h3>
-          <button onClick={onNewChat} aria-label="Start new chat">
-            <span aria-hidden="true">+</span> New Chat
-          </button>
-          <a href="#">Saved Conversations</a>
-        </div>
-        
-        <div className="nav-section">
-          <h3>Explore</h3>
-          <a href="#">Historical Figures</a>
-          <a href="#">Cultural Stories</a>
-          <a href="#">Diaspora Map</a>
-        </div>
-        
-        <div className="nav-section">
-          <h3>About</h3>
-          <Link href="/about">About GriotBot</Link>
-          <Link href="/feedback">Share Feedback</Link>
-        </div>
-        
-        <div className="sidebar-footer">
-          "Preserving our stories,<br/>empowering our future."
-        </div>
-      </nav>
-
-      {visible && (
-        <div className="sidebar-overlay" onClick={onClose} aria-hidden="true"></div>
-      )}
-    </>
-  );
-}
-
-function ChatInput({ onSendMessage, disabled }) {
-  const [message, setMessage] = useState('');
-  const [storytellerMode, setStorytellerMode] = useState(false);
-  const textareaRef = useRef(null);
-
-  const adjustHeight = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'inherit';
-      const computed = window.getComputedStyle(textarea);
-      const height = parseInt(computed.getPropertyValue('border-top-width'), 10)
-                   + parseInt(computed.getPropertyValue('padding-top'), 10)
-                   + textarea.scrollHeight
-                   + parseInt(computed.getPropertyValue('padding-bottom'), 10)
-                   + parseInt(computed.getPropertyValue('border-bottom-width'), 10);
-      
-      textarea.style.height = `${Math.min(height, MAX_TEXTAREA_HEIGHT)}px`;
-    }
-  }, []);
-
-  const handleInputChange = useCallback((e) => {
-    setMessage(e.target.value);
-    adjustHeight();
-  }, [adjustHeight]);
-
-  const handleSubmit = useCallback((e) => {
-    e.preventDefault();
-    const trimmedMessage = message.trim();
-    if (!trimmedMessage || disabled) return;
-    
-    onSendMessage(trimmedMessage, storytellerMode);
-    setMessage('');
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'inherit';
-    }
-  }, [message, storytellerMode, disabled, onSendMessage]);
-
-  return (
-    <div className="form-container">
-      <form onSubmit={handleSubmit} aria-label="Message form">
-        <div className="input-wrapper">
-          <textarea 
-            ref={textareaRef}
-            value={message}
-            onChange={handleInputChange}
-            placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
-            required 
-            disabled={disabled}
-            aria-label="Message to send"
-            rows="1"
-          />
-          <button type="submit" aria-label="Send message" disabled={disabled || !message.trim()}>
-            <SendIcon />
-          </button>
-        </div>
-        
-        <div className="form-actions">
-          <div className="form-info">Free users: 30 messages per day</div>
-          
-          <div className="storyteller-mode">
-            <label>
-              Storyteller Mode
-              <div className="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  checked={storytellerMode}
-                  onChange={(e) => setStorytellerMode(e.target.checked)}
-                />
-                <span className="slider"></span>
-              </div>
-            </label>
-          </div>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-function ChatArea({ messages, isLoading, onSuggestionClick }) {
-  const chatContainerRef = useRef(null);
-
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({ 
-        top: chatContainerRef.current.scrollHeight, 
-        behavior: 'smooth' 
-      });
-    }
-  }, [messages]);
-
-  const hasMessages = messages.length > 0 || isLoading;
-
-  return (
-    <main className="chat-container" ref={chatContainerRef} aria-label="Chat messages">
-      {!hasMessages && <Welcome onSuggestionClick={onSuggestionClick} />}
-      
-      {hasMessages && (
-        <div className="chat">
-          {messages.map((message, index) => (
-            <Message key={`${message.time}-${index}`} message={message} />
-          ))}
-          {isLoading && <Message message={{ role: 'thinking' }} />}
-        </div>
-      )}
-    </main>
-  );
-}
+import Layout from '../components/layout/Layout';
+import ChatInput from '../components/ChatInput';
+import FooterProverb from '../components/FooterProverb';
+import FooterCopyright from '../components/FooterCopyright';
 
 export default function Home() {
-  const { theme, toggleTheme } = useTheme();
-  const { messages, addMessage, clearMessages } = useChatHistory();
-  const proverb = useProverb();
+  // State to ensure we can access DOM elements after mounting
+  const [isClient, setIsClient] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [showWelcome, setShowWelcome] = useState(true);
   
-  const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // State for thinking phrases rotation
+  const [thinkingPhraseIndex, setThinkingPhraseIndex] = useState(0);
+  const thinkingPhrases = [
+    "Seeking ancestral wisdom...",
+    "Consulting the elders...",
+    "Weaving a response...",
+    "Gathering knowledge...",
+    "Remembering the traditions..."
+  ];
+  
+  // State for UI controls
+  const [copiedMessageId, setCopiedMessageId] = useState(null);
+  const [feedbackGiven, setFeedbackGiven] = useState({});
+  
+  // Create a reference to the chat container
+  const chatContainerRef = useRef(null);
+  const chatEndRef = useRef(null);
 
-  const toggleSidebar = useCallback(() => {
-    setSidebarVisible(prev => !prev);
+  useEffect(() => {
+    // Mark as client-side after mount
+    setIsClient(true);
+
+    // Load chat history from localStorage
+    loadChatHistory();
+
+    // Handle suggestion cards and category tabs
+    const handleClickableElements = () => {
+      // Handle traditional suggestion cards
+      const suggestionCards = document.querySelectorAll('.suggestion-card');
+      if (suggestionCards) {
+        suggestionCards.forEach(card => {
+          card.addEventListener('click', () => {
+            const prompt = card.getAttribute('data-prompt');
+            if (prompt) {
+              handleSendMessage(prompt, false);
+            }
+          });
+        });
+      }
+      
+      // Handle new category tabs
+      const categoryTabs = document.querySelectorAll('.category-tab');
+      if (categoryTabs) {
+        categoryTabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            const prompt = tab.getAttribute('data-prompt');
+            if (prompt) {
+              handleSendMessage(prompt, false);
+            }
+          });
+        });
+      }
+    };
+
+    // Initialize clickable elements
+    if (typeof window !== 'undefined') {
+      handleClickableElements();
+    }
   }, []);
 
-  const closeSidebar = useCallback(() => {
-    setSidebarVisible(false);
-  }, []);
+  // Add effect to scroll to the bottom whenever messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-  const handleNewChat = useCallback(() => {
-    clearMessages();
-    closeSidebar();
-  }, [clearMessages, closeSidebar]);
+  // Add effect to rotate thinking phrases when a message is in thinking state
+  useEffect(() => {
+    if (messages.some(m => m.thinking)) {
+      const interval = setInterval(() => {
+        setThinkingPhraseIndex(prev => (prev + 1) % thinkingPhrases.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [messages, thinkingPhrases.length]);
 
-  const handleSuggestionClick = useCallback((suggestion) => {
-    // This could trigger sending the message or just fill the input
-    // For now, we'll just close the welcome and let the user send manually
-  }, []);
+  // Smooth scroll to bottom function
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      // Smooth scroll to bottom
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+    
+    // Alternative approach using scrollIntoView for the end element
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-  const sendMessage = useCallback(async (messageText, storytellerMode) => {
-    setIsLoading(true);
-    addMessage('user', messageText);
+  // Function to copy message content to clipboard
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        // Show a temporary "Copied!" message
+        setCopiedMessageId(text.substring(0, 20)); // Use part of the text as an ID
+        setTimeout(() => setCopiedMessageId(null), 2000);
+      })
+      .catch(err => console.error('Failed to copy: ', err));
+  };
 
+  // Function to handle user feedback on responses
+  const handleFeedback = (messageId, isPositive) => {
+    console.log(`Feedback for message ${messageId}: ${isPositive ? 'positive' : 'negative'}`);
+    // Here you would typically send this feedback to your server
+    setFeedbackGiven(prevState => ({
+      ...prevState,
+      [messageId]: isPositive ? 'positive' : 'negative'
+    }));
+  };
+
+  // Improved regenerateResponse function
+  const regenerateResponse = async (promptText) => {
+    if (!promptText) {
+      console.error('Cannot regenerate: no prompt text provided');
+      return;
+    }
+
+    // Find the most recent user message with this prompt and the bot response that follows it
+    let userMessageIndex = -1;
+    let botResponseIndex = -1;
+    
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user' && messages[i].content === promptText) {
+        userMessageIndex = i;
+        // Check if there's a bot response after this user message
+        if (i + 1 < messages.length && messages[i + 1].role === 'bot') {
+          botResponseIndex = i + 1;
+        }
+        break;
+      }
+    }
+
+    if (userMessageIndex === -1) {
+      console.error('Cannot regenerate: original user message not found');
+      return;
+    }
+
+    // Create a new array of messages, removing the bot response if it exists
+    let updatedMessages;
+    if (botResponseIndex !== -1) {
+      updatedMessages = [
+        ...messages.slice(0, botResponseIndex),
+        {
+          role: 'bot',
+          content: '...',
+          time: new Date().toISOString(),
+          thinking: true
+        }
+      ];
+    } else {
+      // If no bot response was found, add a thinking indicator after the user message
+      updatedMessages = [
+        ...messages,
+        {
+          role: 'bot',
+          content: '...',
+          time: new Date().toISOString(),
+          thinking: true
+        }
+      ];
+    }
+    
+    // Update the UI with the thinking indicator
+    setMessages(updatedMessages);
+    
+    // Reset any feedback that might have been given
+    setFeedbackGiven(prevState => {
+      const newState = {...prevState};
+      if (botResponseIndex !== -1) {
+        delete newState[botResponseIndex];
+      }
+      return newState;
+    });
+    
     try {
+      console.log('Regenerating response for prompt:', promptText);
+      
+      // Make the API call to regenerate the response
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ 
-          prompt: messageText,
-          storytellerMode
+          prompt: promptText,
+          storytellerMode: false,
+          isRegeneration: true  // Flag to indicate this is a regeneration
         })
       });
       
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `Error: Status ${res.status}`);
+        let errorMessage = `Error: Status ${res.status}`;
+        
+        try {
+          const errorData = await res.json();
+          if (errorData && errorData.error) {
+            errorMessage = typeof errorData.error === 'string' 
+              ? errorData.error 
+              : JSON.stringify(errorData.error);
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, try to get the text response
+          const errorText = await res.text().catch(() => 'Unknown error');
+          errorMessage = `Error: ${errorText}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      // Process the successful response
+      const data = await res.json();
+      const botResponse = data.choices?.[0]?.message?.content || 
+                        'I apologize, but I seem to be having trouble generating a new response.';
+      
+      // Replace the thinking indicator with the new response
+      const finalMessages = updatedMessages.slice(0, -1).concat({
+        role: 'bot',
+        content: botResponse,
+        time: new Date().toISOString()
+      });
+      
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
+      
+    } catch (error) {
+      console.error('Error regenerating response:', error);
+      
+      // Replace thinking indicator with error message
+      const finalMessages = updatedMessages.slice(0, -1).concat({
+        role: 'bot',
+        content: `I'm sorry, I encountered an error while trying to generate a new response: ${error.message}. Please try again later.`,
+        time: new Date().toISOString()
+      });
+      
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
+    }
+  };
+
+  // Load chat history from localStorage
+  function loadChatHistory() {
+    try {
+      const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
+      if (hist.length > 0) {
+        setMessages(hist);
+        setShowWelcome(false);
+      } else {
+        setShowWelcome(true);
+      }
+    } catch (err) {
+      console.error('Error loading chat history:', err);
+      localStorage.removeItem('griotbot-history');
+    }
+  }
+
+  // Save chat history to localStorage
+  function saveChatHistory(msgs) {
+    const HISTORY_LIMIT = 50; // Maximum number of messages to store
+    localStorage.setItem('griotbot-history', JSON.stringify(msgs.slice(-HISTORY_LIMIT)));
+  }
+
+  // Function that initializes remaining chat functionality
+  function initializeChat() {
+    // Get DOM elements for things not yet converted to React components
+    const suggestionCards = document.querySelectorAll('.suggestion-card');
+    const categoryTabs = document.querySelectorAll('.category-tab');
+    const factElement = document.getElementById('fact');
+
+    // 5. RANDOM PROVERB
+    const proverbs = [
+      "Wisdom is like a baobab tree; no one individual can embrace it. â€” African Proverb",
+      "Until the lion learns to write, every story will glorify the hunter. â€” African Proverb",
+      "We are the drums, we are the dance. â€” Afro-Caribbean Proverb",
+      "A tree cannot stand without its roots. â€” Jamaican Proverb",
+      "Unity is strength, division is weakness. â€” Swahili Proverb",
+      "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. â€” West African Proverb",
+      "Truth is like a drum, it can be heard from afar. â€” Kenyan Proverb",
+      "A bird will always use another bird's feathers to feather its nest. â€” Ashanti Proverb",
+      "You must act as if it is impossible to fail. â€” Yoruba Wisdom",
+      "The child who is not embraced by the village will burn it down to feel its warmth. â€” West African Proverb",
+      "However long the night, the dawn will break. â€” African Proverb",
+      "If you want to go fast, go alone. If you want to go far, go together. â€” African Proverb",
+      "It takes a village to raise a child. â€” African Proverb",
+      "The fool speaks, the wise listen. â€” Ethiopian Proverb",
+      "When the music changes, so does the dance. â€” Haitian Proverb"
+    ];
+    
+    function showRandomProverb() {
+      if (factElement) {
+        const randomIndex = Math.floor(Math.random() * proverbs.length);
+        factElement.textContent = proverbs[randomIndex];
+        factElement.setAttribute('aria-label', `Proverb: ${proverbs[randomIndex]}`);
+      }
+    }
+    
+    showRandomProverb(); // Show proverb on init
+
+    // 10. SUGGESTION CARDS & CATEGORY TABS HANDLER
+    if (suggestionCards) {
+      suggestionCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const prompt = card.getAttribute('data-prompt');
+          if (prompt) {
+            handleSendMessage(prompt, false);
+          }
+        });
+      });
+    }
+    
+    if (categoryTabs) {
+      categoryTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const prompt = tab.getAttribute('data-prompt');
+          if (prompt) {
+            handleSendMessage(prompt, false);
+          }
+        });
+      });
+    }
+  }
+
+  // Handle sending a message
+  async function handleSendMessage(text, storytellerMode) {
+    // Hide welcome screen
+    setShowWelcome(false);
+    
+    // Add user message to state
+    const userMessage = {
+      role: 'user',
+      content: text,
+      time: new Date().toISOString()
+    };
+    
+    // Add thinking indicator
+    const thinkingMessage = {
+      role: 'bot',
+      content: '...',
+      time: new Date().toISOString(),
+      thinking: true
+    };
+    
+    const updatedMessages = [...messages, userMessage, thinkingMessage];
+    setMessages(updatedMessages);
+    
+    try {
+      console.log('Sending message to API:', { 
+        prompt: text, 
+        promptLength: text.length,
+        storytellerMode
+      });
+      
+      // API call to our serverless function
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          prompt: text,
+          storytellerMode: storytellerMode || false
+        })
+      });
+      
+      if (!res.ok) {
+        let errorMessage = `Error: Status ${res.status}`;
+        try {
+          const errorData = await res.json();
+          if (errorData && errorData.error) {
+            // Extract the error message string
+            errorMessage = typeof errorData.error === 'string' 
+              ? errorData.error 
+              : JSON.stringify(errorData.error);
+          }
+          console.error('API error details:', errorData);
+        } catch (e) {
+          console.error('Failed to parse error response:', e);
+          // Try to get the text response if JSON parsing fails
+          const errorText = await res.text().catch(() => 'Unknown error');
+          errorMessage = `Error: ${errorText}`;
+        }
+        throw new Error(errorMessage);
       }
       
       const data = await res.json();
       const botResponse = data.choices?.[0]?.message?.content || 
-                        'I apologize, but I seem to be having trouble processing your request.';
+                         'I apologize, but I seem to be having trouble processing your request.';
       
-      addMessage('bot', botResponse);
+      // Replace thinking with actual response
+      const finalMessages = updatedMessages.slice(0, -1).concat({
+        role: 'bot',
+        content: botResponse,
+        time: new Date().toISOString()
+      });
+      
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
     } catch (err) {
       console.error('API error:', err);
-      addMessage('bot', `I'm sorry, I encountered an error: ${err.message}. Please try again later.`);
-    } finally {
-      setIsLoading(false);
+      
+      // Replace thinking with error message
+      const finalMessages = updatedMessages.slice(0, -1).concat({
+        role: 'bot',
+        content: `I'm sorry, I encountered an error: ${err.message}. Please try again later.`,
+        time: new Date().toISOString()
+      });
+      
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
     }
-  }, [addMessage]);
+  }
+
+  // Handle starting a new chat
+  function handleNewChat() {
+    setMessages([]);
+    setShowWelcome(true);
+    localStorage.removeItem('griotbot-history');
+  }
 
   return (
     <>
       <Head>
         <title>GriotBot - Your Digital Griot</title>
         <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
         
+        {/* Add animations for thinking indicator */}
         <style dangerouslySetInnerHTML={{ __html: `
-          :root {
-            --bg-color: #f8f5f0;
-            --text-color: #33302e;
-            --header-bg: #c49a6c;
-            --accent-color: #d7722c;
+          @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
           }
-
-          [data-theme="dark"] {
-            --bg-color: #292420;
-            --text-color: #f0ece4;
-            --header-bg: #50392d;
+          
+          @keyframes pulse {
+            0% { opacity: 0.6; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.6; transform: scale(0.95); }
           }
-
-          * {
-            box-sizing: border-box;
-          }
-
-          html, body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            height: 100vh;
-            overflow: hidden;
-            transition: background-color 0.3s, color 0.3s;
-          }
-
-          .header {
-            background-color: var(--header-bg);
-            height: 60px;
-            position: relative;
-            z-index: 100;
+          
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
           }
         `}} />
       </Head>
-      
-      <Header 
-        sidebarVisible={sidebarVisible}
-        onToggleSidebar={toggleSidebar}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-      />
 
-      <Sidebar 
-        visible={sidebarVisible}
-        onClose={closeSidebar}
-        onNewChat={handleNewChat}
-      />
+      <Layout>
+        {/* MAIN CHAT AREA - now with ref for scrolling */}
+        <main 
+          id="chat-container" 
+          ref={chatContainerRef}
+          aria-label="Chat messages" 
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            overflowY: 'auto',
+            padding: '1rem',
+            paddingBottom: '140px',
+            scrollBehavior: 'smooth',
+            scrollPaddingBottom: '140px',
+            transition: 'background-color 0.3s',
+            height: 'calc(100vh - 160px)',
+            position: 'fixed',
+            top: '60px',
+            left: 0,
+            right: 0,
+            backgroundColor: 'var(--bg-color)',
+          }}
+        >
+          {showWelcome ? (
+            <div className="welcome-container" id="welcome" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              maxWidth: '100%',
+              margin: '1rem auto 2rem',
+              width: '100%',
+              padding: '0 1rem',
+            }}>
+              {/* Welcome Header */}
+              <h1 style={{
+                color: '#c49a6c',
+                fontSize: '2.5rem',
+                fontFamily: 'Lora, serif',
+                margin: '2rem 0 0.5rem',
+                fontWeight: 'normal',
+                textAlign: 'center',
+                width: '100%',
+              }}>
+                Welcome to GriotBot
+              </h1>
+              
+              {/* Subtitle */}
+              <p style={{
+                color: 'var(--text-color)',
+                fontSize: '1.1rem',
+                opacity: 0.85,
+                marginBottom: '2rem',
+                textAlign: 'center',
+                maxWidth: '600px',
+              }}>
+                Your AI companion for culturally rich conversations and wisdom
+              </p>
+              
+              {/* Marcus Garvey Quote */}
+              <div style={{
+                fontStyle: 'italic',
+                color: '#6b4226',
+                margin: '1rem 0 3rem',
+                maxWidth: '800px',
+                textAlign: 'center',
+                fontSize: '1.2rem',
+                lineHeight: 1.5,
+              }}>
+                "A people without the knowledge of their past history,<br/>
+                origin and culture is like a tree without roots."
+                <div style={{
+                  marginTop: '0.75rem',
+                  fontStyle: 'normal',
+                  fontSize: '1rem',
+                }}>
+                  â€” Marcus Mosiah Garvey
+                </div>
+              </div>
+              
+              {/* Tabs/Category Buttons */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '1.5rem',
+                flexWrap: 'wrap',
+                width: '100%',
+                maxWidth: '800px',
+                margin: '0 auto 2rem',
+              }}>
+                <div 
+                  className="category-tab" 
+                  data-prompt="Tell me a story about resilience from the African diaspora"
+                  style={{
+                    backgroundColor: 'white',
+                    padding: '0.75rem 2rem',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    color: '#d7722c',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    textAlign: 'center',
+                    fontSize: '1rem',
+                    minWidth: '180px',
+                  }}
+                >
+                  STORYTELLING
+                </div>
+                
+                <div 
+                  className="category-tab" 
+                  data-prompt="Share some wisdom about community building from African traditions"
+                  style={{
+                    backgroundColor: 'white',
+                    padding: '0.75rem 2rem',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    color: '#d7722c',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    textAlign: 'center',
+                    fontSize: '1rem',
+                    minWidth: '180px',
+                  }}
+                >
+                  WISDOM
+                </div>
+                
+                <div 
+                  className="category-tab" 
+                  data-prompt="Explain the historical significance of Juneteenth"
+                  style={{
+                    backgroundColor: 'white',
+                    padding: '0.75rem 2rem',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    color: '#d7722c',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    textAlign: 'center',
+                    fontSize: '1rem',
+                    minWidth: '180px',
+                  }}
+                >
+                  HISTORY
+                </div>
+              </div>
+              
+              {/* Hidden legacy suggestion cards for compatibility */}
+              <div className="suggestion-cards" style={{ display: 'none' }}>
+                <div className="suggestion-card" data-prompt="Tell me a story about resilience from the African diaspora">
+                  <div className="suggestion-category">Storytelling</div>
+                  <h3 className="suggestion-title">Tell me a diaspora story about resilience</h3>
+                </div>
+                
+                <div className="suggestion-card" data-prompt="Share some wisdom about community building from African traditions">
+                  <div className="suggestion-category">Wisdom</div>
+                  <h3 className="suggestion-title">African wisdom on community building</h3>
+                </div>
+                
+                <div className="suggestion-card" data-prompt="How can I connect more with my cultural heritage?">
+                  <div className="suggestion-category">Personal Growth</div>
+                  <h3 className="suggestion-title">Connect with my cultural heritage</h3>
+                </div>
+                
+                <div className="suggestion-card" data-prompt="Explain the historical significance of Juneteenth">
+                  <div className="suggestion-category">History</div>
+                  <h3 className="suggestion-title">The historical significance of Juneteenth</h3>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div id="chat" aria-live="polite" style={{ 
+              width: '100%', 
+              maxWidth: '700px',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              {messages.map((message, index) => (
+                <div 
+                  key={index} 
+                  className={`message ${message.role} ${message.thinking ? 'thinking' : ''}`}
+                  style={{
+                    padding: '1rem 1.2rem',
+                    margin: '0.5rem 0',
+                    borderRadius: '12px',
+                    maxWidth: message.role === 'user' ? '50%' : '85%', // Increased bot message width to 85%
+                    width: message.role === 'bot' ? '85%' : 'fit-content', // Fixed width for bot messages
+                    wordWrap: 'break-word',
+                    boxShadow: '0 3px 6px var(--shadow-color)',
+                    alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
+                    backgroundColor: message.role === 'user' 
+                      ? 'var(--user-bubble)' 
+                      : 'var(--bot-bubble-start)',
+                    color: message.role === 'user' 
+                      ? 'var(--user-text)' 
+                      : 'var(--bot-text)',
+                    display: 'block',
+                    marginLeft: message.role === 'user' ? 'auto' : '0',
+                    marginRight: message.role === 'bot' ? 'auto' : '0',
+                  }}
+                >
+                  {message.thinking ? (
+                    // Enhanced thinking indicator with cultural relevance
+                    <div className="thinking-state" style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      padding: '1rem 0.5rem',
+                      gap: '0.75rem',
+                      width: '100%'
+                    }}>
+                      <div className="bot-header" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginBottom: '0.8rem',
+                        paddingBottom: '0.5rem',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                        width: '100%'
+                      }}>
+                        <img 
+                          src="/images/logo-light.svg" 
+                          alt="GriotBot Logo" 
+                          style={{ 
+                            height: '20px',
+                            width: 'auto',
+                            animation: 'pulse 2s infinite ease-in-out'
+                          }} 
+                          aria-hidden="true"
+                        />
+                        {/* Removed the GriotBot text */}
+                      </div>
+                      
+                      <div style={{
+                        fontStyle: 'italic',
+                        marginBottom: '0.5rem',
+                        color: 'rgba(255,255,255,0.9)',
+                        animation: 'fadeIn 0.5s ease-in'
+                      }}>
+                        {thinkingPhrases[thinkingPhraseIndex]}
+                      </div>
+                      
+                      <div className="typing-animation" style={{
+                        display: 'flex',
+                        gap: '0.4rem',
+                        justifyContent: 'center'
+                      }}>
+                        {[0, 1, 2].map((i) => (
+                          <span key={i} style={{
+                            height: '8px',
+                            width: '8px',
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            borderRadius: '50%',
+                            display: 'inline-block',
+                            animation: 'typingBounce 1.4s infinite ease-in-out both',
+                            animationDelay: `${i * 0.2}s`
+                          }}></span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {message.role === 'bot' && (
+                        <>
+                          <div className="bot-header" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginBottom: '0.8rem',
+                            paddingBottom: '0.5rem',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                          }}>
+                            {/* Logo image only - no text */}
+                            <img 
+                              src="/images/logo-light.svg" 
+                              alt="GriotBot" 
+                              style={{ 
+                                height: '20px',
+                                width: 'auto'
+                              }} 
+                              aria-hidden="true"
+                            />
+                          </div>
+                          
+                          <div>{message.content}</div>
+                          
+                          {/* Action buttons row with modern SVG icons */}
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginTop: '0.8rem',
+                            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                            paddingTop: '0.5rem',
+                          }}>
+                            <div className="message-time" style={{
+                              fontSize: '0.7rem',
+                              opacity: 0.7,
+                            }}>
+                              {new Date(message.time).toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </div>
+                            
+                            <div style={{
+                              display: 'flex',
+                              gap: '0.75rem',
+                            }}>
+                              {/* Copy button with SVG icon */}
+                              <button 
+                                onClick={() => copyToClipboard(message.content)} 
+                                aria-label="Copy response"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  opacity: 0.8,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.opacity = 1}
+                                onMouseOut={(e) => e.currentTarget.style.opacity = 0.8}
+                              >
+                                {copiedMessageId === message.content.substring(0, 20) ? (
+                                  // Checkmark SVG for "copied" state
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                ) : (
+                                  // Copy SVG icon
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                  </svg>
+                                )}
+                              </button>
+                              
+                              {/* Thumbs up button with SVG icon */}
+                              <button 
+                                onClick={() => handleFeedback(index, true)} 
+                                aria-label="Helpful response"
+                                disabled={feedbackGiven[index]}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: feedbackGiven[index] === 'positive' ? 'rgba(121, 214, 152, 1)' : 'rgba(255, 255, 255, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '4px',
+                                  cursor: feedbackGiven[index] ? 'default' : 'pointer',
+                                  opacity: feedbackGiven[index] ? 1 : 0.8,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseOver={(e) => {
+                                  if (!feedbackGiven[index]) e.currentTarget.style.opacity = 1;
+                                }}
+                                onMouseOut={(e) => {
+                                  if (!feedbackGiven[index]) e.currentTarget.style.opacity = 0.8;
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
+                              </button>
+                              
+                              {/* Thumbs down button with SVG icon */}
+                              <button 
+                                onClick={() => handleFeedback(index, false)} 
+                                aria-label="Unhelpful response"
+                                disabled={feedbackGiven[index]}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: feedbackGiven[index] === 'negative' ? 'rgba(239, 83, 80, 1)' : 'rgba(255, 255, 255, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '4px',
+                                  cursor: feedbackGiven[index] ? 'default' : 'pointer',
+                                  opacity: feedbackGiven[index] ? 1 : 0.8,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseOver={(e) => {
+                                  if (!feedbackGiven[index]) e.currentTarget.style.opacity = 1;
+                                }}
+                                onMouseOut={(e) => {
+                                  if (!feedbackGiven[index]) e.currentTarget.style.opacity = 0.8;
+                                }}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm10-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+                                </svg>
+                              </button>
+                              
+                              {/* Regenerate button with SVG icon */}
+                              <button 
+                                onClick={() => {
+                                  // Find the user message that prompted this response
+                                  const userMessageIndex = index - 1;
+                                  if (userMessageIndex >= 0 && messages[userMessageIndex].role === 'user') {
+                                    regenerateResponse(messages[userMessageIndex].content);
+                                  }
+                                }} 
+                                aria-label="Regenerate response"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  opacity: 0.8,
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.opacity = 1}
+                                onMouseOut={(e) => e.currentTarget.style.opacity = 0.8}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M23 4v6h-6"></path>
+                                  <path d="M1 20v-6h6"></path>
+                                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {message.role === 'user' && (
+                        <div>{message.content}</div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+              {/* Invisible element to scroll to */}
+              <div ref={chatEndRef} style={{ height: '1px', opacity: 0 }} />
+            </div>
+          )}
+        </main>
 
-      <ChatArea 
-        messages={messages}
-        isLoading={isLoading}
-        onSuggestionClick={handleSuggestionClick}
-      />
+        {/* Input component */}
+        <ChatInput onSubmit={handleSendMessage} />
 
-      <ChatInput 
-        onSendMessage={sendMessage}
-        disabled={isLoading}
-      />
-
-      <div className="proverb" aria-label="Random proverb">{proverb}</div>
-      <div className="copyright" aria-label="Copyright information">© 2025 GriotBot. All rights reserved.</div>
+        {/* Direct footer components */}
+        <FooterProverb />
+        <FooterCopyright />
+      </Layout>
     </>
   );
 }
