@@ -1,36 +1,62 @@
-// components/EnhancedSidebar.js
+// File: /components/EnhancedSidebar.js
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 
 export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
-  const router = useRouter();
-  const currentPath = router.pathname;
+  const sidebarRef = useRef(null);
 
-  // Handle new chat click
-  const handleNewChatClick = (e) => {
-    e.preventDefault();
+  // Handle click outside to close sidebar
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target) && isVisible) {
+        onClose();
+      }
+    };
+
+    // Handle escape key to close sidebar
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && isVisible) {
+        onClose();
+      }
+    };
+
+    if (isVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
+      // Prevent body scroll when sidebar is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isVisible, onClose]);
+
+  // Handle new chat and close sidebar
+  const handleNewChatClick = () => {
     onNewChat();
-    onClose(); // Close sidebar after clicking
-  };
-
-  // Handle link clicks that should close sidebar
-  const handleLinkClick = () => {
     onClose();
   };
 
   return (
     <>
-      {/* Overlay */}
+      {/* Backdrop overlay */}
       {isVisible && (
         <div
           style={{
             position: 'fixed',
             top: 0,
             left: 0,
-            right: 0,
-            bottom: 0,
+            width: '100%',
+            height: '100%',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             zIndex: 999,
+            opacity: isVisible ? 1 : 0,
+            transition: 'opacity 0.3s ease-in-out',
           }}
           onClick={onClose}
         />
@@ -38,245 +64,418 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
 
       {/* Sidebar */}
       <nav 
+        ref={sidebarRef}
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
           height: '100%',
           width: '280px',
-          background: 'var(--sidebar-bg, rgba(75, 46, 42, 0.97))',
-          color: 'var(--sidebar-text, #f8f5f0)',
-          padding: '1.5rem',
+          background: 'var(--sidebar-bg)',
+          color: 'var(--sidebar-text)',
+          padding: 0,
           transform: isVisible ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.3s ease-in-out, background 0.3s',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          boxShadow: '4px 0 20px var(--shadow-color, rgba(75, 46, 42, 0.15))',
+          boxShadow: '4px 0 20px var(--shadow-color)',
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.5rem',
-          overflowY: 'auto',
+          overflow: 'hidden',
         }}
-        id="sidebar"
         aria-hidden={!isVisible}
         aria-label="Main navigation"
       >
-        {/* Header */}
+        {/* Sidebar Header */}
         <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-          paddingBottom: '0.5rem',
-          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          padding: '1.5rem 1.5rem 1rem 1.5rem',
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          position: 'relative',
         }}>
-          <div style={{
+          <h2 style={{
+            margin: 0,
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
             fontFamily: 'Lora, serif',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
+            fontSize: '1.3rem',
+            fontWeight: '600',
           }}>
             <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
             GriotBot
-          </div>
+          </h2>
+        </div>
+
+        {/* Return to Chat Section */}
+        <div style={{
+          padding: '1.5rem 1.5rem 0 1.5rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <Link href="/">
+            <a 
+              style={{
+                backgroundColor: 'var(--accent-color)',
+                color: 'white',
+                padding: '0.7rem 1.2rem',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontWeight: '500',
+                fontSize: '0.95rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'background-color 0.2s, transform 0.2s',
+                border: 'none',
+              }}
+              onClick={onClose}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'var(--accent-hover)';
+                e.target.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'var(--accent-color)';
+                e.target.style.transform = 'translateY(0)';
+              }}
+            >
+              <span style={{ fontSize: '1rem' }}>🏠</span>
+              Return to chat
+            </a>
+          </Link>
           
-          {/* Close button */}
           <button
             onClick={onClose}
             style={{
               background: 'none',
               border: 'none',
-              color: 'var(--sidebar-text, #f8f5f0)',
-              fontSize: '1.5rem',
+              color: 'var(--sidebar-text)',
+              fontSize: '1.3rem',
               cursor: 'pointer',
-              padding: '0.25rem',
+              padding: '0.5rem',
               borderRadius: '4px',
               transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: '0.8',
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
             aria-label="Close sidebar"
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.opacity = '1';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.opacity = '0.8';
+            }}
           >
-            ×
+            ✕
           </button>
         </div>
-        
-        {/* Conversations Section */}
-        <div style={{ marginBottom: '1rem' }}>
-          <h3 style={{
-            fontSize: '0.9rem',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            marginBottom: '0.5rem',
-            opacity: '0.8',
-            margin: '0 0 0.5rem 0',
-          }}>
-            Conversations
-          </h3>
-          
-          <a
-            href="#"
-            onClick={handleNewChatClick}
-            style={{
-              color: 'var(--sidebar-text, #f8f5f0)',
-              textDecoration: 'none',
-              padding: '0.5rem',
-              borderRadius: '6px',
-              transition: 'background-color 0.2s',
-              display: 'block',
-              marginBottom: '0.5rem',
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            <span aria-hidden="true" style={{ marginRight: '0.5rem' }}>+</span> New Chat
-          </a>
-          
-          <a href="#" style={{
-            color: 'var(--sidebar-text, #f8f5f0)',
-            textDecoration: 'none',
-            padding: '0.5rem',
-            borderRadius: '6px',
-            transition: 'background-color 0.2s',
-            display: 'block',
-            marginBottom: '0.5rem',
-            opacity: '0.7',
+
+        {/* Vertical line divider */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: '25px',
+            top: '180px',
+            bottom: '25px',
+            width: '1px',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            zIndex: 1,
           }}
-          onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-          onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            Saved Conversations
-          </a>
-        </div>
-        
-        {/* Explore Section */}
-        <div style={{ marginBottom: '1rem' }}>
-          <h3 style={{
-            fontSize: '0.9rem',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            marginBottom: '0.5rem',
-            opacity: '0.8',
-            margin: '0 0 0.5rem 0',
-          }}>
-            Explore
-          </h3>
-          
-          <a href="#" style={{
-            color: 'var(--sidebar-text, #f8f5f0)',
-            textDecoration: 'none',
-            padding: '0.5rem',
-            borderRadius: '6px',
-            transition: 'background-color 0.2s',
-            display: 'block',
-            marginBottom: '0.5rem',
-            opacity: '0.7',
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-          onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            Historical Figures
-          </a>
-          
-          <a href="#" style={{
-            color: 'var(--sidebar-text, #f8f5f0)',
-            textDecoration: 'none',
-            padding: '0.5rem',
-            borderRadius: '6px',
-            transition: 'background-color 0.2s',
-            display: 'block',
-            marginBottom: '0.5rem',
-            opacity: '0.7',
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-          onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            Cultural Stories
-          </a>
-          
-          <a href="#" style={{
-            color: 'var(--sidebar-text, #f8f5f0)',
-            textDecoration: 'none',
-            padding: '0.5rem',
-            borderRadius: '6px',
-            transition: 'background-color 0.2s',
-            display: 'block',
-            opacity: '0.7',
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-          onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            Diaspora Community
-          </a>
-        </div>
-        
-        {/* About Section */}
-        <div style={{ marginBottom: '1rem' }}>
-          <h3 style={{
-            fontSize: '0.9rem',
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            marginBottom: '0.5rem',
-            opacity: '0.8',
-            margin: '0 0 0.5rem 0',
-          }}>
-            About
-          </h3>
-          
-          <Link href="/about">
-            <a
-              onClick={handleLinkClick}
-              style={{
-                color: 'var(--sidebar-text, #f8f5f0)',
-                textDecoration: 'none',
-                padding: '0.5rem',
-                borderRadius: '6px',
-                transition: 'background-color 0.2s',
-                display: 'block',
-                marginBottom: '0.5rem',
-                backgroundColor: currentPath === '/about' ? 'rgba(255,255,255,0.15)' : 'transparent',
-              }}
-              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-              onMouseOut={(e) => e.target.style.backgroundColor = currentPath === '/about' ? 'rgba(255,255,255,0.15)' : 'transparent'}
-            >
-              About GriotBot
-            </a>
-          </Link>
-          
-          <Link href="/feedback">
-            <a
-              onClick={handleLinkClick}
-              style={{
-                color: 'var(--sidebar-text, #f8f5f0)',
-                textDecoration: 'none',
-                padding: '0.5rem',
-                borderRadius: '6px',
-                transition: 'background-color 0.2s',
-                display: 'block',
-                backgroundColor: currentPath === '/feedback' ? 'rgba(255,255,255,0.15)' : 'transparent',
-              }}
-              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-              onMouseOut={(e) => e.target.style.backgroundColor = currentPath === '/feedback' ? 'rgba(255,255,255,0.15)' : 'transparent'}
-            >
-              Share Feedback
-            </a>
-          </Link>
-        </div>
-        
-        {/* Footer Quote */}
+        />
+
+        {/* Scrollable content area */}
         <div style={{
-          marginTop: 'auto',
+          flex: 1,
+          overflowY: 'auto',
+          padding: '1rem 0 1rem 0',
+          position: 'relative',
+        }}>
+          {/* Conversations Section */}
+          <div style={{ 
+            marginBottom: '1.5rem',
+            paddingLeft: '3rem',
+            paddingRight: '1.5rem',
+          }}>
+            <h3 style={{
+              fontSize: '0.8rem',
+              textTransform: 'uppercase',
+              letterSpacing: '1.2px',
+              marginBottom: '0.8rem',
+              opacity: '0.9',
+              fontWeight: '600',
+              color: 'var(--sidebar-text)',
+            }}>
+              Conversations
+            </h3>
+            
+            <button 
+              onClick={handleNewChatClick}
+              style={{
+                color: 'var(--sidebar-text)',
+                background: 'none',
+                border: 'none',
+                padding: '0.6rem 0',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s, padding-left 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                width: '100%',
+                textAlign: 'left',
+                marginBottom: '0.3rem',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                e.target.style.paddingLeft = '0.5rem';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.paddingLeft = '0';
+              }}
+            >
+              <span style={{ fontSize: '1rem' }}>➕</span>
+              New Chat
+            </button>
+            
+            <Link href="#saved-chats">
+              <a style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.6rem 0',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s, padding-left 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                marginBottom: '0.3rem',
+                fontSize: '0.95rem',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                e.target.style.paddingLeft = '0.5rem';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.paddingLeft = '0';
+              }}>
+                <span style={{ fontSize: '1rem' }}>💬</span>
+                Saved Chats
+              </a>
+            </Link>
+            
+            <Link href="#saved-stories">
+              <a style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.6rem 0',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s, padding-left 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                fontSize: '0.95rem',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                e.target.style.paddingLeft = '0.5rem';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.paddingLeft = '0';
+              }}>
+                <span style={{ fontSize: '1rem' }}>📚</span>
+                Saved Stories
+              </a>
+            </Link>
+          </div>
+          
+          {/* Explore Section */}
+          <div style={{ 
+            marginBottom: '1.5rem',
+            paddingLeft: '3rem',
+            paddingRight: '1.5rem',
+          }}>
+            <h3 style={{
+              fontSize: '0.8rem',
+              textTransform: 'uppercase',
+              letterSpacing: '1.2px',
+              marginBottom: '0.8rem',
+              opacity: '0.9',
+              fontWeight: '600',
+              color: 'var(--sidebar-text)',
+            }}>
+              Explore
+            </h3>
+            
+            <Link href="#historical-figures">
+              <a style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.6rem 0',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s, padding-left 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                marginBottom: '0.3rem',
+                fontSize: '0.95rem',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                e.target.style.paddingLeft = '0.5rem';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.paddingLeft = '0';
+              }}>
+                <span style={{ fontSize: '1rem' }}>👑</span>
+                Historical Figures
+              </a>
+            </Link>
+            
+            <Link href="#cultural-stories">
+              <a style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.6rem 0',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s, padding-left 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                marginBottom: '0.3rem',
+                fontSize: '0.95rem',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                e.target.style.paddingLeft = '0.5rem';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.paddingLeft = '0';
+              }}>
+                <span style={{ fontSize: '1rem' }}>🎭</span>
+                Cultural Stories
+              </a>
+            </Link>
+            
+            <Link href="#diaspora-community">
+              <a style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.6rem 0',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s, padding-left 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                fontSize: '0.95rem',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                e.target.style.paddingLeft = '0.5rem';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.paddingLeft = '0';
+              }}>
+                <span style={{ fontSize: '1rem' }}>🌍</span>
+                Diaspora Community
+              </a>
+            </Link>
+          </div>
+          
+          {/* About Section */}
+          <div style={{ 
+            marginBottom: '1.5rem',
+            paddingLeft: '3rem',
+            paddingRight: '1.5rem',
+          }}>
+            <h3 style={{
+              fontSize: '0.8rem',
+              textTransform: 'uppercase',
+              letterSpacing: '1.2px',
+              marginBottom: '0.8rem',
+              opacity: '0.9',
+              fontWeight: '600',
+              color: 'var(--sidebar-text)',
+            }}>
+              About
+            </h3>
+            
+            <Link href="/about">
+              <a style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.6rem 0',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s, padding-left 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                marginBottom: '0.3rem',
+                fontSize: '0.95rem',
+              }}
+              onClick={onClose}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                e.target.style.paddingLeft = '0.5rem';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.paddingLeft = '0';
+              }}>
+                <span style={{ fontSize: '1rem' }}>ℹ️</span>
+                About GriotBot
+              </a>
+            </Link>
+            
+            <Link href="/feedback">
+              <a style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.6rem 0',
+                borderRadius: '6px',
+                transition: 'background-color 0.2s, padding-left 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.7rem',
+                fontSize: '0.95rem',
+              }}
+              onClick={onClose}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                e.target.style.paddingLeft = '0.5rem';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.paddingLeft = '0';
+              }}>
+                <span style={{ fontSize: '1rem' }}>💭</span>
+                Share Feedback
+              </a>
+            </Link>
+          </div>
+        </div>
+        
+        {/* Footer */}
+        <div style={{
+          padding: '1.5rem',
+          borderTop: '1px solid rgba(255,255,255,0.1)',
           fontSize: '0.8rem',
-          opacity: '0.7',
+          opacity: '0.8',
           textAlign: 'center',
           fontStyle: 'italic',
           fontFamily: 'Lora, serif',
-          lineHeight: 1.4,
-          padding: '1rem 0.5rem',
-          borderTop: '1px solid rgba(255,255,255,0.1)',
+          lineHeight: '1.4',
         }}>
           "Preserving our stories,<br/>empowering our future."
         </div>
