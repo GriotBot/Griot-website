@@ -1,19 +1,6 @@
 // File: /components/EnhancedSidebar.js
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { 
-  X, 
-  Home, 
-  Plus, 
-  MessageCircle, 
-  BookOpen, 
-  Crown, 
-  Users, 
-  Globe, 
-  Info, 
-  MessageSquare,
-  Menu
-} from 'react-feather';
 
 export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
   const sidebarRef = useRef(null);
@@ -67,7 +54,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
             width: '100%',
             height: '100%',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1000,
+            zIndex: 999,
             opacity: isVisible ? 1 : 0,
             transition: 'opacity 0.3s ease-in-out',
           }}
@@ -92,7 +79,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           boxShadow: '4px 0 20px var(--shadow-color)',
-          zIndex: 1002,
+          zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -105,17 +92,19 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
           padding: '1.5rem 1.5rem 1rem 1.5rem',
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
         }}>
-          <div style={{
-            transform: 'rotate(90deg)',
-            color: 'var(--sidebar-text)',
-            opacity: 0.8,
+          <h2 style={{
+            margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontFamily: 'Lora, serif',
+            fontSize: '1.3rem',
+            fontWeight: '600',
           }}>
-            <Menu size={24} />
-          </div>
+            <span style={{ fontSize: '1.5rem' }} aria-hidden="true">ðŸŒ¿</span>
+            GriotBot
+          </h2>
         </div>
 
         {/* Return to Chat Section */}
@@ -151,7 +140,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.transform = 'translateY(0)';
               }}
             >
-              <Home size={16} />
+              <span style={{ fontSize: '1rem' }}>ðŸ </span>
               Return to chat
             </a>
           </Link>
@@ -162,6 +151,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
               background: 'none',
               border: 'none',
               color: 'var(--sidebar-text)',
+              fontSize: '1.3rem',
               cursor: 'pointer',
               padding: '0.5rem',
               borderRadius: '4px',
@@ -181,7 +171,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
               e.target.style.opacity = '0.8';
             }}
           >
-            <X size={18} />
+            âœ•
           </button>
         </div>
 
@@ -251,7 +241,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.paddingLeft = '0';
               }}
             >
-              <Plus size={16} />
+              <span style={{ fontSize: '1rem' }}>âž•</span>
               New Chat
             </button>
             
@@ -276,7 +266,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <MessageCircle size={16} />
+                <span style={{ fontSize: '1rem' }}>ðŸ’¬</span>
                 Saved Chats
               </a>
             </Link>
@@ -301,7 +291,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <BookOpen size={16} />
+                <span style={{ fontSize: '1rem' }}>ðŸ“š</span>
                 Saved Stories
               </a>
             </Link>
@@ -346,7 +336,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <Crown size={16} />
+                <span style={{ fontSize: '1rem' }}>ðŸ‘‘</span>
                 Historical Figures
               </a>
             </Link>
@@ -372,7 +362,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <Users size={16} />
+                <span style={{ fontSize: '1rem' }}>ðŸŽ­</span>
                 Cultural Stories
               </a>
             </Link>
@@ -397,7 +387,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <Globe size={16} />
+                <span style={{ fontSize: '1rem' }}>ðŸŒ</span>
                 Diaspora Community
               </a>
             </Link>
@@ -443,7 +433,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <Info size={16} />
+                <span style={{ fontSize: '1rem' }}>â„¹ï¸</span>
                 About GriotBot
               </a>
             </Link>
@@ -469,7 +459,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <MessageSquare size={16} />
+                <span style={{ fontSize: '1rem' }}>ðŸ’­</span>
                 Share Feedback
               </a>
             </Link>
