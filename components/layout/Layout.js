@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import Header from '../Header';
-import EnhancedSidebar from '../EnhancedSidebar';
+import Header from '../Header'; // Use the main Header component
+import EnhancedSidebar from '../EnhancedSidebar'; // Use the main EnhancedSidebar
 
 export default function Layout({ children, title = 'GriotBot' }) {
   const [theme, setTheme] = useState('light');
@@ -73,7 +73,7 @@ export default function Layout({ children, title = 'GriotBot' }) {
       
       {/* Sidebar navigation */}
       <EnhancedSidebar 
-        visible={sidebarVisible} 
+        isVisible={sidebarVisible} 
         onClose={() => setSidebarVisible(false)} 
       />
       
