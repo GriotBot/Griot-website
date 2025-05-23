@@ -2,10 +2,24 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import EnhancedSidebar from '../components/EnhancedSidebar';
+import MessageCirclePlus from '../components/icons/MessageCirclePlus';
+import { 
+  Menu, 
+  LogIn, 
+  Sun, 
+  Moon,
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCw
+} from 'react-feather';
 
 export default function Home() {
   // State to ensure we can access DOM elements after mounting
   const [isClient, setIsClient] = useState(false);
+  
+  // State management
+  const [theme, setTheme] = useState('light');
   
   // Sidebar state - moved to React state management
   const [sidebarVisible, setSidebarVisible] = useState(false);
@@ -51,6 +65,11 @@ export default function Home() {
       if (savedStorytellerMode !== null) {
         setStorytellerMode(JSON.parse(savedStorytellerMode));
       }
+      
+      // Load theme preference
+      const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
     } catch (err) {
       console.error('Error loading preferences:', err);
     }
@@ -68,42 +87,14 @@ export default function Home() {
 
   // Function that initializes remaining chat functionality
   function initializeChat() {
-    const themeToggle = document.getElementById('themeToggle');
     const factElement = document.getElementById('fact');
     const suggestionCards = document.querySelectorAll('.suggestion-card');
 
     // If any element is missing, return (may happen during initial mounting)
-    if (!themeToggle || !factElement) {
+    if (!factElement) {
       console.warn('Some DOM elements not found, initialization delayed');
       return;
     }
-
-    // THEME TOGGLE
-    function setTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('griotbot-theme', theme);
-      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-      themeToggle.setAttribute('aria-label', 
-        theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-    }
-    
-    // Initialize theme from localStorage or user preference
-    (function() {
-      const savedTheme = localStorage.getItem('griotbot-theme');
-      if (savedTheme) {
-        setTheme(savedTheme);
-      } else {
-        // Check for system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        setTheme(prefersDark ? 'dark' : 'light');
-      }
-    })();
-    
-    // Handle theme toggle click
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      setTheme(currentTheme === 'light' ? 'dark' : 'light');
-    });
 
     // RANDOM PROVERB
     const proverbs = [
@@ -238,6 +229,14 @@ export default function Home() {
     }
   };
 
+  // Handle theme toggle
+  const handleThemeToggle = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('griotbot-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
   // Handle storyteller mode change
   const handleStorytellerModeChange = (newMode) => {
     setStorytellerMode(newMode);
@@ -280,7 +279,25 @@ export default function Home() {
             paddingBottom: '0.5rem',
             borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-            <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>🌿</span>
+            <img 
+              src={theme === 'dark' ? '/images/logo-light.svg' : '/images/logo-dark.svg'}
+              alt="GriotBot" 
+              style={{
+                height: '20px',
+                width: 'auto',
+                marginRight: '0.5rem',
+              }}
+              onError={(e) => {
+                // Fallback if logo doesn't exist
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'inline';
+              }}
+            />
+            <span style={{ 
+              display: 'none',
+              fontSize: '1.2rem', 
+              marginRight: '0.5rem' 
+            }}>🌿</span>
             <span style={{ fontWeight: '600' }}>GriotBot</span>
           </div>
         )}
@@ -297,6 +314,138 @@ export default function Home() {
         }}>
           {formatTime(message.time)}
         </div>
+
+        {/* Action buttons for bot messages */}
+        {!isUser && (
+          <div style={{
+            display: 'flex',
+            gap: '0.5rem',
+            marginTop: '0.8rem',
+            paddingTop: '0.5rem',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            justifyContent: 'flex-start',
+          }}>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(message.content);
+                // Could add a toast notification here
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--bot-text)',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '4px',
+                opacity: '0.7',
+                transition: 'opacity 0.2s, background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Copy message"
+              onMouseEnter={(e) => {
+                e.target.style.opacity = '1';
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.opacity = '0.7';
+                e.target.style.backgroundColor = 'transparent';
+              }}
+            >
+              <Copy size={16} />
+            </button>
+            
+            <button
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--bot-text)',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '4px',
+                opacity: '0.7',
+                transition: 'opacity 0.2s, background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Good response"
+              onMouseEnter={(e) => {
+                e.target.style.opacity = '1';
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.opacity = '0.7';
+                e.target.style.backgroundColor = 'transparent';
+              }}
+            >
+              <ThumbsUp size={16} />
+            </button>
+            
+            <button
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--bot-text)',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '4px',
+                opacity: '0.7',
+                transition: 'opacity 0.2s, background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Poor response"
+              onMouseEnter={(e) => {
+                e.target.style.opacity = '1';
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.opacity = '0.7';
+                e.target.style.backgroundColor = 'transparent';
+              }}
+            >
+              <ThumbsDown size={16} />
+            </button>
+            
+            <button
+              onClick={() => {
+                // Re-send the original user message to get a new response
+                const userMessages = messages.filter(m => m.role === 'user');
+                const correspondingUserMessage = userMessages[Math.floor(index / 2)];
+                if (correspondingUserMessage) {
+                  handleSendMessage(correspondingUserMessage.content);
+                }
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--bot-text)',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '4px',
+                opacity: '0.7',
+                transition: 'opacity 0.2s, background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Regenerate response"
+              onMouseEnter={(e) => {
+                e.target.style.opacity = '1';
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.opacity = '0.7';
+                e.target.style.backgroundColor = 'transparent';
+              }}
+            >
+              <RotateCw size={16} />
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -409,7 +558,7 @@ export default function Home() {
         fontSize: '1.2rem',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         gap: '1rem',
         boxShadow: '0 2px 10px var(--shadow-color)',
         zIndex: 1001,
@@ -417,11 +566,10 @@ export default function Home() {
         fontFamily: 'Lora, serif',
         height: '70px',
       }}>
+        {/* LEFT SIDE - Menu */}
         <button 
           onClick={handleSidebarToggle}
           style={{
-            position: 'absolute',
-            left: '1rem',
             fontSize: '1.5rem',
             color: 'var(--header-text)',
             display: 'flex',
@@ -432,45 +580,142 @@ export default function Home() {
             cursor: 'pointer',
             padding: '8px 12px',
             borderRadius: '6px',
-            transition: 'transform 0.3s ease',
-            transform: sidebarVisible ? 'rotate(45deg)' : 'none',
+            transition: 'background-color 0.2s',
+            position: 'relative',
           }}
           aria-label="Toggle sidebar"
           aria-expanded={sidebarVisible}
           aria-controls="sidebar"
+          title="Menu"
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'transparent';
+          }}
         >
-          ☰
+          <Menu size={24} />
         </button>
         
+        {/* CENTER - Logo */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem'
+          justifyContent: 'center',
+          flex: 1,
         }}>
-          <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
-          <span>GriotBot</span>
+          <img 
+            src="/images/GriotBot logo horiz wht.svg" 
+            alt="GriotBot" 
+            style={{
+              height: '40px',
+              width: 'auto',
+            }}
+            onError={(e) => {
+              // Fallback if logo doesn't exist
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+          {/* Fallback text logo */}
+          <div style={{
+            display: 'none',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+          }}>
+            🌿 GriotBot
+          </div>
         </div>
         
-        <button 
-          id="themeToggle"
-          style={{
-            position: 'absolute',
-            right: '1rem',
-            fontSize: '1.5rem',
-            color: 'var(--header-text)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '8px 12px',
-            borderRadius: '6px',
-          }}
-          aria-label="Toggle dark/light mode"
-        >
-          🌙
-        </button>
+        {/* RIGHT SIDE - Action Icons */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+        }}>
+          {/* New Chat */}
+          <button 
+            onClick={handleNewChat}
+            style={{
+              color: 'var(--header-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '8px',
+              borderRadius: '6px',
+              transition: 'background-color 0.2s',
+            }}
+            aria-label="New Chat"
+            title="New Chat"
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            <MessageCirclePlus size={24} />
+          </button>
+          
+          {/* Account */}
+          <button 
+            onClick={() => window.location.href = '/comingsoon'}
+            style={{
+              color: 'var(--header-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '8px',
+              borderRadius: '6px',
+              transition: 'background-color 0.2s',
+            }}
+            aria-label="Account"
+            title="Account"
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            <LogIn size={24} />
+          </button>
+          
+          {/* Theme Toggle */}
+          <button 
+            onClick={handleThemeToggle}
+            style={{
+              color: 'var(--header-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '8px',
+              borderRadius: '6px',
+              transition: 'background-color 0.2s',
+            }}
+            aria-label="Toggle theme"
+            title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* ENHANCED SIDEBAR */}
@@ -504,7 +749,31 @@ export default function Home() {
             margin: '1rem auto 2rem',
             transition: 'opacity 0.3s',
           }}>
-            <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>🌿</div>
+            <div style={{ 
+              fontSize: '4rem', 
+              marginBottom: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <img 
+                src={theme === 'dark' ? '/images/logo-light.svg' : '/images/logo-dark.svg'}
+                alt="GriotBot Logo" 
+                style={{
+                  height: '80px',
+                  width: 'auto',
+                }}
+                onError={(e) => {
+                  // Fallback if logo doesn't exist
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <span style={{ 
+                display: 'none',
+                fontSize: '4rem',
+              }}>🌿</span>
+            </div>
             <h1 style={{ 
               fontFamily: 'Lora, serif',
               fontSize: '2rem',
