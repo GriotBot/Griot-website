@@ -490,7 +490,7 @@ export default function Home() {
         overflow: 'hidden',
         padding: '1rem',
         paddingTop: '90px', // Account for fixed header
-        paddingBottom: '200px', // Account for input area + footer
+        paddingBottom: '220px', // Account for unified footer height
         transition: 'background-color 0.3s',
         marginTop: 0,
       }}>
@@ -728,214 +728,206 @@ export default function Home() {
         </div>
       </main>
 
-      {/* CHAT INPUT - Using ChatFooter component if available, otherwise inline */}
+      {/* UNIFIED FOOTER: INPUT + PROVERB + COPYRIGHT */}
       <div style={{
         position: 'fixed',
-        bottom: '85px', // Above the proverb footer section
+        bottom: 0,
         left: 0,
+        right: 0,
         width: '100%',
         background: 'var(--bg-color)',
-        padding: '1rem',
         borderTop: '1px solid var(--input-border)',
         transition: 'background-color 0.3s',
-        display: 'flex',
-        justifyContent: 'center',
         zIndex: 100,
-        boxShadow: '0 -2px 10px var(--shadow-color)',
+        boxShadow: '0 -4px 20px var(--shadow-color)',
+        padding: 0,
       }}>
+        {/* INPUT AREA */}
         <div style={{
-          width: '100%',
-          maxWidth: '875px',
+          padding: '1rem',
           display: 'flex',
-          flexDirection: 'column',
+          justifyContent: 'center',
         }}>
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.target);
-              const message = formData.get('message');
-              if (message && message.trim()) {
-                handleSendMessage(message, storytellerMode);
-                e.target.reset();
-              }
-            }}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <div style={{
-              position: 'relative',
-              display: 'flex',
-              boxShadow: '0 4px 12px var(--shadow-color)',
-              borderRadius: '12px',
-              backgroundColor: 'var(--input-bg)',
-            }}>
-              <textarea 
-                name="message"
-                placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
-                required 
-                disabled={isLoading}
-                style={{
-                  flex: 1,
-                  padding: '0.9rem 1rem',
-                  border: '1px solid var(--input-border)',
-                  borderRight: 'none',
-                  borderRadius: '12px 0 0 12px',
-                  outline: 'none',
-                  resize: 'none',
-                  minHeight: '55px',
-                  maxHeight: '120px',
-                  transition: 'border 0.3s, box-shadow 0.3s, background-color 0.3s',
-                  backgroundColor: 'var(--input-bg)',
-                  color: 'var(--input-text)',
-                  fontFamily: 'Montserrat, sans-serif',
-                  fontSize: '1rem',
-                  lineHeight: 1.5,
-                }}
-                rows="1"
-              />
-              <button 
-                type="submit"
-                disabled={isLoading}
-                style={{
-                  width: '55px',
-                  background: 'var(--accent-color)',
-                  color: 'white',
-                  borderRadius: '0 12px 12px 0',
-                  transition: 'background-color 0.3s, transform 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: 'none',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  opacity: isLoading ? 0.7 : 1,
-                }}
-              >
-                {isLoading ? (
-                  <div className="spinner"></div>
-                ) : (
-                  <span style={{ fontSize: '1.2rem' }}>↑</span>
-                )}
-              </button>
-            </div>
-            
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '0.5rem',
-              fontSize: '0.8rem',
-            }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '875px',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const message = formData.get('message');
+                if (message && message.trim()) {
+                  handleSendMessage(message, storytellerMode);
+                  e.target.reset();
+                }
+              }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <div style={{
-                color: 'var(--text-color)',
-                opacity: 0.7,
+                position: 'relative',
+                display: 'flex',
+                boxShadow: '0 4px 12px var(--shadow-color)',
+                borderRadius: '12px',
+                backgroundColor: 'var(--input-bg)',
               }}>
-                Free users: 30 messages per day
+                <textarea 
+                  name="message"
+                  placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
+                  required 
+                  disabled={isLoading}
+                  style={{
+                    flex: 1,
+                    padding: '0.9rem 1rem',
+                    border: '1px solid var(--input-border)',
+                    borderRight: 'none',
+                    borderRadius: '12px 0 0 12px',
+                    outline: 'none',
+                    resize: 'none',
+                    minHeight: '55px',
+                    maxHeight: '120px',
+                    transition: 'border 0.3s, box-shadow 0.3s, background-color 0.3s',
+                    backgroundColor: 'var(--input-bg)',
+                    color: 'var(--input-text)',
+                    fontFamily: 'Montserrat, sans-serif',
+                    fontSize: '1rem',
+                    lineHeight: 1.5,
+                  }}
+                  rows="1"
+                />
+                <button 
+                  type="submit"
+                  disabled={isLoading}
+                  style={{
+                    width: '55px',
+                    background: 'var(--accent-color)',
+                    color: 'white',
+                    borderRadius: '0 12px 12px 0',
+                    transition: 'background-color 0.3s, transform 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: 'none',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    opacity: isLoading ? 0.7 : 1,
+                  }}
+                >
+                  {isLoading ? (
+                    <div className="spinner"></div>
+                  ) : (
+                    <span style={{ fontSize: '1.2rem' }}>↑</span>
+                  )}
+                </button>
               </div>
               
               <div style={{
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
+                marginTop: '0.5rem',
+                fontSize: '0.8rem',
               }}>
-                <label style={{
+                <div style={{
+                  color: 'var(--text-color)',
+                  opacity: 0.7,
+                }}>
+                  Free users: 30 messages per day
+                </div>
+                
+                <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer',
                 }}>
-                  Storyteller Mode
-                  <div style={{
-                    position: 'relative',
-                    display: 'inline-block',
-                    width: '36px',
-                    height: '20px',
-                    marginLeft: '0.5rem',
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer',
                   }}>
-                    <input 
-                      type="checkbox" 
-                      checked={storytellerMode}
-                      onChange={(e) => handleStorytellerModeChange(e.target.checked)}
-                      style={{
-                        opacity: 0,
-                        width: 0,
-                        height: 0,
-                      }}
-                    />
-                    <span style={{
-                      position: 'absolute',
-                      cursor: 'pointer',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: storytellerMode ? 'var(--accent-color)' : 'rgba(0,0,0,0.25)',
-                      transition: '.3s',
-                      borderRadius: '20px',
+                    Storyteller Mode
+                    <div style={{
+                      position: 'relative',
+                      display: 'inline-block',
+                      width: '36px',
+                      height: '20px',
+                      marginLeft: '0.5rem',
                     }}>
+                      <input 
+                        type="checkbox" 
+                        checked={storytellerMode}
+                        onChange={(e) => handleStorytellerModeChange(e.target.checked)}
+                        style={{
+                          opacity: 0,
+                          width: 0,
+                          height: 0,
+                        }}
+                      />
                       <span style={{
                         position: 'absolute',
-                        content: '""',
-                        height: '16px',
-                        width: '16px',
-                        left: storytellerMode ? '18px' : '2px',
-                        bottom: '2px',
-                        backgroundColor: 'white',
+                        cursor: 'pointer',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: storytellerMode ? 'var(--accent-color)' : 'rgba(0,0,0,0.25)',
                         transition: '.3s',
-                        borderRadius: '50%',
-                      }}></span>
-                    </span>
-                  </div>
-                </label>
+                        borderRadius: '20px',
+                      }}>
+                        <span style={{
+                          position: 'absolute',
+                          content: '""',
+                          height: '16px',
+                          width: '16px',
+                          left: storytellerMode ? '18px' : '2px',
+                          bottom: '2px',
+                          backgroundColor: 'white',
+                          transition: '.3s',
+                          borderRadius: '50%',
+                        }}></span>
+                      </span>
+                    </div>
+                  </label>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
-      </div>
 
-      {/* RANDOM PROVERB & COPYRIGHT */}
-      <div 
-        id="fact" 
-        style={{
-          position: 'fixed',
-          bottom: '45px',
-          left: 0,
-          right: 0,
+        {/* PROVERB */}
+        <div 
+          id="fact" 
+          style={{
+            width: '100%',
+            textAlign: 'center',
+            fontSize: '0.9rem',
+            fontStyle: 'italic',
+            padding: '0.8rem 1rem 0.5rem 1rem',
+            color: 'var(--wisdom-color)',
+            transition: 'color 0.3s',
+            opacity: 0.9,
+            fontFamily: 'Lora, serif',
+          }}
+          aria-label="Random proverb"
+        >
+          Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb
+        </div>
+        
+        {/* COPYRIGHT */}
+        <div style={{
           width: '100%',
           textAlign: 'center',
-          fontSize: '0.9rem',
-          fontStyle: 'italic',
-          padding: '0.5rem 1rem',
-          color: 'var(--wisdom-color)',
-          transition: 'color 0.3s, background-color 0.3s',
-          opacity: 0.95,
-          fontFamily: 'Lora, serif',
-          zIndex: 40,
-          background: 'var(--bg-color)',
-          borderTop: '1px solid var(--input-border)',
-          boxShadow: '0 -1px 3px var(--shadow-color)',
-        }}
-        aria-label="Random proverb"
-      >
-        Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb
-      </div>
-      
-      <div style={{
-        position: 'fixed',
-        bottom: '0px',
-        left: 0,
-        right: 0,
-        width: '100%',
-        textAlign: 'center',
-        fontSize: '0.8rem',
-        color: 'var(--text-color)',
-        opacity: 0.8,
-        transition: 'color 0.3s, background-color 0.3s',
-        zIndex: 40,
-        background: 'var(--bg-color)',
-        padding: '0.5rem 1rem',
-        borderTop: '1px solid var(--input-border)',
-      }}>
-        © 2025 GriotBot. All rights reserved.
+          fontSize: '0.8rem',
+          color: 'var(--text-color)',
+          opacity: 0.7,
+          transition: 'color 0.3s',
+          padding: '0 1rem 0.8rem 1rem',
+        }}>
+          © 2025 GriotBot. All rights reserved.
+        </div>
       </div>
 
       {/* Additional animations */}
