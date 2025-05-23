@@ -54,7 +54,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
             width: '100%',
             height: '100%',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 999,
+            zIndex: 1000,
             opacity: isVisible ? 1 : 0,
             transition: 'opacity 0.3s ease-in-out',
           }}
@@ -79,7 +79,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           boxShadow: '4px 0 20px var(--shadow-color)',
-          zIndex: 1000,
+          zIndex: 1002,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
