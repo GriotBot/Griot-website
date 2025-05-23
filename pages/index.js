@@ -368,7 +368,7 @@ export default function Home() {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
             transition: background-color 0.3s, color 0.3s;
             line-height: 1.6;
           }
@@ -397,7 +397,10 @@ export default function Home() {
       
       {/* HEADER + CONTROLS */}
       <div style={{
-        position: 'relative',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
         backgroundColor: 'var(--header-bg)',
         color: 'var(--header-text)',
         padding: '1rem',
@@ -409,9 +412,10 @@ export default function Home() {
         justifyContent: 'center',
         gap: '1rem',
         boxShadow: '0 2px 10px var(--shadow-color)',
-        zIndex: 100,
+        zIndex: 1001,
         transition: 'background-color 0.3s',
         fontFamily: 'Lora, serif',
+        height: '70px',
       }}>
         <button 
           onClick={handleSidebarToggle}
@@ -485,8 +489,10 @@ export default function Home() {
         justifyContent: 'flex-start',
         overflow: 'hidden',
         padding: '1rem',
-        paddingBottom: '140px',
+        paddingTop: '90px', // Account for fixed header
+        paddingBottom: '200px', // Account for input area + footer
         transition: 'background-color 0.3s',
+        marginTop: 0,
       }}>
         {showWelcome && (
           <div style={{
@@ -494,7 +500,7 @@ export default function Home() {
             flexDirection: 'column',
             alignItems: 'center',
             textAlign: 'center',
-            maxWidth: '700px',
+            maxWidth: '875px',
             margin: '1rem auto 2rem',
             transition: 'opacity 0.3s',
           }}>
@@ -538,7 +544,7 @@ export default function Home() {
               gap: '1rem',
               marginBottom: '2rem',
               width: '100%',
-              maxWidth: '700px',
+              maxWidth: '875px',
             }}>
               <div 
                 className="suggestion-card" 
@@ -657,11 +663,13 @@ export default function Home() {
         
         <div style={{
           width: '100%',
-          maxWidth: '700px',
+                        maxWidth: '875px',
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
           overflowY: 'auto',
+          height: 'calc(100vh - 350px)', // Account for fixed header and input area
+          scrollBehavior: 'smooth',
         }}>
           {messages.map((message, index) => renderMessage(message, index))}
           
@@ -723,7 +731,7 @@ export default function Home() {
       {/* CHAT INPUT - Using ChatFooter component if available, otherwise inline */}
       <div style={{
         position: 'fixed',
-        bottom: '50px',
+        bottom: '85px', // Above the proverb footer section
         left: 0,
         width: '100%',
         background: 'var(--bg-color)',
@@ -732,11 +740,12 @@ export default function Home() {
         transition: 'background-color 0.3s',
         display: 'flex',
         justifyContent: 'center',
-        zIndex: 50,
+        zIndex: 100,
+        boxShadow: '0 -2px 10px var(--shadow-color)',
       }}>
         <div style={{
           width: '100%',
-          maxWidth: '700px',
+          maxWidth: '875px',
           display: 'flex',
           flexDirection: 'column',
         }}>
@@ -888,16 +897,22 @@ export default function Home() {
         id="fact" 
         style={{
           position: 'fixed',
-          bottom: '30px',
+          bottom: '45px',
+          left: 0,
+          right: 0,
           width: '100%',
           textAlign: 'center',
           fontSize: '0.9rem',
           fontStyle: 'italic',
-          padding: '0 1rem',
+          padding: '0.5rem 1rem',
           color: 'var(--wisdom-color)',
-          transition: 'color 0.3s',
-          opacity: 0.8,
+          transition: 'color 0.3s, background-color 0.3s',
+          opacity: 0.95,
           fontFamily: 'Lora, serif',
+          zIndex: 40,
+          background: 'var(--bg-color)',
+          borderTop: '1px solid var(--input-border)',
+          boxShadow: '0 -1px 3px var(--shadow-color)',
         }}
         aria-label="Random proverb"
       >
@@ -906,13 +921,19 @@ export default function Home() {
       
       <div style={{
         position: 'fixed',
-        bottom: '10px',
+        bottom: '0px',
+        left: 0,
+        right: 0,
         width: '100%',
         textAlign: 'center',
         fontSize: '0.8rem',
         color: 'var(--text-color)',
-        opacity: 0.6,
-        transition: 'color 0.3s',
+        opacity: 0.8,
+        transition: 'color 0.3s, background-color 0.3s',
+        zIndex: 40,
+        background: 'var(--bg-color)',
+        padding: '0.5rem 1rem',
+        borderTop: '1px solid var(--input-border)',
       }}>
         © 2025 GriotBot. All rights reserved.
       </div>
