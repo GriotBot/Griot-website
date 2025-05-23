@@ -1,133 +1,236 @@
-// pages/index.js
+// File: /pages/index.js
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
-import ChatFooter from '../components/ChatFooter';
+import EnhancedSidebar from '../components/EnhancedSidebar';
 
 export default function Home() {
+  // State to ensure we can access DOM elements after mounting
   const [isClient, setIsClient] = useState(false);
+  
+  // Sidebar state - moved to React state management
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [theme, setTheme] = useState('light');
+  
+  // Chat state
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [storytellerMode, setStorytellerMode] = useState(false);
 
   useEffect(() => {
+    // Mark as client-side after mount
     setIsClient(true);
-    
-    // Load saved theme
+
+    // Load chat history and preferences
+    loadChatHistory();
+    loadPreferences();
+
+    // Initialize chat functionality
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      
-      // Load chat history
-      loadChatHistory();
+      initializeChat();
     }
   }, []);
 
   // Load chat history from localStorage
-  const loadChatHistory = () => {
+  function loadChatHistory() {
     try {
-      const history = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
-      if (history.length > 0) {
-        setMessages(history);
+      const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
+      if (hist.length > 0) {
         setShowWelcome(false);
+        setMessages(hist);
       }
     } catch (err) {
       console.error('Error loading chat history:', err);
       localStorage.removeItem('griotbot-history');
     }
-  };
+  }
+
+  // Load user preferences
+  function loadPreferences() {
+    try {
+      const savedStorytellerMode = localStorage.getItem('griotbot-storyteller-mode');
+      if (savedStorytellerMode !== null) {
+        setStorytellerMode(JSON.parse(savedStorytellerMode));
+      }
+    } catch (err) {
+      console.error('Error loading preferences:', err);
+    }
+  }
 
   // Save chat history to localStorage
-  const saveChatHistory = (newMessages) => {
+  function saveChatHistory(newMessages) {
     try {
-      // Keep only the last 50 messages
-      const messagesToSave = newMessages.slice(-50);
-      localStorage.setItem('griotbot-history', JSON.stringify(messagesToSave));
+      const historyToSave = newMessages.slice(-50); // Keep only the most recent 50 messages
+      localStorage.setItem('griotbot-history', JSON.stringify(historyToSave));
     } catch (err) {
       console.error('Error saving chat history:', err);
     }
-  };
+  }
 
-  // Toggle theme function
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    if (typeof window !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('griotbot-theme', newTheme);
+  // Function that initializes remaining chat functionality
+  function initializeChat() {
+    const themeToggle = document.getElementById('themeToggle');
+    const factElement = document.getElementById('fact');
+    const suggestionCards = document.querySelectorAll('.suggestion-card');
+
+    // If any element is missing, return (may happen during initial mounting)
+    if (!themeToggle || !factElement) {
+      console.warn('Some DOM elements not found, initialization delayed');
+      return;
     }
+
+    // THEME TOGGLE
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('griotbot-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      themeToggle.setAttribute('aria-label', 
+        theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+    
+    // Initialize theme from localStorage or user preference
+    (function() {
+      const savedTheme = localStorage.getItem('griotbot-theme');
+      if (savedTheme) {
+        setTheme(savedTheme);
+      } else {
+        // Check for system preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setTheme(prefersDark ? 'dark' : 'light');
+      }
+    })();
+    
+    // Handle theme toggle click
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      setTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+
+    // RANDOM PROVERB
+    const proverbs = [
+      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+      "A tree cannot stand without its roots. — Jamaican Proverb",
+      "Unity is strength, division is weakness. — Swahili Proverb",
+      "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
+      "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
+      "A bird will always use another bird's feathers to feather its nest. — Ashanti Proverb",
+      "You must act as if it is impossible to fail. — Yoruba Wisdom",
+      "The child who is not embraced by the village will burn it down to feel its warmth. — West African Proverb",
+      "However long the night, the dawn will break. — African Proverb",
+      "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
+      "It takes a village to raise a child. — African Proverb",
+      "The fool speaks, the wise listen. — Ethiopian Proverb",
+      "When the music changes, so does the dance. — Haitian Proverb"
+    ];
+    
+    function showRandomProverb() {
+      const randomIndex = Math.floor(Math.random() * proverbs.length);
+      factElement.textContent = proverbs[randomIndex];
+      factElement.setAttribute('aria-label', `Proverb: ${proverbs[randomIndex]}`);
+    }
+    
+    showRandomProverb(); // Show proverb on init
+
+    // SUGGESTION CARDS HANDLER
+    suggestionCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const prompt = card.getAttribute('data-prompt');
+        if (prompt) {
+          handleSuggestionClick(prompt);
+        }
+      });
+    });
+  }
+
+  // Handle suggestion card clicks
+  const handleSuggestionClick = (prompt) => {
+    // Hide welcome screen and send the suggested prompt
+    setShowWelcome(false);
+    handleSendMessage(prompt);
   };
 
-  // Handle new chat
+  // Handle new chat - clear everything
   const handleNewChat = () => {
     setMessages([]);
     setShowWelcome(true);
+    setSidebarVisible(false);
     localStorage.removeItem('griotbot-history');
+    setStorytellerMode(false);
+    localStorage.removeItem('griotbot-storyteller-mode');
   };
 
-  // Handle sending message
-  const handleSendMessage = async (messageText, storytellerMode) => {
-    if (!messageText.trim()) return;
+  // Handle sidebar toggle
+  const handleSidebarToggle = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
 
+  // Handle sidebar close
+  const handleSidebarClose = () => {
+    setSidebarVisible(false);
+  };
+
+  // Handle message sending
+  const handleSendMessage = async (messageText, customStorytellerMode = null) => {
+    const useStorytellerMode = customStorytellerMode !== null ? customStorytellerMode : storytellerMode;
+    
+    if (!messageText || typeof messageText !== 'string' || !messageText.trim()) {
+      return;
+    }
+
+    const userMessage = {
+      role: 'user',
+      content: messageText.trim(),
+      time: new Date().toISOString()
+    };
+
+    // Add user message to state
+    const newMessagesWithUser = [...messages, userMessage];
+    setMessages(newMessagesWithUser);
     setIsLoading(true);
     setShowWelcome(false);
 
-    // Add user message
-    const userMessage = {
-      role: 'user',
-      content: messageText,
-      timestamp: new Date().toISOString(),
-    };
-
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-
     try {
-      // Call the API
-      const response = await fetch('/api/chat', {
+      // API call to our serverless function
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: messageText,
-          storytellerMode: storytellerMode,
-        }),
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ 
+          prompt: messageText.trim(),
+          storytellerMode: useStorytellerMode
+        })
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Error: Status ${response.status}`);
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Error: Status ${res.status}`);
       }
-
-      const data = await response.json();
+      
+      const data = await res.json();
       const botResponse = data.choices?.[0]?.message?.content || 
-                         'I apologize, but I seem to be having trouble processing your request.';
-
-      // Add bot message
+                        'I apologize, but I seem to be having trouble processing your request.';
+      
       const botMessage = {
         role: 'bot',
         content: botResponse,
-        timestamp: new Date().toISOString(),
+        time: new Date().toISOString()
       };
 
-      const finalMessages = [...newMessages, botMessage];
+      // Add bot response to messages
+      const finalMessages = [...newMessagesWithUser, botMessage];
       setMessages(finalMessages);
       saveChatHistory(finalMessages);
-
-    } catch (error) {
-      console.error('API error:', error);
       
-      // Add error message
+    } catch (err) {
+      console.error('API error:', err);
+      
       const errorMessage = {
         role: 'bot',
-        content: `I'm sorry, I encountered an error: ${error.message}. Please try again later.`,
-        timestamp: new Date().toISOString(),
+        content: `I'm sorry, I encountered an error: ${err.message}. Please try again later.`,
+        time: new Date().toISOString()
       };
 
-      const finalMessages = [...newMessages, errorMessage];
+      const finalMessages = [...newMessagesWithUser, errorMessage];
       setMessages(finalMessages);
       saveChatHistory(finalMessages);
     } finally {
@@ -135,15 +238,68 @@ export default function Home() {
     }
   };
 
-  // Handle suggestion card clicks
-  const handleSuggestionClick = (prompt) => {
-    handleSendMessage(prompt, false);
+  // Handle storyteller mode change
+  const handleStorytellerModeChange = (newMode) => {
+    setStorytellerMode(newMode);
+    localStorage.setItem('griotbot-storyteller-mode', JSON.stringify(newMode));
   };
 
-  // Don't render until client-side
-  if (!isClient) {
-    return null;
-  }
+  // Format time for display
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Render message with appropriate styling
+  const renderMessage = (message, index) => {
+    const isUser = message.role === 'user';
+    
+    return (
+      <div
+        key={index}
+        style={{
+          padding: '1rem 1.2rem',
+          margin: '0.5rem 0',
+          borderRadius: '12px',
+          maxWidth: '80%',
+          wordWrap: 'break-word',
+          boxShadow: '0 3px 6px var(--shadow-color)',
+          alignSelf: isUser ? 'flex-end' : 'flex-start',
+          backgroundColor: isUser ? 'var(--user-bubble)' : 'var(--bot-bubble-start)',
+          background: isUser ? 'var(--user-bubble)' : 'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))',
+          color: isUser ? 'var(--user-text)' : 'var(--bot-text)',
+          animation: 'message-fade-in 0.3s ease-out forwards',
+          lineHeight: 1.6
+        }}
+      >
+        {!isUser && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: '0.8rem',
+            paddingBottom: '0.5rem',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <span style={{ fontSize: '1.2rem', marginRight: '0.5rem' }}>🌿</span>
+            <span style={{ fontWeight: '600' }}>GriotBot</span>
+          </div>
+        )}
+        
+        <div style={{ whiteSpace: 'pre-wrap' }}>
+          {message.content}
+        </div>
+        
+        <div style={{
+          fontSize: '0.7rem',
+          opacity: '0.7',
+          marginTop: '0.5rem',
+          textAlign: 'right'
+        }}>
+          {formatTime(message.time)}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -155,16 +311,95 @@ export default function Home() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
+        
+        {/* CRITICAL INLINE STYLES */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --bg-color: #f8f5f0;
+            --text-color: #33302e;
+            --header-bg: #c49a6c;
+            --header-text: #33302e;
+            --sidebar-bg: rgba(75, 46, 42, 0.97);
+            --sidebar-text: #f8f5f0;
+            --user-bubble: #bd8735;
+            --user-text: #f8f5f0;
+            --bot-bubble-start: #7d8765;
+            --bot-bubble-end: #5e6e4f;
+            --bot-text: #f8f5f0;
+            --accent-color: #d7722c;
+            --accent-hover: #c86520;
+            --wisdom-color: #6b4226;
+            --input-bg: #ffffff;
+            --input-border: rgba(75, 46, 42, 0.2);
+            --input-text: #33302e;
+            --shadow-color: rgba(75, 46, 42, 0.15);
+            --card-bg: #ffffff;
+          }
+          
+          [data-theme="dark"] {
+            --bg-color: #292420;
+            --text-color: #f0ece4;
+            --header-bg: #50392d;
+            --header-text: #f0ece4;
+            --sidebar-bg: rgba(40, 30, 25, 0.97);
+            --sidebar-text: #f0ece4;
+            --user-bubble: #bb7e41;
+            --user-text: #f0ece4;
+            --bot-bubble-start: #5e6e4f;
+            --bot-bubble-end: #3e4a38;
+            --bot-text: #f0ece4;
+            --accent-color: #d7722c;
+            --accent-hover: #e8833d;
+            --wisdom-color: #e0c08f;
+            --input-bg: #352e29;
+            --input-border: rgba(240, 236, 228, 0.2);
+            --input-text: #f0ece4;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --card-bg: #352e29;
+          }
+
+          * { box-sizing: border-box; }
+
+          body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.6;
+          }
+
+          @keyframes message-fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+
+          .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+          }
+
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}} />
       </Head>
       
-      {/* Header */}
+      {/* HEADER + CONTROLS */}
       <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: 'var(--header-bg, #c49a6c)',
-        color: 'var(--header-text, #33302e)',
+        position: 'relative',
+        backgroundColor: 'var(--header-bg)',
+        color: 'var(--header-text)',
         padding: '1rem',
         textAlign: 'center',
         fontWeight: 'bold',
@@ -173,295 +408,525 @@ export default function Home() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '1rem',
-        boxShadow: '0 2px 10px rgba(75, 46, 42, 0.15)',
+        boxShadow: '0 2px 10px var(--shadow-color)',
         zIndex: 100,
+        transition: 'background-color 0.3s',
         fontFamily: 'Lora, serif',
-        height: '60px',
       }}>
         <button 
-          onClick={() => setSidebarVisible(!sidebarVisible)}
+          onClick={handleSidebarToggle}
           style={{
             position: 'absolute',
             left: '1rem',
             fontSize: '1.5rem',
-            color: 'var(--header-text, #33302e)',
+            color: 'var(--header-text)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             background: 'none',
             border: 'none',
             cursor: 'pointer',
             padding: '8px 12px',
             borderRadius: '6px',
+            transition: 'transform 0.3s ease',
+            transform: sidebarVisible ? 'rotate(45deg)' : 'none',
           }}
+          aria-label="Toggle sidebar"
+          aria-expanded={sidebarVisible}
+          aria-controls="sidebar"
         >
           ☰
-        </button>
-        
-        <button 
-          onClick={handleNewChat}
-          style={{
-            position: 'absolute',
-            left: '4rem',
-            fontSize: '1.2rem',
-            color: 'var(--header-text, #33302e)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '8px 12px',
-            borderRadius: '6px',
-          }}
-          title="New Chat"
-        >
-          + New
         </button>
         
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem',
+          gap: '0.5rem'
         }}>
-          <span style={{ fontSize: '1.5rem' }}>🌿</span>
+          <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
           <span>GriotBot</span>
         </div>
         
         <button 
-          onClick={toggleTheme}
+          id="themeToggle"
           style={{
             position: 'absolute',
             right: '1rem',
             fontSize: '1.5rem',
-            color: 'var(--header-text, #33302e)',
+            color: 'var(--header-text)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             background: 'none',
             border: 'none',
             cursor: 'pointer',
             padding: '8px 12px',
             borderRadius: '6px',
           }}
+          aria-label="Toggle dark/light mode"
         >
-          {theme === 'dark' ? '☀️' : '🌙'}
+          🌙
         </button>
       </div>
 
-      {/* Main Content */}
+      {/* ENHANCED SIDEBAR */}
+      <EnhancedSidebar 
+        isVisible={sidebarVisible}
+        onClose={handleSidebarClose}
+        onNewChat={handleNewChat}
+      />
+
+      {/* MAIN CHAT AREA */}
       <main style={{
-        paddingTop: '60px',
-        paddingBottom: '200px', // Space for chat footer
-        minHeight: '100vh',
-        backgroundColor: 'var(--bg-color, #f8f5f0)',
-        color: 'var(--text-color, #33302e)',
-        fontFamily: 'Montserrat, sans-serif',
-        transition: 'background-color 0.3s, color 0.3s',
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        overflow: 'hidden',
+        padding: '1rem',
+        paddingBottom: '140px',
+        transition: 'background-color 0.3s',
       }}>
-        {/* Welcome Screen */}
         {showWelcome && (
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
             textAlign: 'center',
             maxWidth: '700px',
-            margin: '2rem auto',
-            padding: '2rem',
+            margin: '1rem auto 2rem',
+            transition: 'opacity 0.3s',
           }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌿</div>
-            
-            <h1 style={{
+            <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>🌿</div>
+            <h1 style={{ 
               fontFamily: 'Lora, serif',
               fontSize: '2rem',
-              marginBottom: '1rem',
-            }}>
-              Welcome to GriotBot
-            </h1>
-            
-            <p style={{
-              fontSize: '1.1rem',
-              marginBottom: '2rem',
+              margin: '0.5rem 0',
+            }}>Welcome to GriotBot</h1>
+            <p style={{ 
+              fontFamily: 'Montserrat, sans-serif',
+              color: 'var(--text-color)',
               opacity: 0.8,
-            }}>
-              Your AI companion for culturally rich conversations and wisdom
-            </p>
+              marginBottom: '1.5rem',
+            }}>Your AI companion for culturally rich conversations and wisdom</p>
             
             <div style={{
               fontSize: '1.1rem',
               fontStyle: 'italic',
-              color: 'var(--wisdom-color, #6b4226)',
-              marginBottom: '2rem',
+              color: 'var(--wisdom-color)',
+              textAlign: 'center',
               fontFamily: 'Lora, serif',
+              lineHeight: 1.7,
+              marginBottom: '2rem',
+              position: 'relative',
+              padding: '0 1.5rem',
             }}>
               "A people without the knowledge of their past history,<br/>
               origin and culture is like a tree without roots."
-              <div style={{ marginTop: '0.5rem', fontWeight: '500' }}>
-                — Marcus Mosiah Garvey
-              </div>
+              <span style={{
+                fontWeight: 500,
+                display: 'block',
+                marginTop: '0.5rem',
+              }}>— Marcus Mosiah Garvey</span>
             </div>
-
-            {/* Suggestion Cards */}
+            
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
               gap: '1rem',
+              marginBottom: '2rem',
               width: '100%',
-              maxWidth: '600px',
+              maxWidth: '700px',
             }}>
-              {[
-                { category: 'Storytelling', title: 'Tell me a diaspora story about resilience', prompt: 'Tell me a story about resilience from the African diaspora' },
-                { category: 'Wisdom', title: 'African wisdom on community building', prompt: 'Share some wisdom about community building from African traditions' },
-                { category: 'History', title: 'The significance of Juneteenth', prompt: 'Explain the historical significance of Juneteenth' },
-                { category: 'Personal Growth', title: 'Connect with my cultural heritage', prompt: 'How can I connect more with my cultural heritage?' },
-              ].map((suggestion, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleSuggestionClick(suggestion.prompt)}
-                  style={{
-                    backgroundColor: 'var(--card-bg, #ffffff)',
-                    padding: '1rem',
-                    borderRadius: '12px',
-                    boxShadow: '0 3px 10px rgba(75, 46, 42, 0.15)',
-                    cursor: 'pointer',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.transform = 'translateY(-3px)';
-                    e.target.style.boxShadow = '0 6px 15px rgba(75, 46, 42, 0.25)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 3px 10px rgba(75, 46, 42, 0.15)';
-                  }}
-                >
-                  <div style={{
-                    fontSize: '0.8rem',
-                    textTransform: 'uppercase',
-                    color: 'var(--accent-color, #d7722c)',
-                    fontWeight: '500',
-                    marginBottom: '0.5rem',
-                  }}>
-                    {suggestion.category}
-                  </div>
-                  <h3 style={{ margin: 0, fontFamily: 'Lora, serif', fontSize: '1rem' }}>
-                    {suggestion.title}
-                  </h3>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Chat Messages */}
-        {!showWelcome && (
-          <div style={{
-            maxWidth: '700px',
-            margin: '0 auto',
-            padding: '1rem',
-          }}>
-            {messages.map((message, index) => (
-              <div
-                key={index}
+              <div 
+                className="suggestion-card" 
+                data-prompt="Tell me a story about resilience from the African diaspora"
                 style={{
-                  display: 'flex',
-                  justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
-                  marginBottom: '1rem',
+                  backgroundColor: 'var(--card-bg)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  width: 'calc(50% - 0.5rem)',
+                  minWidth: '200px',
+                  boxShadow: '0 3px 10px var(--shadow-color)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
                 }}
               >
                 <div style={{
-                  maxWidth: '80%',
-                  padding: '1rem 1.2rem',
-                  borderRadius: '12px',
-                  backgroundColor: message.role === 'user' 
-                    ? 'var(--accent-color, #d7722c)' 
-                    : 'var(--card-bg, #ffffff)',
-                  color: message.role === 'user' 
-                    ? 'white' 
-                    : 'var(--text-color, #33302e)',
-                  boxShadow: '0 3px 6px rgba(75, 46, 42, 0.15)',
-                  lineHeight: 1.6,
-                }}>
-                  {message.role === 'bot' && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginBottom: '0.5rem',
-                      paddingBottom: '0.5rem',
-                      borderBottom: '1px solid rgba(0,0,0,0.1)',
-                      fontSize: '0.9rem',
-                      fontWeight: '600',
-                    }}>
-                      <span style={{ marginRight: '0.5rem' }}>🌿</span>
-                      GriotBot
-                    </div>
-                  )}
-                  {message.content}
-                </div>
+                  fontSize: '0.8rem',
+                  textTransform: 'uppercase',
+                  color: 'var(--accent-color)',
+                  fontWeight: 500,
+                  marginBottom: '0.5rem',
+                }}>Storytelling</div>
+                <h3 style={{
+                  fontFamily: 'Lora, serif',
+                  fontWeight: 600,
+                  margin: 0,
+                }}>Tell me a diaspora story about resilience</h3>
               </div>
-            ))}
-
-            {/* Loading indicator */}
-            {isLoading && (
-              <div style={{
-                display: 'flex',
-                justifyContent: 'flex-start',
-                marginBottom: '1rem',
-              }}>
+              
+              <div 
+                className="suggestion-card" 
+                data-prompt="Share some wisdom about community building from African traditions"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  width: 'calc(50% - 0.5rem)',
+                  minWidth: '200px',
+                  boxShadow: '0 3px 10px var(--shadow-color)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+              >
                 <div style={{
-                  padding: '1rem 1.2rem',
-                  borderRadius: '12px',
-                  backgroundColor: 'var(--card-bg, #ffffff)',
-                  boxShadow: '0 3px 6px rgba(75, 46, 42, 0.15)',
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '0.5rem',
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                  }}>
-                    <span style={{ marginRight: '0.5rem' }}>🌿</span>
-                    GriotBot
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span>Thinking</span>
-                    <div style={{
-                      display: 'inline-flex',
-                      marginLeft: '0.5rem',
-                    }}>
-                      {[0, 1, 2].map(i => (
-                        <span
-                          key={i}
-                          style={{
-                            height: '8px',
-                            width: '8px',
-                            margin: '0 2px',
-                            backgroundColor: 'var(--accent-color, #d7722c)',
-                            borderRadius: '50%',
-                            display: 'inline-block',
-                            animation: `bounce 1.4s infinite ease-in-out both`,
-                            animationDelay: `${i * 0.2}s`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                  fontSize: '0.8rem',
+                  textTransform: 'uppercase',
+                  color: 'var(--accent-color)',
+                  fontWeight: 500,
+                  marginBottom: '0.5rem',
+                }}>Wisdom</div>
+                <h3 style={{
+                  fontFamily: 'Lora, serif',
+                  fontWeight: 600,
+                  margin: 0,
+                }}>African wisdom on community building</h3>
               </div>
-            )}
+              
+              <div 
+                className="suggestion-card" 
+                data-prompt="How can I connect more with my cultural heritage?"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  width: 'calc(50% - 0.5rem)',
+                  minWidth: '200px',
+                  boxShadow: '0 3px 10px var(--shadow-color)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+              >
+                <div style={{
+                  fontSize: '0.8rem',
+                  textTransform: 'uppercase',
+                  color: 'var(--accent-color)',
+                  fontWeight: 500,
+                  marginBottom: '0.5rem',
+                }}>Personal Growth</div>
+                <h3 style={{
+                  fontFamily: 'Lora, serif',
+                  fontWeight: 600,
+                  margin: 0,
+                }}>Connect with my cultural heritage</h3>
+              </div>
+              
+              <div 
+                className="suggestion-card" 
+                data-prompt="Explain the historical significance of Juneteenth"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  width: 'calc(50% - 0.5rem)',
+                  minWidth: '200px',
+                  boxShadow: '0 3px 10px var(--shadow-color)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+              >
+                <div style={{
+                  fontSize: '0.8rem',
+                  textTransform: 'uppercase',
+                  color: 'var(--accent-color)',
+                  fontWeight: 500,
+                  marginBottom: '0.5rem',
+                }}>History</div>
+                <h3 style={{
+                  fontFamily: 'Lora, serif',
+                  fontWeight: 600,
+                  margin: 0,
+                }}>The historical significance of Juneteenth</h3>
+              </div>
+            </div>
           </div>
         )}
+        
+        <div style={{
+          width: '100%',
+          maxWidth: '700px',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflowY: 'auto',
+        }}>
+          {messages.map((message, index) => renderMessage(message, index))}
+          
+          {isLoading && (
+            <div style={{
+              padding: '1rem 1.2rem',
+              margin: '0.5rem 0',
+              borderRadius: '12px',
+              maxWidth: '80%',
+              alignSelf: 'flex-start',
+              background: 'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))',
+              color: 'var(--bot-text)',
+              display: 'flex',
+              alignItems: 'center',
+              opacity: 0.8,
+            }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+              }}>
+                <span style={{
+                  height: '8px',
+                  width: '8px',
+                  margin: '0 2px',
+                  backgroundColor: 'var(--bot-text)',
+                  borderRadius: '50%',
+                  display: 'inline-block',
+                  opacity: 0.7,
+                  animation: 'typing-bounce 1.4s infinite ease-in-out both',
+                }}></span>
+                <span style={{
+                  height: '8px',
+                  width: '8px',
+                  margin: '0 2px',
+                  backgroundColor: 'var(--bot-text)',
+                  borderRadius: '50%',
+                  display: 'inline-block',
+                  opacity: 0.7,
+                  animation: 'typing-bounce 1.4s infinite ease-in-out both',
+                  animationDelay: '0.2s',
+                }}></span>
+                <span style={{
+                  height: '8px',
+                  width: '8px',
+                  margin: '0 2px',
+                  backgroundColor: 'var(--bot-text)',
+                  borderRadius: '50%',
+                  display: 'inline-block',
+                  opacity: 0.7,
+                  animation: 'typing-bounce 1.4s infinite ease-in-out both',
+                  animationDelay: '0.4s',
+                }}></span>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* Chat Footer */}
-      <ChatFooter 
-        onSendMessage={handleSendMessage}
-        disabled={isLoading}
-      />
+      {/* CHAT INPUT - Using ChatFooter component if available, otherwise inline */}
+      <div style={{
+        position: 'fixed',
+        bottom: '50px',
+        left: 0,
+        width: '100%',
+        background: 'var(--bg-color)',
+        padding: '1rem',
+        borderTop: '1px solid var(--input-border)',
+        transition: 'background-color 0.3s',
+        display: 'flex',
+        justifyContent: 'center',
+        zIndex: 50,
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '700px',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target);
+              const message = formData.get('message');
+              if (message && message.trim()) {
+                handleSendMessage(message, storytellerMode);
+                e.target.reset();
+              }
+            }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <div style={{
+              position: 'relative',
+              display: 'flex',
+              boxShadow: '0 4px 12px var(--shadow-color)',
+              borderRadius: '12px',
+              backgroundColor: 'var(--input-bg)',
+            }}>
+              <textarea 
+                name="message"
+                placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
+                required 
+                disabled={isLoading}
+                style={{
+                  flex: 1,
+                  padding: '0.9rem 1rem',
+                  border: '1px solid var(--input-border)',
+                  borderRight: 'none',
+                  borderRadius: '12px 0 0 12px',
+                  outline: 'none',
+                  resize: 'none',
+                  minHeight: '55px',
+                  maxHeight: '120px',
+                  transition: 'border 0.3s, box-shadow 0.3s, background-color 0.3s',
+                  backgroundColor: 'var(--input-bg)',
+                  color: 'var(--input-text)',
+                  fontFamily: 'Montserrat, sans-serif',
+                  fontSize: '1rem',
+                  lineHeight: 1.5,
+                }}
+                rows="1"
+              />
+              <button 
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  width: '55px',
+                  background: 'var(--accent-color)',
+                  color: 'white',
+                  borderRadius: '0 12px 12px 0',
+                  transition: 'background-color 0.3s, transform 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: 'none',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.7 : 1,
+                }}
+              >
+                {isLoading ? (
+                  <div className="spinner"></div>
+                ) : (
+                  <span style={{ fontSize: '1.2rem' }}>↑</span>
+                )}
+              </button>
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '0.5rem',
+              fontSize: '0.8rem',
+            }}>
+              <div style={{
+                color: 'var(--text-color)',
+                opacity: 0.7,
+              }}>
+                Free users: 30 messages per day
+              </div>
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}>
+                  Storyteller Mode
+                  <div style={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    width: '36px',
+                    height: '20px',
+                    marginLeft: '0.5rem',
+                  }}>
+                    <input 
+                      type="checkbox" 
+                      checked={storytellerMode}
+                      onChange={(e) => handleStorytellerModeChange(e.target.checked)}
+                      style={{
+                        opacity: 0,
+                        width: 0,
+                        height: 0,
+                      }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      cursor: 'pointer',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: storytellerMode ? 'var(--accent-color)' : 'rgba(0,0,0,0.25)',
+                      transition: '.3s',
+                      borderRadius: '20px',
+                    }}>
+                      <span style={{
+                        position: 'absolute',
+                        content: '""',
+                        height: '16px',
+                        width: '16px',
+                        left: storytellerMode ? '18px' : '2px',
+                        bottom: '2px',
+                        backgroundColor: 'white',
+                        transition: '.3s',
+                        borderRadius: '50%',
+                      }}></span>
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
 
-      {/* Animations */}
+      {/* RANDOM PROVERB & COPYRIGHT */}
+      <div 
+        id="fact" 
+        style={{
+          position: 'fixed',
+          bottom: '30px',
+          width: '100%',
+          textAlign: 'center',
+          fontSize: '0.9rem',
+          fontStyle: 'italic',
+          padding: '0 1rem',
+          color: 'var(--wisdom-color)',
+          transition: 'color 0.3s',
+          opacity: 0.8,
+          fontFamily: 'Lora, serif',
+        }}
+        aria-label="Random proverb"
+      >
+        Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb
+      </div>
+      
+      <div style={{
+        position: 'fixed',
+        bottom: '10px',
+        width: '100%',
+        textAlign: 'center',
+        fontSize: '0.8rem',
+        color: 'var(--text-color)',
+        opacity: 0.6,
+        transition: 'color 0.3s',
+      }}>
+        © 2025 GriotBot. All rights reserved.
+      </div>
+
+      {/* Additional animations */}
       <style jsx>{`
-        @keyframes bounce {
-          0%, 80%, 100% { 
-            transform: scale(0); 
-          }
-          40% { 
-            transform: scale(1); 
-          }
+        @keyframes typing-bounce {
+          0%, 80%, 100% { transform: scale(0); }
+          40% { transform: scale(1); }
+        }
+        
+        .suggestion-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 6px 15px var(--shadow-color);
         }
       `}</style>
     </>
