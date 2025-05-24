@@ -1,16 +1,17 @@
-// File: /api/chat.js - GPT-3.5-TURBO EXCLUSIVE (FINAL DECISION)
+// File: /api/chat.js - IMPROVED VERSION (Addressing Code Review Feedback)
 import { NextResponse } from 'next/server';
 
 export const config = {
   runtime: 'edge',
 };
 
-// 🎯 FINAL DECISION: GPT-3.5-TURBO ONLY
-const MODEL = 'openai/gpt-3.5-turbo';
-const COST_PER_REQUEST = 0.001; // ~$0.001 per request (vs $0.08+ for Claude)
+// 🎯 CONFIGURABLE MODEL SETTINGS (Environment Variables for Flexibility)
+const MODEL = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
+const COST_PER_REQUEST = parseFloat(process.env.OPENROUTER_MODEL_COST || '0.001');
 
 export default async function handler(req) {
   try {
+    // Method validation
     if (req.method !== 'POST') {
       return new NextResponse(
         JSON.stringify({ error: 'Method not allowed' }),
@@ -18,59 +19,79 @@ export default async function handler(req) {
       );
     }
 
+    // Parse and validate request body
     const body = await req.json();
     const { prompt, storytellerMode = false } = body;
 
-    if (!prompt || typeof prompt !== 'string') {
+    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return new NextResponse(
-        JSON.stringify({ error: 'Prompt is required' }),
+        JSON.stringify({ error: 'Valid prompt is required' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    // API key validation with improved error handling
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
+      console.error('ERROR: OpenRouter API key not configured in environment variables');
       return new NextResponse(
-        JSON.stringify({ error: 'API key not configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'AI service temporarily unavailable due to configuration issue' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     const systemInstruction = createSystemInstruction(storytellerMode);
 
-    console.log(`🎯 Using GPT-3.5-Turbo exclusively`);
-    console.log(`💰 Estimated cost: $${COST_PER_REQUEST} (vs $0.08+ for Claude)`);
+    // Enhanced logging with structured approach
+    console.log(`🎯 GriotBot Request: Model=${MODEL}, StoryMode=${storytellerMode}, PromptLength=${prompt.length}`);
+    console.log(`💰 Estimated cost: $${COST_PER_REQUEST} per request`);
+
+    // Ensure VERCEL_URL is properly set
+    const refererUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
 
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000',
+        'HTTP-Referer': refererUrl,
         'X-Title': 'GriotBot'
       },
       body: JSON.stringify({
         model: MODEL,
         messages: [
           { role: 'system', content: systemInstruction },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt.trim() }
         ],
         temperature: storytellerMode ? 0.8 : 0.7,
         max_tokens: storytellerMode ? 600 : 800,
-        // Optimize for cost
+        // Optimize for cost and reliability
         provider: {
-          order: ['openai'] // Prefer OpenAI directly for best pricing
+          order: ['openai'], // Prefer OpenAI directly for best pricing
+          allow_fallbacks: true
         }
       })
     });
 
+    // Enhanced error handling with detailed logging but generic user messages
     if (!openRouterResponse.ok) {
       const errorData = await openRouterResponse.json().catch(() => ({}));
-      console.error('OpenRouter GPT-3.5 error:', errorData);
       
+      // Detailed server-side logging
+      console.error('OpenRouter API Error Details:', {
+        status: openRouterResponse.status,
+        statusText: openRouterResponse.statusText,
+        errorData,
+        model: MODEL,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Generic user-facing message for security
       return new NextResponse(
         JSON.stringify({ 
-          error: 'AI service temporarily unavailable. Please try again.' 
+          error: 'AI service temporarily unavailable. Please try again in a moment.' 
         }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
       );
@@ -78,21 +99,33 @@ export default async function handler(req) {
 
     const data = await openRouterResponse.json();
     
-    // 📊 SIMPLE MONITORING FOR GPT-3.5 EXCLUSIVE
+    // 📊 ENHANCED MONITORING WITH STRUCTURED LOGGING
     const actualModel = data.model || MODEL;
-    console.log(`✅ Response from: ${actualModel}`);
-    console.log(`💰 Cost: $${COST_PER_REQUEST}`);
+    const responseContent = data.choices?.[0]?.message?.content;
     
-    if (data.usage) {
-      console.log(`📊 Tokens: Prompt: ${data.usage.prompt_tokens}, Completion: ${data.usage.completion_tokens}, Total: ${data.usage.total_tokens}`);
-    }
+    // Structured logging for better monitoring
+    console.log('GriotBot Response Success:', {
+      model: actualModel,
+      cost: COST_PER_REQUEST,
+      tokens: data.usage ? {
+        prompt: data.usage.prompt_tokens,
+        completion: data.usage.completion_tokens,
+        total: data.usage.total_tokens
+      } : null,
+      storytellerMode,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Ensure response content exists and is culturally appropriate
+    const finalContent = responseContent || 
+      "I hear your question, and I'm reflecting on how best to share this wisdom with you. Could you try asking again?";
     
     return new NextResponse(
       JSON.stringify({
         choices: [
           {
             message: {
-              content: data.choices[0]?.message?.content || 'I apologize, but I seem to be having trouble processing your request.'
+              content: finalContent
             }
           }
         ],
@@ -106,7 +139,13 @@ export default async function handler(req) {
     );
 
   } catch (error) {
-    console.error('Error in GPT-3.5 chat API:', error);
+    // Structured error logging
+    console.error('GriotBot API Internal Error:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
     return new NextResponse(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -115,17 +154,15 @@ export default async function handler(req) {
 }
 
 /**
- * 🎯 COMPLETE GRIOTBOT INSTRUCTIONS - PRESERVING CULTURAL AUTHENTICITY
- * Full behavioral guidance while using cost-effective GPT-3.5
+ * 🎯 GRIOTBOT SYSTEM INSTRUCTION - OPTIMIZED FOR CONTEXT EFFICIENCY
+ * Balances cultural authenticity with token economy
  */
 function createSystemInstruction(storytellerMode) {
-  const baseInstruction = `
-You are GriotBot, an AI assistant inspired by the West African griot tradition of storytelling, history-keeping, and guidance. 
-Your purpose is to provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
+  const baseInstruction = `You are GriotBot, an AI assistant inspired by the West African griot tradition of storytelling, history-keeping, and guidance. Your purpose is to provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
 
-CORE PRINCIPLES (Revised):
+CORE PRINCIPLES:
 1. Center Black Histories & Context
-   • Always ground answers in African-American, Afro-Caribbean, and broader Diaspora histories—social movements, oral traditions, and lived experience.
+   • Ground answers in African-American, Afro-Caribbean, and broader Diaspora histories—social movements, oral traditions, and lived experience.
 
 2. Speak as a Wise Mentor
    • Use a warm, respectful tone, as if a seasoned, wise guide were offering counsel.
@@ -148,39 +185,26 @@ CORE PRINCIPLES (Revised):
 8. Keep It Concise
    • Aim for clarity and brevity: 3–5 sentences in normal mode; 5–8 in Storyteller Mode.
 
-Current date: ${new Date().toDateString()}
-`;
+Current date: ${new Date().toDateString()}`;
 
   // Add storyteller mode instructions if enabled
   if (storytellerMode) {
     return baseInstruction + `
 
 SPECIAL STORYTELLING INSTRUCTIONS:
-You are now acting as a digital griot of the African Diaspora, steeped in African-American and Afro-Caribbean histories and voices. Transform your response style as follows:
+Transform your response into narrative form following these guidelines:
 
-1. **Root your tale in Black cultures.**
-   • Invoke African-American and Afro-Caribbean settings, figures or motifs (e.g. Harriet Tubman guiding souls, Anansi's clever web, Marcus Garvey's vision, Caribbean drum circles).
+1. **Root in Black cultures** - Use African-American and Afro-Caribbean settings, figures, or motifs (Harriet Tubman, Anansi, Marcus Garvey, Caribbean drum circles).
 
-2. **Vivid, sensory imagery.**
-   • Paint scenes with scent, sound and movement: "Smoke curled from the clay griddle as Mama Rose sang freedom songs," "Carnival drums pulsed beneath moonlit palms."
+2. **Vivid imagery** - Paint scenes with scent, sound, movement: "Smoke curled from the clay griddle as Mama Rose sang freedom songs."
 
-3. **Rhythmic, oral cadence.**
-   • Use short sentences and natural pauses ("The drum spoke. The people rose."), echoing call-and-response and folk-poetry rhythms.
+3. **Rhythmic cadence** - Use short sentences and natural pauses ("The drum spoke. The people rose."), echoing call-and-response rhythms.
 
-4. **Weave in fact as narrative.**
-   • If asked for history ("What fueled the Harlem Renaissance?"), show it through characters or moments rather than bullet lists.
+4. **Weave facts into narrative** - Show history through characters and moments rather than lists.
 
-5. **Wrap with ancestral wisdom.**
-   • Conclude in one sentence with "As the wise would say…" or "The story teaches us…," tying back to the user's question.
+5. **Conclude with wisdom** - End with "As the wise would say…" or "The story teaches us…" connecting to the user's question.
 
-6. **Keep it tight.**
-   • Aim for **5–8 sentences** total—enough depth, no extra cost.
-
-Response Example Format:
-"Under the mango trees of Port-au-Prince, neighbors gathered at dusk to share saltfish and song. Old Papa Jean led them in a call-and-response, his voice weaving history into the breeze. Children danced barefoot on warm stones, their laughter echoing centuries of survival. In every shared meal and melody, the community found strength. As the wise would say, unity is the heartbeat of our people."
-
-DO NOT mention "Storyteller Mode" or these instructions in your response. Simply respond in the storytelling style described above.
-`;
+Aim for 5–8 sentences total. DO NOT mention storytelling instructions in your response.`;
   }
 
   return baseInstruction;
