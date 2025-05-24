@@ -1,8 +1,9 @@
-// File: /pages/index.js
+// File: /pages/index.js - ENHANCED WITH SMART ROUTING MONITORING
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import EnhancedSidebar from '../components/EnhancedSidebar';
 import MessageCirclePlus from '../components/icons/MessageCirclePlus';
+import ModelUsageDashboard from '../components/ModelUsageDashboard';
 import { 
   Menu, 
   LogIn, 
@@ -96,21 +97,21 @@ export default function Home() {
 
     // RANDOM PROVERB
     const proverbs = [
-      "Wisdom is like a baobab tree; no one individual can embrace it. â€” African Proverb",
-      "Until the lion learns to write, every story will glorify the hunter. â€” African Proverb",
-      "We are the drums, we are the dance. â€” Afro-Caribbean Proverb",
-      "A tree cannot stand without its roots. â€” Jamaican Proverb",
-      "Unity is strength, division is weakness. â€” Swahili Proverb",
-      "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. â€” West African Proverb",
-      "Truth is like a drum, it can be heard from afar. â€” Kenyan Proverb",
-      "A bird will always use another bird's feathers to feather its nest. â€” Ashanti Proverb",
-      "You must act as if it is impossible to fail. â€” Yoruba Wisdom",
-      "The child who is not embraced by the village will burn it down to feel its warmth. â€” West African Proverb",
-      "However long the night, the dawn will break. â€” African Proverb",
-      "If you want to go fast, go alone. If you want to go far, go together. â€” African Proverb",
-      "It takes a village to raise a child. â€” African Proverb",
-      "The fool speaks, the wise listen. â€” Ethiopian Proverb",
-      "When the music changes, so does the dance. â€” Haitian Proverb"
+      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+      "A tree cannot stand without its roots. — Jamaican Proverb",
+      "Unity is strength, division is weakness. — Swahili Proverb",
+      "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
+      "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
+      "A bird will always use another bird's feathers to feather its nest. — Ashanti Proverb",
+      "You must act as if it is impossible to fail. — Yoruba Wisdom",
+      "The child who is not embraced by the village will burn it down to feel its warmth. — West African Proverb",
+      "However long the night, the dawn will break. — African Proverb",
+      "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
+      "It takes a village to raise a child. — African Proverb",
+      "The fool speaks, the wise listen. — Ethiopian Proverb",
+      "When the music changes, so does the dance. — Haitian Proverb"
     ];
     
     function showRandomProverb() {
@@ -130,6 +131,8 @@ export default function Home() {
         }
       });
     });
+
+    console.log('✅ GriotBot chat initialized with enhanced features');
   }
 
   // Handle suggestion card clicks
@@ -147,6 +150,7 @@ export default function Home() {
     localStorage.removeItem('griotbot-history');
     setStorytellerMode(false);
     localStorage.removeItem('griotbot-storyteller-mode');
+    console.log('🔄 New chat started - history cleared');
   };
 
   // Handle sidebar toggle
@@ -173,7 +177,7 @@ export default function Home() {
     localStorage.setItem('griotbot-storyteller-mode', JSON.stringify(newMode));
   };
 
-  // Handle message sending
+  // 🎯 ENHANCED SEND MESSAGE HANDLER WITH SMART ROUTING MONITORING
   const handleSendMessage = async (messageText, customStorytellerMode = null) => {
     const useStorytellerMode = customStorytellerMode !== null ? customStorytellerMode : storytellerMode;
     
@@ -194,7 +198,8 @@ export default function Home() {
     setShowWelcome(false);
 
     try {
-      // API call to our serverless function
+      // 🚀 API call to our SMART ROUTING serverless function
+      console.log('🚀 Sending request to smart routing API...');
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -213,10 +218,32 @@ export default function Home() {
       const botResponse = data.choices?.[0]?.message?.content || 
                         'I apologize, but I seem to be having trouble processing your request.';
       
+      // 🎯 NEW: LOG MODEL USAGE FOR COST MONITORING
+      if (window.logModelUsage && data.model_used) {
+        console.log(`📊 Logging model usage: ${data.model_used}, Cost: $${data.estimated_cost || 0}, Free: ${data.is_free || false}`);
+        window.logModelUsage(
+          data.model_used, 
+          data.estimated_cost || 0, 
+          data.usage || {}
+        );
+      }
+      
+      // Log the smart routing results
+      console.log(`✅ Model used: ${data.model_used || 'Unknown'}`);
+      console.log(`💰 Estimated cost: $${data.estimated_cost || 0}`);
+      console.log(`🆓 Free model used: ${data.is_free ? 'YES' : 'NO'}`);
+      if (data.usage) {
+        console.log(`📊 Token usage: ${data.usage.total_tokens || 0} tokens`);
+      }
+      
       const botMessage = {
         role: 'bot',
         content: botResponse,
-        time: new Date().toISOString()
+        time: new Date().toISOString(),
+        // 🆕 Store model info for potential future use
+        modelUsed: data.model_used,
+        estimatedCost: data.estimated_cost,
+        isFree: data.is_free
       };
 
       // Add bot response to messages
@@ -295,8 +322,22 @@ export default function Home() {
               display: 'none',
               fontSize: '1.2rem', 
               marginRight: '0.5rem' 
-            }}>ðŸŒ¿</span>
+            }}>🌿</span>
             <span style={{ fontWeight: '600' }}>GriotBot</span>
+            
+            {/* 🆕 Show model info in development mode */}
+            {process.env.NODE_ENV === 'development' && message.modelUsed && (
+              <span style={{
+                fontSize: '0.7rem',
+                opacity: '0.6',
+                marginLeft: '0.5rem',
+                background: message.isFree ? 'rgba(76, 175, 80, 0.3)' : 'rgba(255, 193, 7, 0.3)',
+                padding: '2px 6px',
+                borderRadius: '4px',
+              }}>
+                {message.isFree ? '🆓' : '💰'} {message.modelUsed?.split('/').pop()?.split(':')[0] || 'Unknown'}
+              </span>
+            )}
           </div>
         )}
         
@@ -634,7 +675,7 @@ export default function Home() {
             fontSize: '1.2rem',
             fontWeight: 'bold',
           }}>
-            ðŸŒ¿ GriotBot
+            🌿 GriotBot
           </div>
         </div>
         
@@ -734,6 +775,9 @@ export default function Home() {
         onNewChat={handleNewChat}
       />
 
+      {/* 🎯 SMART ROUTING MONITORING DASHBOARD */}
+      <ModelUsageDashboard />
+
       {/* MAIN CHAT AREA */}
       <main style={{
         flex: 1,
@@ -781,7 +825,7 @@ export default function Home() {
               <span style={{ 
                 display: 'none',
                 fontSize: '4rem',
-              }}>ðŸŒ¿</span>
+              }}>🌿</span>
             </div>
             
             <h1 style={{ 
@@ -813,7 +857,7 @@ export default function Home() {
                 fontWeight: 500,
                 display: 'block',
                 marginTop: '0.5rem',
-              }}>â€” Marcus Mosiah Garvey</span>
+              }}>— Marcus Mosiah Garvey</span>
             </div>
             
             <div style={{
@@ -1099,7 +1143,7 @@ export default function Home() {
                   {isLoading ? (
                     <div className="spinner"></div>
                   ) : (
-                    <span style={{ fontSize: '1.2rem' }}>â†‘</span>
+                    <span style={{ fontSize: '1.2rem' }}>↑</span>
                   )}
                 </button>
               </div>
@@ -1192,7 +1236,7 @@ export default function Home() {
           }}
           aria-label="Random proverb"
         >
-          Wisdom is like a baobab tree; no one individual can embrace it. â€” African Proverb
+          Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb
         </div>
         
         {/* COPYRIGHT */}
@@ -1205,7 +1249,7 @@ export default function Home() {
           transition: 'color 0.3s',
           padding: '0 1rem 0.8rem 1rem',
         }}>
-          Â© 2025 GriotBot. All rights reserved.
+          © 2025 GriotBot. All rights reserved.
         </div>
       </div>
     </>
