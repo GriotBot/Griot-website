@@ -1,6 +1,19 @@
 // File: /components/EnhancedSidebar.js
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { 
+  X, 
+  Home, 
+  Plus, 
+  MessageSquare, 
+  BookOpen, 
+  Users, 
+  Archive, 
+  Globe, 
+  Info, 
+  MessageCircle,
+  Menu
+} from 'react-feather';
 
 export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
   const sidebarRef = useRef(null);
@@ -54,7 +67,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
             width: '100%',
             height: '100%',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 999,
+            zIndex: 1000,
             opacity: isVisible ? 1 : 0,
             transition: 'opacity 0.3s ease-in-out',
           }}
@@ -79,7 +92,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           boxShadow: '4px 0 20px var(--shadow-color)',
-          zIndex: 1000,
+          zIndex: 1002,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -87,31 +100,87 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
         aria-hidden={!isVisible}
         aria-label="Main navigation"
       >
-        {/* Sidebar Header */}
+        {/* Sidebar Header - Menu Icon pointing down */}
         <div style={{
           padding: '1.5rem 1.5rem 1rem 1.5rem',
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}>
-          <h2 style={{
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontFamily: 'Lora, serif',
-            fontSize: '1.3rem',
-            fontWeight: '600',
-          }}>
-            <span style={{ fontSize: '1.5rem' }} aria-hidden="true">ðŸŒ¿</span>
-            GriotBot
-          </h2>
+          {/* Menu icon pointing down */}
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--sidebar-text)',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: '0.8',
+            }}
+            aria-label="Close sidebar"
+            title="Close sidebar"
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.opacity = '1';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.opacity = '0.8';
+            }}
+          >
+            <Menu 
+              size={24} 
+              style={{
+                transform: 'rotate(90deg)', // Points down
+              }}
+              color="currentColor"
+            />
+          </button>
+          
+          {/* Close X Button */}
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--sidebar-text)',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: '0.8',
+            }}
+            aria-label="Close sidebar"
+            title="Close sidebar"
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.opacity = '1';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.opacity = '0.8';
+            }}
+          >
+            <X size={20} color="currentColor" />
+          </button>
         </div>
 
         {/* Return to Chat Section */}
         <div style={{
           padding: '1.5rem 1.5rem 0 1.5rem',
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           alignItems: 'center',
         }}>
           <Link href="/">
@@ -140,39 +209,10 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.transform = 'translateY(0)';
               }}
             >
-              <span style={{ fontSize: '1rem' }}>ðŸ </span>
+              <Home size={18} color="white" />
               Return to chat
             </a>
           </Link>
-          
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--sidebar-text)',
-              fontSize: '1.3rem',
-              cursor: 'pointer',
-              padding: '0.5rem',
-              borderRadius: '4px',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: '0.8',
-            }}
-            aria-label="Close sidebar"
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.opacity = '1';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.opacity = '0.8';
-            }}
-          >
-            âœ•
-          </button>
         </div>
 
         {/* Vertical line divider */}
@@ -181,7 +221,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
           style={{
             position: 'absolute',
             left: '25px',
-            top: '180px',
+            top: '120px', // Adjusted for new header
             bottom: '25px',
             width: '1px',
             backgroundColor: 'rgba(255,255,255,0.2)',
@@ -232,6 +272,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 cursor: 'pointer',
                 fontSize: '0.95rem',
               }}
+              title="Start a new conversation"
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
                 e.target.style.paddingLeft = '0.5rem';
@@ -241,7 +282,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.paddingLeft = '0';
               }}
             >
-              <span style={{ fontSize: '1rem' }}>âž•</span>
+              <Plus size={18} color="currentColor" />
               New Chat
             </button>
             
@@ -258,6 +299,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 marginBottom: '0.3rem',
                 fontSize: '0.95rem',
               }}
+              title="View saved conversations"
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
                 e.target.style.paddingLeft = '0.5rem';
@@ -266,7 +308,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <span style={{ fontSize: '1rem' }}>ðŸ’¬</span>
+                <MessageSquare size={18} color="currentColor" />
                 Saved Chats
               </a>
             </Link>
@@ -283,6 +325,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 gap: '0.7rem',
                 fontSize: '0.95rem',
               }}
+              title="Browse saved stories"
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
                 e.target.style.paddingLeft = '0.5rem';
@@ -291,7 +334,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <span style={{ fontSize: '1rem' }}>ðŸ“š</span>
+                <Archive size={18} color="currentColor" />
                 Saved Stories
               </a>
             </Link>
@@ -328,6 +371,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 marginBottom: '0.3rem',
                 fontSize: '0.95rem',
               }}
+              title="Learn about historical figures"
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
                 e.target.style.paddingLeft = '0.5rem';
@@ -336,7 +380,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <span style={{ fontSize: '1rem' }}>ðŸ‘‘</span>
+                <Users size={18} color="currentColor" />
                 Historical Figures
               </a>
             </Link>
@@ -354,6 +398,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 marginBottom: '0.3rem',
                 fontSize: '0.95rem',
               }}
+              title="Explore cultural stories and traditions"
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
                 e.target.style.paddingLeft = '0.5rem';
@@ -362,7 +407,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <span style={{ fontSize: '1rem' }}>ðŸŽ­</span>
+                <BookOpen size={18} color="currentColor" />
                 Cultural Stories
               </a>
             </Link>
@@ -379,6 +424,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 gap: '0.7rem',
                 fontSize: '0.95rem',
               }}
+              title="Connect with the global diaspora community"
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
                 e.target.style.paddingLeft = '0.5rem';
@@ -387,7 +433,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <span style={{ fontSize: '1rem' }}>ðŸŒ</span>
+                <Globe size={18} color="currentColor" />
                 Diaspora Community
               </a>
             </Link>
@@ -425,6 +471,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 fontSize: '0.95rem',
               }}
               onClick={onClose}
+              title="Learn more about GriotBot"
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
                 e.target.style.paddingLeft = '0.5rem';
@@ -433,7 +480,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <span style={{ fontSize: '1rem' }}>â„¹ï¸</span>
+                <Info size={18} color="currentColor" />
                 About GriotBot
               </a>
             </Link>
@@ -451,6 +498,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 fontSize: '0.95rem',
               }}
               onClick={onClose}
+              title="Share your feedback with us"
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
                 e.target.style.paddingLeft = '0.5rem';
@@ -459,7 +507,7 @@ export default function EnhancedSidebar({ isVisible, onClose, onNewChat }) {
                 e.target.style.backgroundColor = 'transparent';
                 e.target.style.paddingLeft = '0';
               }}>
-                <span style={{ fontSize: '1rem' }}>ðŸ’­</span>
+                <MessageCircle size={18} color="currentColor" />
                 Share Feedback
               </a>
             </Link>
