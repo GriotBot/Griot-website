@@ -1,5 +1,6 @@
 // File: /api/chat.js
-// Simple version without streaming - just fixes the prompt issue
+// GriotBot API handler with GPT-3.5-turbo-instruct + Streaming Support
+// Fixed prompt formatting and added streaming response
 
 import { NextResponse } from 'next/server';
 
@@ -37,31 +38,32 @@ export default async function handler(req) {
       );
     }
 
-    // Anti-hallucination detection
+    // Anti-hallucination pattern detection
     const isFactualQuery = detectFactualQuery(prompt);
     const riskLevel = assessHallucinationRisk(prompt);
     
-    // FIXED: Create completion prompt without mode tags
+    // Create completion prompt with FIXED formatting
     const completionPrompt = createCompletionPrompt(prompt, storytellerMode, isFactualQuery);
     
-    // Dynamic temperature
+    // Dynamic temperature based on query type
     const temperature = getTemperature(storytellerMode, isFactualQuery, riskLevel);
     
-    // Request body for completions API
+    // Prepare request for COMPLETIONS endpoint with STREAMING
     const requestBody = {
       model: MODEL,
       prompt: completionPrompt,
       temperature: temperature,
       max_tokens: storytellerMode ? 600 : 400,
-      stop: ["User:", "\n\nUser:", "\n\nHuman:", "User Question:"],
+      stop: ["User:", "\n\nUser:", "\n\nHuman:", "User Question:"], // Prevent runaway generation
+      stream: true, // Enable streaming
       top_p: 0.9,
       frequency_penalty: 0.1,
       presence_penalty: 0.1
     };
 
-    console.log(`🌿 GriotBot Request - Model: ${MODEL}, Temp: ${temperature}, Factual: ${isFactualQuery}`);
+    console.log(`🌿 GriotBot Request - Model: ${MODEL}, Temp: ${temperature}, Streaming: true`);
     
-    // Call OpenRouter Completions API
+    // Call OpenRouter Completions API with streaming
     const openRouterResponse = await fetch(COMPLETIONS_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -82,36 +84,18 @@ export default async function handler(req) {
       );
     }
 
-    const data = await openRouterResponse.json();
-    
-    // Extract from .text (not .message.content)
-    let botResponse = data.choices?.[0]?.text?.trim() || 
-                     'I apologize, but I seem to be having trouble processing your request.';
-
-    // Clean up any remaining prompt artifacts
-    botResponse = cleanResponse(botResponse);
-
-    // Apply anti-hallucination post-processing
-    const finalResponse = isFactualQuery ? 
-      addUncertaintyPhrases(botResponse, riskLevel) : 
-      botResponse;
-
-    // Log for monitoring
-    console.log(`💰 Tokens - Prompt: ${data.usage?.prompt_tokens || 'unknown'}, Completion: ${data.usage?.completion_tokens || 'unknown'}`);
-
-    // Return in expected format
-    return new NextResponse(
-      JSON.stringify({
-        choices: [
-          {
-            message: {
-              content: finalResponse
-            }
-          }
-        ]
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    // Return streaming response
+    return new NextResponse(openRouterResponse.body, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    });
 
   } catch (error) {
     console.error('Error in chat API:', error);
@@ -123,14 +107,15 @@ export default async function handler(req) {
 }
 
 /**
- * FIXED: Creates clean completion prompt without mode tags
+ * FIXED: Creates a completion prompt string with proper formatting
+ * This prevents "<Storyteller Mode>" from appearing in responses
  */
 function createCompletionPrompt(userPrompt, storytellerMode, isFactual) {
-  const baseInstructions = `You are GriotBot, an AI assistant inspired by the West African griot tradition. You provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
+  const corePersonality = `You are GriotBot, an AI assistant inspired by the West African griot tradition. You provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
 
 Your approach:
 - Incorporate Black historical context, cultural wisdom, and empowerment
-- Speak with the warmth and wisdom of a trusted elder or mentor
+- Speak with the warmth and wisdom of a trusted elder or mentor  
 - Address questions with cultural nuance and understanding of the Black experience
 - Include relevant proverbs, historical anecdotes, or notable Black figures when appropriate
 - Be mindful of the diversity within the African diaspora
@@ -138,42 +123,22 @@ Your approach:
 - Be emotionally intelligent about racism, discrimination, and cultural identity
 - Offer guidance that is empowering and uplifting${isFactual ? '\n- If unsure about historical facts, express appropriate uncertainty rather than guessing' : ''}`;
 
-  // FIXED: Clean storyteller instructions without tags
+  // FIXED: Different prompt structure for storyteller mode
   if (storytellerMode) {
-    return `${baseInstructions}
+    return `${corePersonality}
 
-For this response, frame your answer as a story, narrative, or extended metaphor drawing from African, Caribbean, or Black American oral traditions. Use vivid imagery and the rhythmic quality of oral storytelling. Conclude with reflective wisdom that connects to the user's question.
+When responding, frame your answer as a story, narrative, or extended metaphor drawing from African, Caribbean, or Black American oral traditions. Use vivid imagery and the rhythmic quality of oral storytelling. Conclude with reflective wisdom that connects to the user's question.
 
 User: ${userPrompt}
 
 GriotBot:`;
   } else {
-    return `${baseInstructions}
+    return `${corePersonality}
 
 User: ${userPrompt}
 
 GriotBot:`;
   }
-}
-
-/**
- * Clean up response to remove any prompt artifacts
- */
-function cleanResponse(response) {
-  // Remove any leftover prompt text or mode indicators
-  const cleanPatterns = [
-    /^(GriotBot:|Assistant:|AI:)/i,
-    /<[^>]*>/g, // Remove any remaining tags
-    /\[.*?\]/g, // Remove any bracketed instructions
-    /^(User:|Human:).*$/gm // Remove any user prompts that leaked through
-  ];
-  
-  let cleaned = response;
-  cleanPatterns.forEach(pattern => {
-    cleaned = cleaned.replace(pattern, '').trim();
-  });
-  
-  return cleaned;
 }
 
 /**
@@ -234,30 +199,4 @@ function getTemperature(storytellerMode, isFactual, riskLevel) {
   if (isFactual) return 0.4;
   if (storytellerMode) return 0.8;
   return 0.7;
-}
-
-/**
- * Add uncertainty phrases for factual queries when appropriate
- */
-function addUncertaintyPhrases(response, riskLevel) {
-  if (riskLevel === 'low') return response;
-  
-  const uncertaintyPhrases = [
-    'From historical records,',
-    'According to documented sources,',
-    'Historical accounts suggest',
-    'It\'s widely documented that',
-    'Based on available historical information,'
-  ];
-  
-  const hasUncertainty = uncertaintyPhrases.some(phrase => 
-    response.toLowerCase().includes(phrase.toLowerCase())
-  );
-  
-  if (!hasUncertainty && riskLevel === 'high') {
-    const randomPhrase = uncertaintyPhrases[Math.floor(Math.random() * uncertaintyPhrases.length)];
-    return `${randomPhrase} ${response}`;
-  }
-  
-  return response;
 }
