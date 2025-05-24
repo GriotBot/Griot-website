@@ -72,7 +72,7 @@ export default async function handler(req) {
           { role: 'user', content: prompt }
         ],
         temperature: storytellerMode ? 0.8 : 0.7,
-        max_tokens: 800, // REDUCED from 2000 to save costs
+        max_tokens: storytellerMode ? 600 : 800, // Even shorter for storyteller mode
         // Add OpenRouter-specific free tier settings
         top_p: 1,
         frequency_penalty: 0,
@@ -131,7 +131,13 @@ Keep responses concise but meaningful (under 200 words when possible).`;
   if (storytellerMode) {
     return baseInstruction + `
 
-STORYTELLER MODE: Frame responses as stories or narratives. Use African/Caribbean oral traditions. End with wisdom that connects to the question.`;
+STORYTELLER MODE: 
+- Frame your response as a brief story or narrative
+- NO staging directions (avoid: *clears throat*, **smiles warmly**, etc.)
+- Get straight to the story content
+- Keep it concise (under 150 words)
+- End with a clear lesson or wisdom
+- Use natural storytelling language, not theatrical descriptions`;
   }
 
   return baseInstruction;
