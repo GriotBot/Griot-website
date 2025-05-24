@@ -1,6 +1,5 @@
 // File: /api/chat.js
-// GriotBot API handler with GPT-3.5-turbo-instruct (Completions API)
-// This replaces the previous Chat Completions implementation
+// Simple version without streaming - just fixes the prompt issue
 
 import { NextResponse } from 'next/server';
 
@@ -8,9 +7,8 @@ export const config = {
   runtime: 'edge',
 };
 
-// CRITICAL: GPT-3.5-turbo-instruct uses COMPLETIONS API, not Chat API
 const MODEL = 'openai/gpt-3.5-turbo-instruct';
-const COMPLETIONS_ENDPOINT = 'https://openrouter.ai/api/v1/completions'; // NOT /chat/completions
+const COMPLETIONS_ENDPOINT = 'https://openrouter.ai/api/v1/completions';
 
 export default async function handler(req) {
   try {
@@ -39,32 +37,31 @@ export default async function handler(req) {
       );
     }
 
-    // Anti-hallucination pattern detection
+    // Anti-hallucination detection
     const isFactualQuery = detectFactualQuery(prompt);
     const riskLevel = assessHallucinationRisk(prompt);
     
-    // Create completion prompt (NOT chat messages)
+    // FIXED: Create completion prompt without mode tags
     const completionPrompt = createCompletionPrompt(prompt, storytellerMode, isFactualQuery);
     
-    // Dynamic temperature based on query type
+    // Dynamic temperature
     const temperature = getTemperature(storytellerMode, isFactualQuery, riskLevel);
     
-    // Prepare request for COMPLETIONS endpoint
+    // Request body for completions API
     const requestBody = {
       model: MODEL,
-      prompt: completionPrompt, // Single string, not messages array
+      prompt: completionPrompt,
       temperature: temperature,
       max_tokens: storytellerMode ? 600 : 400,
-      stop: ["User Question:", "\n\nUser:", "\n\nHuman:"], // Prevent runaway generation
-      // OpenRouter headers for tracking
+      stop: ["User:", "\n\nUser:", "\n\nHuman:", "User Question:"],
       top_p: 0.9,
       frequency_penalty: 0.1,
       presence_penalty: 0.1
     };
 
-    console.log(`🌿 GriotBot Request - Model: ${MODEL}, Temp: ${temperature}, Factual: ${isFactualQuery}, Risk: ${riskLevel}`);
+    console.log(`🌿 GriotBot Request - Model: ${MODEL}, Temp: ${temperature}, Factual: ${isFactualQuery}`);
     
-    // Call OpenRouter Completions API (NOT Chat API)
+    // Call OpenRouter Completions API
     const openRouterResponse = await fetch(COMPLETIONS_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -87,19 +84,22 @@ export default async function handler(req) {
 
     const data = await openRouterResponse.json();
     
-    // CRITICAL: Extract from .text, not .message.content
-    const botResponse = data.choices?.[0]?.text?.trim() || 
-                       'I apologize, but I seem to be having trouble processing your request.';
+    // Extract from .text (not .message.content)
+    let botResponse = data.choices?.[0]?.text?.trim() || 
+                     'I apologize, but I seem to be having trouble processing your request.';
 
-    // Apply anti-hallucination post-processing if needed
+    // Clean up any remaining prompt artifacts
+    botResponse = cleanResponse(botResponse);
+
+    // Apply anti-hallucination post-processing
     const finalResponse = isFactualQuery ? 
       addUncertaintyPhrases(botResponse, riskLevel) : 
       botResponse;
 
-    // Log usage for cost monitoring
-    console.log(`💰 Tokens - Prompt: ${data.usage?.prompt_tokens || 'unknown'}, Completion: ${data.usage?.completion_tokens || 'unknown'}, Total: ${data.usage?.total_tokens || 'unknown'}`);
+    // Log for monitoring
+    console.log(`💰 Tokens - Prompt: ${data.usage?.prompt_tokens || 'unknown'}, Completion: ${data.usage?.completion_tokens || 'unknown'}`);
 
-    // Return in format expected by frontend
+    // Return in expected format
     return new NextResponse(
       JSON.stringify({
         choices: [
@@ -123,37 +123,57 @@ export default async function handler(req) {
 }
 
 /**
- * Creates a completion prompt string (replaces chat messages)
- * This is the critical change for instruct model
+ * FIXED: Creates clean completion prompt without mode tags
  */
 function createCompletionPrompt(userPrompt, storytellerMode, isFactual) {
-  const baseInstruction = `You are GriotBot, an AI assistant inspired by the West African griot tradition of storytelling, history-keeping, and guidance. Your purpose is to provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
+  const baseInstructions = `You are GriotBot, an AI assistant inspired by the West African griot tradition. You provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
 
-CORE PRINCIPLES:
-- Provide responses that incorporate Black historical context, cultural wisdom, and empowerment
-- Be warm, respectful, and speak with the wisdom of an elder or mentor
+Your approach:
+- Incorporate Black historical context, cultural wisdom, and empowerment
+- Speak with the warmth and wisdom of a trusted elder or mentor
 - Address questions with cultural nuance and understanding of the Black experience
-- Include relevant proverbs, historical anecdotes, or references to notable Black figures when appropriate
+- Include relevant proverbs, historical anecdotes, or notable Black figures when appropriate
 - Be mindful of the diversity within the African diaspora
 - Avoid stereotypes while acknowledging shared cultural experiences
-- Be emotionally intelligent about topics like racism, discrimination, and cultural identity
-- Offer guidance that is empowering and uplifting
+- Be emotionally intelligent about racism, discrimination, and cultural identity
+- Offer guidance that is empowering and uplifting${isFactual ? '\n- If unsure about historical facts, express appropriate uncertainty rather than guessing' : ''}`;
 
-${isFactual ? 'IMPORTANT: If unsure about historical facts, dates, or quotes, express appropriate uncertainty rather than guessing.' : ''}`;
+  // FIXED: Clean storyteller instructions without tags
+  if (storytellerMode) {
+    return `${baseInstructions}
 
-  const storytellerAddition = storytellerMode ? `
-
-STORYTELLER MODE ACTIVATED:
-Frame your response as a story, narrative, or extended metaphor drawing from African, Caribbean, or Black American oral traditions. Use vivid imagery and the rhythmic quality of oral storytelling. Conclude with reflective wisdom that connects to the user's question.` : '';
-
-  const instruction = baseInstruction + storytellerAddition;
-
-  // Format as single prompt string for completions API
-  return `${instruction}
+For this response, frame your answer as a story, narrative, or extended metaphor drawing from African, Caribbean, or Black American oral traditions. Use vivid imagery and the rhythmic quality of oral storytelling. Conclude with reflective wisdom that connects to the user's question.
 
 User: ${userPrompt}
 
 GriotBot:`;
+  } else {
+    return `${baseInstructions}
+
+User: ${userPrompt}
+
+GriotBot:`;
+  }
+}
+
+/**
+ * Clean up response to remove any prompt artifacts
+ */
+function cleanResponse(response) {
+  // Remove any leftover prompt text or mode indicators
+  const cleanPatterns = [
+    /^(GriotBot:|Assistant:|AI:)/i,
+    /<[^>]*>/g, // Remove any remaining tags
+    /\[.*?\]/g, // Remove any bracketed instructions
+    /^(User:|Human:).*$/gm // Remove any user prompts that leaked through
+  ];
+  
+  let cleaned = response;
+  cleanPatterns.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, '').trim();
+  });
+  
+  return cleaned;
 }
 
 /**
@@ -186,7 +206,7 @@ function assessHallucinationRisk(prompt) {
     /word for word/i,
     /precise.*quote/i,
     /specific.*date/i,
-    /\d{4}.*\d{4}/i, // Multiple years
+    /\d{4}.*\d{4}/i,
     /statistics/i,
     /percentage/i,
     /how much.*cost/i
@@ -210,10 +230,10 @@ function assessHallucinationRisk(prompt) {
  * Dynamic temperature based on query type
  */
 function getTemperature(storytellerMode, isFactual, riskLevel) {
-  if (riskLevel === 'high') return 0.3; // Very conservative for facts
-  if (isFactual) return 0.4; // Conservative for factual content
-  if (storytellerMode) return 0.8; // Creative for stories
-  return 0.7; // Standard for general queries
+  if (riskLevel === 'high') return 0.3;
+  if (isFactual) return 0.4;
+  if (storytellerMode) return 0.8;
+  return 0.7;
 }
 
 /**
@@ -222,7 +242,6 @@ function getTemperature(storytellerMode, isFactual, riskLevel) {
 function addUncertaintyPhrases(response, riskLevel) {
   if (riskLevel === 'low') return response;
   
-  // Add uncertainty phrases for medium/high risk responses
   const uncertaintyPhrases = [
     'From historical records,',
     'According to documented sources,',
@@ -231,7 +250,6 @@ function addUncertaintyPhrases(response, riskLevel) {
     'Based on available historical information,'
   ];
   
-  // Simple implementation: prepend uncertainty phrase if response doesn't already have one
   const hasUncertainty = uncertaintyPhrases.some(phrase => 
     response.toLowerCase().includes(phrase.toLowerCase())
   );
