@@ -1,22 +1,17 @@
-// File: /api/chat.js - SMART ROUTING VERSION
+// File: /api/chat.js - REPLACE IMMEDIATELY TO STOP COSTS
 import { NextResponse } from 'next/server';
 
 export const config = {
   runtime: 'edge',
 };
 
-// SMART ROUTING: Try cheapest first, fallback to more expensive if needed
+// 🆓 FREE MODELS FIRST - ZERO COST
 const MODEL_FALLBACK_CHAIN = [
-  // Tier 1: FREE models (try all free options first)
-  'meta-llama/llama-3.1-8b-instruct:free',        // 🆓 FREE - Best balance
-  'mistralai/mixtral-8x7b-instruct:free',         // 🆓 FREE - High quality
-  'qwen/qwen-2-7b-instruct:free',                 // 🆓 FREE - Fast
-  
-  // Tier 2: Cheap backup (if all free models fail)
-  'openai/gpt-3.5-turbo',                         // 💰 ~$0.001 - 100x cheaper than Claude
-  
-  // Tier 3: Premium (only if everything else fails)
-  'anthropic/claude-3-haiku:beta',                // 💸 $0.08+ - LAST RESORT ONLY
+  'meta-llama/llama-3.1-8b-instruct:free',        // 🆓 FREE
+  'mistralai/mixtral-8x7b-instruct:free',         // 🆓 FREE
+  'qwen/qwen-2-7b-instruct:free',                 // 🆓 FREE
+  'openai/gpt-3.5-turbo',                         // 💰 ~$0.001 (100x cheaper than Claude)
+  'anthropic/claude-3-haiku:beta',                // 💸 LAST RESORT ONLY
 ];
 
 export default async function handler(req) {
@@ -46,14 +41,13 @@ export default async function handler(req) {
       );
     }
 
-    // SMART ROUTING: Use OpenRouter's model fallback feature
-    const primaryModel = MODEL_FALLBACK_CHAIN[0]; // Start with cheapest
-    const fallbackModels = MODEL_FALLBACK_CHAIN.slice(1); // Use rest as fallbacks
-
+    // 🎯 SMART ROUTING: Try cheapest first, fallback to more expensive
+    const primaryModel = MODEL_FALLBACK_CHAIN[0];
+    
     const systemInstruction = createSystemInstruction(storytellerMode);
 
-    console.log(`🎯 Primary model: ${primaryModel}`);
-    console.log(`🔄 Fallbacks: ${fallbackModels.length} models available`);
+    console.log(`🆓 USING FREE MODEL: ${primaryModel}`);
+    console.log(`🔄 Fallbacks available: ${MODEL_FALLBACK_CHAIN.length - 1}`);
 
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -64,14 +58,11 @@ export default async function handler(req) {
         'X-Title': 'GriotBot'
       },
       body: JSON.stringify({
-        // PRIMARY MODEL
+        // PRIMARY: Use FREE model
         model: primaryModel,
         
-        // SMART ROUTING: Automatic fallbacks
+        // FALLBACK CHAIN: All models in order
         models: MODEL_FALLBACK_CHAIN,
-        
-        // COST OPTIMIZATION: Use :floor variant for cheapest providers
-        // Note: This ensures even within each model, cheapest providers are tried first
         
         messages: [
           { role: 'system', content: systemInstruction },
@@ -79,23 +70,22 @@ export default async function handler(req) {
         ],
         
         temperature: storytellerMode ? 0.8 : 0.7,
-        max_tokens: storytellerMode ? 600 : 800, // Optimized token limits
+        max_tokens: storytellerMode ? 600 : 800, // REDUCED from 2000
         
-        // PROVIDER ROUTING: Optimize for cost
+        // COST OPTIMIZATION
         provider: {
-          order: ['lowest-cost'], // Prioritize cheapest providers
-          allow_fallbacks: true   // Enable automatic provider fallbacks
+          allow_fallbacks: true
         }
       })
     });
 
     if (!openRouterResponse.ok) {
       const errorData = await openRouterResponse.json().catch(() => ({}));
-      console.error('OpenRouter API error after all fallbacks:', errorData);
+      console.error('OpenRouter error after all fallbacks:', errorData);
       
       return new NextResponse(
         JSON.stringify({ 
-          error: 'All AI models temporarily unavailable. Please try again in a moment.' 
+          error: 'All AI models temporarily unavailable. Please try again.' 
         }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
       );
@@ -103,17 +93,20 @@ export default async function handler(req) {
 
     const data = await openRouterResponse.json();
     
-    // LOG WHICH MODEL WAS ACTUALLY USED (for cost monitoring)
+    // 📊 TRACK WHICH MODEL WAS ACTUALLY USED
     const modelUsed = data.model || primaryModel;
     const isFreeTier = modelUsed.includes(':free');
     const estimatedCost = isFreeTier ? 0 : (modelUsed.includes('gpt-3.5') ? 0.001 : 0.08);
     
-    console.log(`✅ Model used: ${modelUsed}`);
-    console.log(`💰 Estimated cost: $${estimatedCost}`);
-    console.log(`🎯 Was free model? ${isFreeTier ? 'YES' : 'NO'}`);
+    // 🚨 ALERT IF EXPENSIVE MODEL USED
+    if (estimatedCost > 0.01) {
+      console.warn(`💸 EXPENSIVE MODEL USED: ${modelUsed} - Cost: $${estimatedCost}`);
+    } else {
+      console.log(`✅ SUCCESS: ${modelUsed} - Cost: $${estimatedCost}`);
+    }
     
     if (data.usage) {
-      console.log(`📊 Token usage - Prompt: ${data.usage.prompt_tokens}, Completion: ${data.usage.completion_tokens}, Total: ${data.usage.total_tokens}`);
+      console.log(`📊 Tokens: ${data.usage.total_tokens || 0}`);
     }
     
     return new NextResponse(
@@ -121,21 +114,21 @@ export default async function handler(req) {
         choices: [
           {
             message: {
-              content: data.choices[0]?.message?.content || 'No response from the AI service.'
+              content: data.choices[0]?.message?.content || 'No response available.'
             }
           }
         ],
-        // Pass through usage data and model info for monitoring
-        usage: data.usage,
+        // 🎯 PASS MONITORING DATA TO FRONTEND
         model_used: modelUsed,
         estimated_cost: estimatedCost,
-        is_free: isFreeTier
+        is_free: isFreeTier,
+        usage: data.usage
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in chat API:', error);
+    console.error('Error in smart routing chat API:', error);
     return new NextResponse(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -144,7 +137,7 @@ export default async function handler(req) {
 }
 
 /**
- * OPTIMIZED SYSTEM INSTRUCTION - Concise but effective
+ * 🎯 OPTIMIZED SYSTEM INSTRUCTION - NO MORE THEATRICAL STAGING
  */
 function createSystemInstruction(storytellerMode) {
   const baseInstruction = `You are GriotBot, an AI assistant inspired by West African griot traditions. Provide culturally rich, empowering responses for Black culture and diaspora experiences.
@@ -162,7 +155,9 @@ Keep responses concise but meaningful (2-4 paragraphs).`;
   if (storytellerMode) {
     return baseInstruction + `
 
-STORYTELLER MODE: Frame responses as engaging narratives. Draw from African, Caribbean, or Black American oral traditions. End with reflective wisdom. Avoid theatrical staging (*clears throat*, etc.) - focus on the story content.`;
+STORYTELLER MODE: Frame responses as engaging narratives. Draw from African, Caribbean, or Black American oral traditions. End with reflective wisdom. 
+
+IMPORTANT: DO NOT use theatrical staging like "*clears throat*", "*smiles warmly*", "*gestures*" etc. Focus on the story content itself, not performance directions.`;
   }
 
   return baseInstruction;
