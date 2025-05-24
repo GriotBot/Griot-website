@@ -20,8 +20,6 @@ export default function Home() {
   
   // State management
   const [theme, setTheme] = useState('light');
-  
-  // Sidebar state - moved to React state management
   const [sidebarVisible, setSidebarVisible] = useState(false);
   
   // Chat state
@@ -161,6 +159,20 @@ export default function Home() {
     setSidebarVisible(false);
   };
 
+  // Handle theme toggle
+  const handleThemeToggle = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('griotbot-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  // Handle storyteller mode change
+  const handleStorytellerModeChange = (newMode) => {
+    setStorytellerMode(newMode);
+    localStorage.setItem('griotbot-storyteller-mode', JSON.stringify(newMode));
+  };
+
   // Handle message sending
   const handleSendMessage = async (messageText, customStorytellerMode = null) => {
     const useStorytellerMode = customStorytellerMode !== null ? customStorytellerMode : storytellerMode;
@@ -227,20 +239,6 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Handle theme toggle
-  const handleThemeToggle = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('griotbot-theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
-
-  // Handle storyteller mode change
-  const handleStorytellerModeChange = (newMode) => {
-    setStorytellerMode(newMode);
-    localStorage.setItem('griotbot-storyteller-mode', JSON.stringify(newMode));
   };
 
   // Format time for display
@@ -541,6 +539,16 @@ export default function Home() {
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
+
+          @keyframes typing-bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+          }
+          
+          .suggestion-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px var(--shadow-color);
+          }
         `}} />
       </Head>
       
@@ -568,7 +576,7 @@ export default function Home() {
       }}>
         {/* LEFT SIDE - Menu */}
         <button 
-          onClick={handleSidebarToggle}
+          onClick={sidebarVisible ? handleSidebarClose : handleSidebarToggle}
           style={{
             fontSize: '1.5rem',
             color: 'var(--header-text)',
@@ -580,10 +588,11 @@ export default function Home() {
             cursor: 'pointer',
             padding: '8px 12px',
             borderRadius: '6px',
-            transition: 'background-color 0.2s',
+            transition: 'background-color 0.2s, transform 0.3s ease',
             position: 'relative',
+            transform: sidebarVisible ? 'rotate(90deg)' : 'rotate(0deg)', // Rotate when sidebar is open
           }}
-          aria-label="Toggle sidebar"
+          aria-label={sidebarVisible ? "Close sidebar" : "Open sidebar"}
           aria-expanded={sidebarVisible}
           aria-controls="sidebar"
           title="Menu"
@@ -774,6 +783,7 @@ export default function Home() {
                 fontSize: '4rem',
               }}>🌿</span>
             </div>
+            
             <h1 style={{ 
               fontFamily: 'Lora, serif',
               fontSize: '2rem',
@@ -932,7 +942,7 @@ export default function Home() {
         
         <div style={{
           width: '100%',
-                        maxWidth: '875px',
+          maxWidth: '875px',
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
@@ -1198,19 +1208,6 @@ export default function Home() {
           © 2025 GriotBot. All rights reserved.
         </div>
       </div>
-
-      {/* Additional animations */}
-      <style jsx>{`
-        @keyframes typing-bounce {
-          0%, 80%, 100% { transform: scale(0); }
-          40% { transform: scale(1); }
-        }
-        
-        .suggestion-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 6px 15px var(--shadow-color);
-        }
-      `}</style>
     </>
   );
 }
