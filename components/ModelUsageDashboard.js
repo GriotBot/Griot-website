@@ -1,16 +1,15 @@
-// File: /components/ModelUsageDashboard.js
+// File: /components/ModelUsageDashboard.js - GPT-3.5 EXCLUSIVE VERSION
 import { useState, useEffect } from 'react';
 
 export default function ModelUsageDashboard() {
   const [stats, setStats] = useState({
     totalRequests: 0,
-    freeModelUses: 0,
-    paidModelUses: 0,
     totalCost: 0,
-    modelBreakdown: {},
-    lastUsedModel: 'None',
+    modelUsed: 'openai/gpt-3.5-turbo',
     todaysRequests: 0,
-    savingsVsClaude: 0
+    savingsVsClaude: 0,
+    averageTokens: 0,
+    totalTokens: 0
   });
 
   const [isVisible, setIsVisible] = useState(false);
@@ -25,7 +24,7 @@ export default function ModelUsageDashboard() {
   }, []);
 
   const loadStats = () => {
-    const saved = localStorage.getItem('griotbot-model-stats');
+    const saved = localStorage.getItem('griotbot-gpt35-stats');
     if (saved) {
       setStats(JSON.parse(saved));
     }
@@ -33,41 +32,36 @@ export default function ModelUsageDashboard() {
 
   // Call this function from your chat handler when you get a response
   const logModelUsage = (modelUsed, estimatedCost, tokenUsage) => {
-    const isFree = modelUsed.includes(':free');
     const claudeEquivalentCost = 0.08; // What this request would cost with Claude
+    const tokensUsed = tokenUsage?.total_tokens || 0;
     
     const newStats = {
       ...stats,
       totalRequests: stats.totalRequests + 1,
-      freeModelUses: stats.freeModelUses + (isFree ? 1 : 0),
-      paidModelUses: stats.paidModelUses + (isFree ? 0 : 1),
       totalCost: stats.totalCost + estimatedCost,
-      lastUsedModel: modelUsed,
+      modelUsed: modelUsed,
       todaysRequests: stats.todaysRequests + 1,
       savingsVsClaude: stats.savingsVsClaude + (claudeEquivalentCost - estimatedCost),
-      modelBreakdown: {
-        ...stats.modelBreakdown,
-        [modelUsed]: (stats.modelBreakdown[modelUsed] || 0) + 1
-      }
+      totalTokens: stats.totalTokens + tokensUsed,
+      averageTokens: Math.round((stats.totalTokens + tokensUsed) / (stats.totalRequests + 1))
     };
     
     setStats(newStats);
-    localStorage.setItem('griotbot-model-stats', JSON.stringify(newStats));
+    localStorage.setItem('griotbot-gpt35-stats', JSON.stringify(newStats));
   };
 
   const resetStats = () => {
     const resetStats = {
       totalRequests: 0,
-      freeModelUses: 0,
-      paidModelUses: 0,
       totalCost: 0,
-      modelBreakdown: {},
-      lastUsedModel: 'None',
+      modelUsed: 'openai/gpt-3.5-turbo',
       todaysRequests: 0,
-      savingsVsClaude: 0
+      savingsVsClaude: 0,
+      averageTokens: 0,
+      totalTokens: 0
     };
     setStats(resetStats);
-    localStorage.setItem('griotbot-model-stats', JSON.stringify(resetStats));
+    localStorage.setItem('griotbot-gpt35-stats', JSON.stringify(resetStats));
   };
 
   const toggleDashboard = () => {
@@ -107,8 +101,8 @@ export default function ModelUsageDashboard() {
     );
   }
 
-  const freePercentage = stats.totalRequests > 0 ? 
-    Math.round((stats.freeModelUses / stats.totalRequests) * 100) : 0;
+  const costEfficiency = stats.totalRequests > 0 ? 
+    Math.round((1 - (stats.totalCost / (stats.totalRequests * 0.08))) * 100) : 0;
 
   return (
     <div style={{
@@ -127,7 +121,7 @@ export default function ModelUsageDashboard() {
       border: '1px solid #333'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-        <h4 style={{ margin: 0, color: '#d7722c' }}>🤖 GriotBot Model Analytics</h4>
+        <h4 style={{ margin: 0, color: '#d7722c' }}>🎯 GriotBot Analytics</h4>
         <button onClick={toggleDashboard} style={{
           background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '14px'
         }}>✕</button>
@@ -140,8 +134,8 @@ export default function ModelUsageDashboard() {
           <strong>{stats.totalRequests}</strong>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-          <span>🆓 Free Model Usage:</span>
-          <strong style={{ color: '#4CAF50' }}>{freePercentage}%</strong>
+          <span>🤖 Model:</span>
+          <strong style={{ color: '#4CAF50' }}>GPT-3.5</strong>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
           <span>💰 Total Cost:</span>
@@ -151,50 +145,42 @@ export default function ModelUsageDashboard() {
           <span>💎 Savings vs Claude:</span>
           <strong style={{ color: '#4CAF50' }}>${stats.savingsVsClaude.toFixed(2)}</strong>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+          <span>⚡ Efficiency:</span>
+          <strong style={{ color: '#4CAF50' }}>{costEfficiency}%</strong>
+        </div>
       </div>
       
-      {/* Last Used Model */}
+      {/* Token Usage */}
       <div style={{ marginBottom: '15px' }}>
-        <div style={{ marginBottom: '5px', fontWeight: 'bold', color: '#d7722c' }}>🔄 Last Model Used:</div>
+        <div style={{ marginBottom: '5px', fontWeight: 'bold', color: '#d7722c' }}>📈 Token Usage:</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+          <span>Total Tokens:</span>
+          <strong>{stats.totalTokens.toLocaleString()}</strong>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+          <span>Avg per Request:</span>
+          <strong>{stats.averageTokens}</strong>
+        </div>
+      </div>
+      
+      {/* Current Model */}
+      <div style={{ marginBottom: '15px' }}>
+        <div style={{ marginBottom: '5px', fontWeight: 'bold', color: '#d7722c' }}>🔄 Current Model:</div>
         <div style={{ 
-          background: 'rgba(255,255,255,0.1)', 
-          padding: '5px', 
+          background: 'rgba(76, 175, 80, 0.2)', 
+          padding: '8px', 
           borderRadius: '4px',
           fontSize: '10px',
-          wordBreak: 'break-all'
+          textAlign: 'center'
         }}>
-          {stats.lastUsedModel}
+          <div style={{ fontWeight: 'bold' }}>OpenAI GPT-3.5-Turbo</div>
+          <div style={{ opacity: 0.8 }}>~$0.001 per request</div>
         </div>
       </div>
       
-      {/* Model Breakdown */}
-      {Object.keys(stats.modelBreakdown).length > 0 && (
-        <div style={{ marginBottom: '15px' }}>
-          <div style={{ marginBottom: '5px', fontWeight: 'bold', color: '#d7722c' }}>📈 Model Breakdown:</div>
-          {Object.entries(stats.modelBreakdown).map(([model, count]) => (
-            <div key={model} style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              marginBottom: '3px',
-              fontSize: '10px'
-            }}>
-              <span style={{ 
-                color: model.includes(':free') ? '#4CAF50' : '#FFC107',
-                maxWidth: '180px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}>
-                {model.includes(':free') ? '🆓' : '💰'} {model.split('/').pop()}
-              </span>
-              <strong>{count}</strong>
-            </div>
-          ))}
-        </div>
-      )}
-      
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '5px' }}>
+      <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
         <button onClick={resetStats} style={{
           background: '#dc3545',
           color: 'white',
@@ -222,17 +208,16 @@ export default function ModelUsageDashboard() {
       {/* Cost Projection */}
       {stats.totalRequests > 0 && (
         <div style={{ 
-          marginTop: '10px', 
           padding: '8px', 
           background: 'rgba(76, 175, 80, 0.2)',
           borderRadius: '4px',
           fontSize: '10px'
         }}>
           📊 <strong>Monthly Projection:</strong><br/>
-          Current: ${(stats.totalCost * 30).toFixed(2)}<br/>
-          vs Claude: ${(stats.totalRequests * 0.08 * 30).toFixed(2)}<br/>
+          Current path: ${(stats.totalCost * 30).toFixed(2)}/month<br/>
+          vs Claude: ${(stats.totalRequests * 0.08 * 30).toFixed(2)}/month<br/>
           <strong style={{ color: '#4CAF50' }}>
-            Savings: {Math.round((1 - (stats.totalCost / (stats.totalRequests * 0.08))) * 100)}%
+            Saving: ${((stats.totalRequests * 0.08 * 30) - (stats.totalCost * 30)).toFixed(2)}/month
           </strong>
         </div>
       )}
