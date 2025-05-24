@@ -44,8 +44,10 @@ export default async function handler(req) {
       );
     }
 
-    // Use FREE Llama model as primary choice
+    // Use FREE Llama model as primary choice (NO MORE CLAUDE!)
     const model = MODELS.free_llama;
+    
+    console.log(`🆓 Using FREE model: ${model}`);
 
     // SHORTENED SYSTEM INSTRUCTION (150 words vs 500+ before)
     const systemInstruction = createSystemInstruction(storytellerMode);
