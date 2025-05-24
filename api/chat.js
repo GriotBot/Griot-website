@@ -1,18 +1,13 @@
-// File: /api/chat.js - REPLACE IMMEDIATELY TO STOP COSTS
+// File: /api/chat.js - GPT-3.5-TURBO EXCLUSIVE (FINAL DECISION)
 import { NextResponse } from 'next/server';
 
 export const config = {
   runtime: 'edge',
 };
 
-// 🆓 FREE MODELS FIRST - ZERO COST
-const MODEL_FALLBACK_CHAIN = [
-  'meta-llama/llama-3.1-8b-instruct:free',        // 🆓 FREE
-  'mistralai/mixtral-8x7b-instruct:free',         // 🆓 FREE
-  'qwen/qwen-2-7b-instruct:free',                 // 🆓 FREE
-  'openai/gpt-3.5-turbo',                         // 💰 ~$0.001 (100x cheaper than Claude)
-  'anthropic/claude-3-haiku:beta',                // 💸 LAST RESORT ONLY
-];
+// 🎯 FINAL DECISION: GPT-3.5-TURBO ONLY
+const MODEL = 'openai/gpt-3.5-turbo';
+const COST_PER_REQUEST = 0.001; // ~$0.001 per request (vs $0.08+ for Claude)
 
 export default async function handler(req) {
   try {
@@ -41,13 +36,10 @@ export default async function handler(req) {
       );
     }
 
-    // 🎯 SMART ROUTING: Try cheapest first, fallback to more expensive
-    const primaryModel = MODEL_FALLBACK_CHAIN[0];
-    
     const systemInstruction = createSystemInstruction(storytellerMode);
 
-    console.log(`🆓 USING FREE MODEL: ${primaryModel}`);
-    console.log(`🔄 Fallbacks available: ${MODEL_FALLBACK_CHAIN.length - 1}`);
+    console.log(`🎯 Using GPT-3.5-Turbo exclusively`);
+    console.log(`💰 Estimated cost: $${COST_PER_REQUEST} (vs $0.08+ for Claude)`);
 
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -58,34 +50,27 @@ export default async function handler(req) {
         'X-Title': 'GriotBot'
       },
       body: JSON.stringify({
-        // PRIMARY: Use FREE model
-        model: primaryModel,
-        
-        // FALLBACK CHAIN: All models in order
-        models: MODEL_FALLBACK_CHAIN,
-        
+        model: MODEL,
         messages: [
           { role: 'system', content: systemInstruction },
           { role: 'user', content: prompt }
         ],
-        
         temperature: storytellerMode ? 0.8 : 0.7,
-        max_tokens: storytellerMode ? 600 : 800, // REDUCED from 2000
-        
-        // COST OPTIMIZATION
+        max_tokens: storytellerMode ? 600 : 800,
+        // Optimize for cost
         provider: {
-          allow_fallbacks: true
+          order: ['openai'] // Prefer OpenAI directly for best pricing
         }
       })
     });
 
     if (!openRouterResponse.ok) {
       const errorData = await openRouterResponse.json().catch(() => ({}));
-      console.error('OpenRouter error after all fallbacks:', errorData);
+      console.error('OpenRouter GPT-3.5 error:', errorData);
       
       return new NextResponse(
         JSON.stringify({ 
-          error: 'All AI models temporarily unavailable. Please try again.' 
+          error: 'AI service temporarily unavailable. Please try again.' 
         }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
       );
@@ -93,20 +78,13 @@ export default async function handler(req) {
 
     const data = await openRouterResponse.json();
     
-    // 📊 TRACK WHICH MODEL WAS ACTUALLY USED
-    const modelUsed = data.model || primaryModel;
-    const isFreeTier = modelUsed.includes(':free');
-    const estimatedCost = isFreeTier ? 0 : (modelUsed.includes('gpt-3.5') ? 0.001 : 0.08);
-    
-    // 🚨 ALERT IF EXPENSIVE MODEL USED
-    if (estimatedCost > 0.01) {
-      console.warn(`💸 EXPENSIVE MODEL USED: ${modelUsed} - Cost: $${estimatedCost}`);
-    } else {
-      console.log(`✅ SUCCESS: ${modelUsed} - Cost: $${estimatedCost}`);
-    }
+    // 📊 SIMPLE MONITORING FOR GPT-3.5 EXCLUSIVE
+    const actualModel = data.model || MODEL;
+    console.log(`✅ Response from: ${actualModel}`);
+    console.log(`💰 Cost: $${COST_PER_REQUEST}`);
     
     if (data.usage) {
-      console.log(`📊 Tokens: ${data.usage.total_tokens || 0}`);
+      console.log(`📊 Tokens: Prompt: ${data.usage.prompt_tokens}, Completion: ${data.usage.completion_tokens}, Total: ${data.usage.total_tokens}`);
     }
     
     return new NextResponse(
@@ -114,21 +92,21 @@ export default async function handler(req) {
         choices: [
           {
             message: {
-              content: data.choices[0]?.message?.content || 'No response available.'
+              content: data.choices[0]?.message?.content || 'I apologize, but I seem to be having trouble processing your request.'
             }
           }
         ],
-        // 🎯 PASS MONITORING DATA TO FRONTEND
-        model_used: modelUsed,
-        estimated_cost: estimatedCost,
-        is_free: isFreeTier,
+        // 🎯 MONITORING DATA FOR DASHBOARD
+        model_used: actualModel,
+        estimated_cost: COST_PER_REQUEST,
+        is_free: false, // GPT-3.5 costs money but very little
         usage: data.usage
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in smart routing chat API:', error);
+    console.error('Error in GPT-3.5 chat API:', error);
     return new NextResponse(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -137,7 +115,8 @@ export default async function handler(req) {
 }
 
 /**
- * 🎯 OPTIMIZED SYSTEM INSTRUCTION - NO MORE THEATRICAL STAGING
+ * 🎯 OPTIMIZED SYSTEM INSTRUCTION FOR GPT-3.5
+ * Concise but effective for cultural responses
  */
 function createSystemInstruction(storytellerMode) {
   const baseInstruction = `You are GriotBot, an AI assistant inspired by West African griot traditions. Provide culturally rich, empowering responses for Black culture and diaspora experiences.
@@ -145,19 +124,19 @@ function createSystemInstruction(storytellerMode) {
 CORE PRINCIPLES:
 - Include Black historical context and cultural wisdom when relevant
 - Be warm, respectful, and empowering
-- Reference proverbs, figures, or traditions when appropriate
+- Reference proverbs, figures, or traditions when appropriate  
 - Address the diversity of African diaspora experiences
 - Be emotionally intelligent about racism and identity challenges
 - Offer practical wisdom with hope and empowerment
 
-Keep responses concise but meaningful (2-4 paragraphs).`;
+Keep responses concise but meaningful (2-4 paragraphs). Be conversational and authentic.`;
 
   if (storytellerMode) {
     return baseInstruction + `
 
-STORYTELLER MODE: Frame responses as engaging narratives. Draw from African, Caribbean, or Black American oral traditions. End with reflective wisdom. 
+STORYTELLER MODE: Frame responses as engaging narratives drawing from African, Caribbean, or Black American oral traditions. End with reflective wisdom that connects to the user's question. 
 
-IMPORTANT: DO NOT use theatrical staging like "*clears throat*", "*smiles warmly*", "*gestures*" etc. Focus on the story content itself, not performance directions.`;
+IMPORTANT: Focus on story content, not performance directions. No theatrical staging like "*clears throat*" or "*gestures*".`;
   }
 
   return baseInstruction;
