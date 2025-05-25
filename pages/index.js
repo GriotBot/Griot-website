@@ -237,6 +237,11 @@ export default function Home() {
         console.log(`📊 Token usage: ${data.usage.total_tokens || 0} tokens`);
       }
       
+      // FIXED: Turn off streaming for any previous bot messages before adding new one
+      const updatedMessagesWithUser = newMessagesWithUser.map(msg => 
+        msg.role === 'bot' ? { ...msg, isStreaming: false } : msg
+      );
+
       const botMessage = {
         role: 'bot',
         content: botResponse,
@@ -245,11 +250,11 @@ export default function Home() {
         modelUsed: data.model_used,
         estimatedCost: data.estimated_cost,
         isFree: data.is_free,
-        isStreaming: true  // NEW: This will only animate if it's the latest message
+        isStreaming: true  // Only this new message will animate
       };
 
       // Add bot response to messages (will animate in renderMessage)
-      const finalMessages = [...newMessagesWithUser, botMessage];
+      const finalMessages = [...updatedMessagesWithUser, botMessage];
       setMessages(finalMessages);
       saveChatHistory(finalMessages);
       
@@ -316,7 +321,8 @@ export default function Home() {
   // Render message with appropriate styling
   const renderMessage = (message, index) => {
     const isUser = message.role === 'user';
-    const isLatestBotMessage = !isUser && index === messages.length - 1 && !isLoading;
+    // FIXED: Simpler condition - if it's marked for streaming and it's a bot message, animate it
+    const shouldAnimate = !isUser && message.isStreaming;
     
     return (
       <div
@@ -383,8 +389,8 @@ export default function Home() {
         )}
         
         <div style={{ whiteSpace: 'pre-wrap' }}>
-          {/* NEW: Only animate the most recent bot message */}
-          {!isUser && message.isStreaming && isLatestBotMessage ? (
+          {/* FIXED: Simpler animation condition */}
+          {shouldAnimate ? (
             <AnimatedText 
               text={message.content} 
               delay={25} 
@@ -545,11 +551,12 @@ export default function Home() {
         <title>GriotBot - Your Digital Griot</title>
         <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* Replace the single favicon line with this */}
-<link rel="icon" href="/favicon.ico" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-<meta name="theme-color" content="#c49a6c" />
+        
+        {/* FIXED: Comprehensive favicon setup without redundancy */}
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#c49a6c" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
