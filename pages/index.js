@@ -16,6 +16,25 @@ import {
   ArrowUpCircle  // NEW: Import arrow-up-circle icon
 } from 'react-feather';
 
+// MOVED TO TOP: Constants for React-idiomatic approach
+const PROVERBS = [
+  "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+  "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+  "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+  "A tree cannot stand without its roots. — Jamaican Proverb",
+  "Unity is strength, division is weakness. — Swahili Proverb",
+  "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
+  "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
+  "A bird will always use another bird's feathers to feather its nest. — Ashanti Proverb",
+  "You must act as if it is impossible to fail. — Yoruba Wisdom",
+  "The child who is not embraced by the village will burn it down to feel its warmth. — West African Proverb",
+  "However long the night, the dawn will break. — African Proverb",
+  "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
+  "It takes a village to raise a child. — African Proverb",
+  "The fool speaks, the wise listen. — Ethiopian Proverb",
+  "When the music changes, so does the dance. — Haitian Proverb"
+];
+
 export default function Home() {
   // State to ensure we can access DOM elements after mounting
   const [isClient, setIsClient] = useState(false);
@@ -30,6 +49,9 @@ export default function Home() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [storytellerMode, setStorytellerMode] = useState(false);
   
+  // NEW: React state for proverb (replaces DOM manipulation)
+  const [currentProverb, setCurrentProverb] = useState('');
+  
   // NEW: Ref for auto-scrolling
   const chatContainerRef = useRef(null);
 
@@ -41,9 +63,12 @@ export default function Home() {
     loadChatHistory();
     loadPreferences();
 
-    // Initialize chat functionality
+    // NEW: Initialize proverb with React state instead of DOM manipulation
+    showRandomProverb();
+
+    // Only console log - no more DOM manipulation needed
     if (typeof window !== 'undefined') {
-      initializeChat();
+      console.log('✅ GriotBot chat initialized with React state management');
     }
   }, []);
 
@@ -60,8 +85,12 @@ export default function Home() {
       const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
       if (hist.length > 0) {
         setShowWelcome(false);
-        // FIXED: Ensure no animations on page refresh - set all messages to not streaming
-        const staticMessages = hist.map(msg => ({ ...msg, isStreaming: false }));
+        // FIXED: Ensure no streaming effects on page refresh - remove streaming flags and add IDs
+        const staticMessages = hist.map((msg, index) => ({ 
+          ...msg, 
+          isStreaming: false,
+          id: msg.id || `loaded-${index}-${Date.now()}`  // Ensure each message has an ID
+        }));
         setMessages(staticMessages);
       }
     } catch (err) {
@@ -97,58 +126,13 @@ export default function Home() {
     }
   }
 
-  // Function that initializes remaining chat functionality
-  function initializeChat() {
-    const factElement = document.getElementById('fact');
-    const suggestionCards = document.querySelectorAll('.suggestion-card');
+  // REACT-IDIOMATIC: Random proverb using state instead of DOM manipulation
+  const showRandomProverb = () => {
+    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
+    setCurrentProverb(PROVERBS[randomIndex]);
+  };
 
-    // If any element is missing, return (may happen during initial mounting)
-    if (!factElement) {
-      console.warn('Some DOM elements not found, initialization delayed');
-      return;
-    }
-
-    // RANDOM PROVERB - FIXED CHARACTER ENCODING
-    const proverbs = [
-      "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-      "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-      "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-      "A tree cannot stand without its roots. — Jamaican Proverb",
-      "Unity is strength, division is weakness. — Swahili Proverb",
-      "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
-      "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
-      "A bird will always use another bird's feathers to feather its nest. — Ashanti Proverb",
-      "You must act as if it is impossible to fail. — Yoruba Wisdom",
-      "The child who is not embraced by the village will burn it down to feel its warmth. — West African Proverb",
-      "However long the night, the dawn will break. — African Proverb",
-      "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
-      "It takes a village to raise a child. — African Proverb",
-      "The fool speaks, the wise listen. — Ethiopian Proverb",
-      "When the music changes, so does the dance. — Haitian Proverb"
-    ];
-    
-    function showRandomProverb() {
-      const randomIndex = Math.floor(Math.random() * proverbs.length);
-      factElement.textContent = proverbs[randomIndex];
-      factElement.setAttribute('aria-label', `Proverb: ${proverbs[randomIndex]}`);
-    }
-    
-    showRandomProverb(); // Show proverb on init
-
-    // SUGGESTION CARDS HANDLER
-    suggestionCards.forEach(card => {
-      card.addEventListener('click', () => {
-        const prompt = card.getAttribute('data-prompt');
-        if (prompt) {
-          handleSuggestionClick(prompt);
-        }
-      });
-    });
-
-    console.log('✅ GriotBot chat initialized with enhanced features');
-  }
-
-  // Handle suggestion card clicks
+  // Handle suggestion card clicks - now moved to JSX onClick handlers
   const handleSuggestionClick = (prompt) => {
     // Hide welcome screen and send the suggested prompt
     setShowWelcome(false);
@@ -163,6 +147,8 @@ export default function Home() {
     localStorage.removeItem('griotbot-history');
     setStorytellerMode(false);
     localStorage.removeItem('griotbot-storyteller-mode');
+    // NEW: Generate new proverb using React state
+    showRandomProverb();
     console.log('🔄 New chat started - history cleared');
   };
 
@@ -190,7 +176,7 @@ export default function Home() {
     localStorage.setItem('griotbot-storyteller-mode', JSON.stringify(newMode));
   };
 
-  // 🎯 ENHANCED SEND MESSAGE HANDLER WITH SMART ROUTING MONITORING
+  // 🎯 TRUE STREAMING MESSAGE HANDLER - Shows text as AI generates it
   const handleSendMessage = async (messageText, customStorytellerMode = null) => {
     const useStorytellerMode = customStorytellerMode !== null ? customStorytellerMode : storytellerMode;
     
@@ -210,78 +196,148 @@ export default function Home() {
     setIsLoading(true);
     setShowWelcome(false);
 
+    // Create initial empty bot message that we'll update with streaming content
+    const botMessageId = Date.now();
+    const initialBotMessage = {
+      id: botMessageId,
+      role: 'bot',
+      content: '',
+      time: new Date().toISOString(),
+      isStreaming: true
+    };
+
+    const messagesWithEmptyBot = [...newMessagesWithUser, initialBotMessage];
+    setMessages(messagesWithEmptyBot);
+
     try {
-      // 🚀 API call to our SMART ROUTING serverless function
-      console.log('🚀 Sending request to smart routing API...');
+      // 🚀 API call with streaming enabled
+      console.log('🚀 Sending streaming request to API...');
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ 
           prompt: messageText.trim(),
-          storytellerMode: useStorytellerMode
+          storytellerMode: useStorytellerMode,
+          stream: true  // Enable streaming
         })
       });
       
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `Error: Status ${res.status}`);
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      
-      const data = await res.json();
-      const botResponse = data.choices?.[0]?.message?.content || 
-                        'I apologize, but I seem to be having trouble processing your request.';
-      
-      // 🎯 NEW: LOG MODEL USAGE FOR COST MONITORING
-      if (window.logModelUsage && data.model_used) {
-        console.log(`📊 Logging model usage: ${data.model_used}, Cost: $${data.estimated_cost || 0}, Free: ${data.is_free || false}`);
-        window.logModelUsage(
-          data.model_used, 
-          data.estimated_cost || 0, 
-          data.usage || {}
-        );
+
+      // Check if response is actually streaming
+      if (!res.body) {
+        throw new Error('Streaming not supported');
       }
-      
-      // Log the smart routing results
-      console.log(`✅ Model used: ${data.model_used || 'Unknown'}`);
-      console.log(`💰 Estimated cost: $${data.estimated_cost || 0}`);
-      console.log(`🆓 Free model used: ${data.is_free ? 'YES' : 'NO'}`);
-      if (data.usage) {
-        console.log(`📊 Token usage: ${data.usage.total_tokens || 0} tokens`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+      let buffer = '';
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+            console.log('✅ Streaming completed');
+            break;
+          }
+
+          // Decode the chunk
+          buffer += decoder.decode(value, { stream: true });
+          
+          // Process complete lines (Server-Sent Events format)
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6); // Remove 'data: ' prefix
+              
+              if (data === '[DONE]') {
+                console.log('🏁 Stream finished with [DONE]');
+                break;
+              }
+
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content || '';
+                
+                if (content) {
+                  accumulatedContent += content;
+                  
+                  // Update the bot message with new content in real-time
+                  setMessages(prevMessages => 
+                    prevMessages.map(msg => 
+                      msg.id === botMessageId 
+                        ? { 
+                            ...msg, 
+                            content: accumulatedContent,
+                            modelUsed: parsed.model,
+                            estimatedCost: parsed.estimated_cost,
+                            isFree: parsed.is_free
+                          }
+                        : msg
+                    )
+                  );
+                }
+              } catch (parseError) {
+                // Skip malformed JSON chunks
+                console.warn('Failed to parse chunk:', data);
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
       }
-      
-      // FIXED: Turn off streaming for any previous bot messages before adding new one
-      const updatedMessagesWithUser = newMessagesWithUser.map(msg => 
-        msg.role === 'bot' ? { ...msg, isStreaming: false } : msg
+
+      // Mark streaming as complete
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.id === botMessageId 
+            ? { ...msg, isStreaming: false, content: accumulatedContent || 'No response received.' }
+            : msg
+        )
       );
 
-      const botMessage = {
-        role: 'bot',
-        content: botResponse,
-        time: new Date().toISOString(),
-        // 🆕 Store model info for potential future use
-        modelUsed: data.model_used,
-        estimatedCost: data.estimated_cost,
-        isFree: data.is_free,
-        isStreaming: true  // Only this new message will animate
-      };
+      // 🎯 Log final model usage for cost monitoring
+      if (window.logModelUsage) {
+        // Note: Final model info should come from the last chunk
+        console.log(`📊 Streaming completed. Final content length: ${accumulatedContent.length} characters`);
+      }
 
-      // Add bot response to messages (will animate in renderMessage)
-      const finalMessages = [...updatedMessagesWithUser, botMessage];
-      setMessages(finalMessages);
+      // Save chat history with final content
+      const finalMessages = messagesWithEmptyBot.map(msg => 
+        msg.id === botMessageId 
+          ? { ...msg, isStreaming: false, content: accumulatedContent }
+          : msg
+      );
       saveChatHistory(finalMessages);
       
     } catch (err) {
-      console.error('API error:', err);
+      console.error('Streaming API error:', err);
       
-      const errorMessage = {
-        role: 'bot',
-        content: `I'm sorry, I encountered an error: ${err.message}. Please try again later.`,
-        time: new Date().toISOString()
-      };
+      // Show error message in the bot response
+      const errorMessage = `I'm sorry, I encountered an error: ${err.message}. Please try again later.`;
+      
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.id === botMessageId 
+            ? { ...msg, content: errorMessage, isStreaming: false, isError: true }
+            : msg
+        )
+      );
 
-      const finalMessages = [...newMessagesWithUser, errorMessage];
-      setMessages(finalMessages);
-      saveChatHistory(finalMessages);
+      // Save error state to history
+      const errorMessages = messagesWithEmptyBot.map(msg => 
+        msg.id === botMessageId 
+          ? { ...msg, content: errorMessage, isStreaming: false }
+          : msg
+      );
+      saveChatHistory(errorMessages);
     } finally {
       setIsLoading(false);
     }
@@ -293,52 +349,13 @@ export default function Home() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // NEW: Animated text component for streaming effect
-  const AnimatedText = ({ text, delay = 30, onComplete }) => {
-    const [displayedText, setDisplayedText] = useState('');
-    const [currentIndex, setCurrentIndex] = useState(0);
-
-    useEffect(() => {
-      if (currentIndex < text.length) {
-        const timer = setTimeout(() => {
-          setDisplayedText(prev => prev + text[currentIndex]);
-          setCurrentIndex(prev => prev + 1);
-        }, delay);
-
-        return () => clearTimeout(timer);
-      } else if (currentIndex === text.length && onComplete) {
-        // Animation completed, call the completion callback
-        onComplete();
-      }
-    }, [currentIndex, text, delay, onComplete]);
-
-    useEffect(() => {
-      // Reset when text changes
-      setDisplayedText('');
-      setCurrentIndex(0);
-    }, [text]);
-
-    return <span>{displayedText}</span>;
-  };
-
-  // Handle animation completion
-  const handleAnimationComplete = (messageIndex) => {
-    setMessages(prevMessages => 
-      prevMessages.map((msg, idx) => 
-        idx === messageIndex ? { ...msg, isStreaming: false } : msg
-      )
-    );
-  };
-
   // Render message with appropriate styling
   const renderMessage = (message, index) => {
     const isUser = message.role === 'user';
-    // FIXED: Simpler condition - if it's marked for streaming and it's a bot message, animate it
-    const shouldAnimate = !isUser && message.isStreaming;
     
     return (
       <div
-        key={index}
+        key={message.id || index}
         style={{
           padding: '1rem 1.2rem',
           margin: '0.5rem 0',
@@ -348,7 +365,9 @@ export default function Home() {
           boxShadow: '0 3px 6px var(--shadow-color)',
           alignSelf: isUser ? 'flex-end' : 'flex-start',
           backgroundColor: isUser ? 'var(--user-bubble)' : 'var(--bot-bubble-start)',
-          background: isUser ? 'var(--user-bubble)' : 'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))',
+          background: isUser ? 'var(--user-bubble)' : 
+                     message.isError ? '#d32f2f' :
+                     'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))',
           color: isUser ? 'var(--user-text)' : 'var(--bot-text)',
           animation: 'message-fade-in 0.3s ease-out forwards',
           lineHeight: 1.6
@@ -362,7 +381,7 @@ export default function Home() {
             paddingBottom: '0.5rem',
             borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-            {/* FIXED: Only show white logo, remove redundant "GriotBot" text */}
+            {/* FIXED: Proper fallback text for logo */}
             <img 
               src="/images/GriotBot logo horiz wht.svg"
               alt="GriotBot" 
@@ -371,15 +390,16 @@ export default function Home() {
                 width: 'auto',
               }}
               onError={(e) => {
-                // Fallback if logo doesn't exist
+                // Fallback: Show "GriotBot" text if logo doesn't exist
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'inline';
               }}
             />
             <span style={{ 
               display: 'none',
-              fontSize: '1.2rem', 
-            }}>🌿</span>
+              fontSize: '0.9rem',
+              fontWeight: '600'
+            }}>GriotBot</span>
             
             {/* 🆕 Show model info in development mode */}
             {process.env.NODE_ENV === 'development' && message.modelUsed && (
@@ -398,15 +418,14 @@ export default function Home() {
         )}
         
         <div style={{ whiteSpace: 'pre-wrap' }}>
-          {/* FIXED: Simpler animation condition */}
-          {shouldAnimate ? (
-            <AnimatedText 
-              text={message.content} 
-              delay={25} 
-              onComplete={() => handleAnimationComplete(index)}
-            />
-          ) : (
-            message.content
+          {message.content}
+          {/* Show cursor while streaming */}
+          {!isUser && message.isStreaming && (
+            <span style={{
+              animation: 'blink 1s infinite',
+              marginLeft: '2px',
+              fontSize: '1.1em'
+            }}>|</span>
           )}
         </div>
         
@@ -656,9 +675,9 @@ export default function Home() {
             40% { transform: scale(1); }
           }
           
-          .suggestion-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px var(--shadow-color);
+          @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
           }
         `}} />
       </Head>
@@ -939,9 +958,9 @@ export default function Home() {
               width: '100%',
               maxWidth: '875px',
             }}>
+              {/* FIXED: React-idiomatic suggestion cards with onClick handlers */}
               <div 
-                className="suggestion-card" 
-                data-prompt="Tell me a story about resilience from the African diaspora"
+                onClick={() => handleSuggestionClick("Tell me a story about resilience from the African diaspora")}
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   padding: '1rem',
@@ -951,6 +970,14 @@ export default function Home() {
                   boxShadow: '0 3px 10px var(--shadow-color)',
                   cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = '0 6px 15px var(--shadow-color)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 3px 10px var(--shadow-color)';
                 }}
               >
                 <div style={{
@@ -968,8 +995,7 @@ export default function Home() {
               </div>
               
               <div 
-                className="suggestion-card" 
-                data-prompt="Share some wisdom about community building from African traditions"
+                onClick={() => handleSuggestionClick("Share some wisdom about community building from African traditions")}
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   padding: '1rem',
@@ -979,6 +1005,14 @@ export default function Home() {
                   boxShadow: '0 3px 10px var(--shadow-color)',
                   cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = '0 6px 15px var(--shadow-color)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 3px 10px var(--shadow-color)';
                 }}
               >
                 <div style={{
@@ -996,8 +1030,7 @@ export default function Home() {
               </div>
               
               <div 
-                className="suggestion-card" 
-                data-prompt="How can I connect more with my cultural heritage?"
+                onClick={() => handleSuggestionClick("How can I connect more with my cultural heritage?")}
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   padding: '1rem',
@@ -1007,6 +1040,14 @@ export default function Home() {
                   boxShadow: '0 3px 10px var(--shadow-color)',
                   cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = '0 6px 15px var(--shadow-color)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 3px 10px var(--shadow-color)';
                 }}
               >
                 <div style={{
@@ -1024,8 +1065,7 @@ export default function Home() {
               </div>
               
               <div 
-                className="suggestion-card" 
-                data-prompt="Explain the historical significance of Juneteenth"
+                onClick={() => handleSuggestionClick("Explain the historical significance of Juneteenth")}
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   padding: '1rem',
@@ -1035,6 +1075,14 @@ export default function Home() {
                   boxShadow: '0 3px 10px var(--shadow-color)',
                   cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = '0 6px 15px var(--shadow-color)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 3px 10px var(--shadow-color)';
                 }}
               >
                 <div style={{
@@ -1069,7 +1117,8 @@ export default function Home() {
         >
           {messages.map((message, index) => renderMessage(message, index))}
           
-          {isLoading && (
+          {/* Show loading indicator only when waiting for stream to start */}
+          {isLoading && !messages.some(m => m.isStreaming) && (
             <div style={{
               padding: '1rem 1.2rem',
               margin: '0.5rem 0',
@@ -1216,7 +1265,7 @@ export default function Home() {
                   {isLoading ? (
                     <div className="spinner"></div>
                   ) : (
-                    // NEW: Use ArrowUpCircle icon instead of text arrow
+                    // ArrowUpCircle icon is already implemented correctly
                     <ArrowUpCircle size={24} />
                   )}
                 </button>
@@ -1294,9 +1343,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* PROVERB */}
+        {/* PROVERB - NOW USING REACT STATE */}
         <div 
-          id="fact" 
           style={{
             width: '100%',
             textAlign: 'center',
@@ -1308,9 +1356,9 @@ export default function Home() {
             opacity: 0.9,
             fontFamily: 'Lora, serif',
           }}
-          aria-label="Random proverb"
+          aria-label={`Proverb: ${currentProverb}`}
         >
-          Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb
+          {currentProverb}
         </div>
         
         {/* COPYRIGHT */}
