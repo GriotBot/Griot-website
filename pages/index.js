@@ -277,7 +277,7 @@ export default function Home() {
   };
 
   // NEW: Animated text component for streaming effect
-  const AnimatedText = ({ text, delay = 30 }) => {
+  const AnimatedText = ({ text, delay = 30, onComplete }) => {
     const [displayedText, setDisplayedText] = useState('');
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -289,8 +289,11 @@ export default function Home() {
         }, delay);
 
         return () => clearTimeout(timer);
+      } else if (currentIndex === text.length && onComplete) {
+        // Animation completed, call the completion callback
+        onComplete();
       }
-    }, [currentIndex, text, delay]);
+    }, [currentIndex, text, delay, onComplete]);
 
     useEffect(() => {
       // Reset when text changes
@@ -299,6 +302,15 @@ export default function Home() {
     }, [text]);
 
     return <span>{displayedText}</span>;
+  };
+
+  // Handle animation completion
+  const handleAnimationComplete = (messageIndex) => {
+    setMessages(prevMessages => 
+      prevMessages.map((msg, idx) => 
+        idx === messageIndex ? { ...msg, isStreaming: false } : msg
+      )
+    );
   };
 
   // Render message with appropriate styling
@@ -373,7 +385,11 @@ export default function Home() {
         <div style={{ whiteSpace: 'pre-wrap' }}>
           {/* NEW: Only animate the most recent bot message */}
           {!isUser && message.isStreaming && isLatestBotMessage ? (
-            <AnimatedText text={message.content} delay={25} />
+            <AnimatedText 
+              text={message.content} 
+              delay={25} 
+              onComplete={() => handleAnimationComplete(index)}
+            />
           ) : (
             message.content
           )}
