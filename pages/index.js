@@ -74,9 +74,14 @@ export default function Home() {
 
   // NEW: Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
+    // Use setTimeout to prevent scroll during rapid message updates
+    const scrollTimer = setTimeout(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    }, 50); // Small delay to let content settle
+
+    return () => clearTimeout(scrollTimer);
   }, [messages]);
 
   // Load chat history from localStorage
@@ -217,8 +222,8 @@ export default function Home() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ 
           prompt: messageText.trim(),
-          storytellerMode: useStorytellerMode,
-          stream: true  // Enable streaming
+          storytellerMode: useStorytellerMode
+          // NOTE: Removed stream: true since current API doesn't support it yet
         })
       });
       
@@ -226,9 +231,47 @@ export default function Home() {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
 
-      // Check if response is actually streaming
-      if (!res.body) {
-        throw new Error('Streaming not supported');
+      // Check if response is streaming or regular JSON
+      if (!res.body || res.headers.get('content-type')?.includes('application/json')) {
+        // FALLBACK: Handle regular JSON response (current API setup)
+        console.log('📄 Regular JSON response detected, processing normally');
+        const data = await res.json();
+        const botResponse = data.choices?.[0]?.message?.content || 
+                          data.choices?.[0]?.text?.trim() ||
+                          'I apologize, but I seem to be having trouble processing your request.';
+        
+        // Update the bot message with complete response
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg.id === botMessageId 
+              ? { 
+                  ...msg, 
+                  content: botResponse,
+                  isStreaming: false,
+                  modelUsed: data.model_used,
+                  estimatedCost: data.estimated_cost,
+                  isFree: data.is_free
+                }
+              : msg
+          )
+        );
+
+        // Log model usage for cost monitoring
+        if (window.logModelUsage && data.model_used) {
+          console.log(`📊 Logging model usage: ${data.model_used}, Cost: ${data.estimated_cost || 0}, Free: ${data.is_free || false}`);
+          window.logModelUsage(data.model_used, data.estimated_cost || 0, data.usage || {});
+        }
+
+        // Save to history
+        const finalMessages = messagesWithEmptyBot.map(msg => 
+          msg.id === botMessageId 
+            ? { ...msg, content: botResponse, isStreaming: false }
+            : msg
+        );
+        saveChatHistory(finalMessages);
+        
+        setIsLoading(false);
+        return;
       }
 
       const reader = res.body.getReader();
@@ -874,12 +917,14 @@ export default function Home() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        // FIXED: Remove overflow: hidden to prevent double scrolling
+        // FIXED: Better overflow control to prevent temporary scrollbars
+        overflow: 'hidden',
         padding: '1rem',
         paddingTop: '90px', // Account for fixed header
         paddingBottom: '220px', // Account for unified footer height
         transition: 'background-color 0.3s',
         marginTop: 0,
+        minHeight: 0, // Allows flex shrinking
       }}>
         {showWelcome && (
           <div style={{
@@ -1110,9 +1155,11 @@ export default function Home() {
             display: 'flex',
             flexDirection: 'column',
             flex: 1,
-            // FIXED: Remove double scrolling - let this container handle all scrolling
+            // FIXED: Better scrolling to prevent temporary scrollbar
             overflowY: 'auto',
+            overflowX: 'hidden',
             scrollBehavior: 'smooth',
+            minHeight: 0, // Prevents flex item from overflowing
           }}
         >
           {messages.map((message, index) => renderMessage(message, index))}
