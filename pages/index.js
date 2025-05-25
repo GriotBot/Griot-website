@@ -245,7 +245,7 @@ export default function Home() {
         modelUsed: data.model_used,
         estimatedCost: data.estimated_cost,
         isFree: data.is_free,
-        isStreaming: true  // NEW: Mark for streaming animation
+        isStreaming: true  // NEW: This will only animate if it's the latest message
       };
 
       // Add bot response to messages (will animate in renderMessage)
@@ -304,6 +304,7 @@ export default function Home() {
   // Render message with appropriate styling
   const renderMessage = (message, index) => {
     const isUser = message.role === 'user';
+    const isLatestBotMessage = !isUser && index === messages.length - 1 && !isLoading;
     
     return (
       <div
@@ -370,8 +371,8 @@ export default function Home() {
         )}
         
         <div style={{ whiteSpace: 'pre-wrap' }}>
-          {/* NEW: Use animated text for bot messages */}
-          {!isUser && message.isStreaming ? (
+          {/* NEW: Only animate the most recent bot message */}
+          {!isUser && message.isStreaming && isLatestBotMessage ? (
             <AnimatedText text={message.content} delay={25} />
           ) : (
             message.content
