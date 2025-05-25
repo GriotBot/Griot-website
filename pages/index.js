@@ -1,5 +1,5 @@
 // File: /pages/index.js - ENHANCED WITH SMART ROUTING MONITORING + TWEAKS
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import EnhancedSidebar from '../components/EnhancedSidebar';
 import MessageCirclePlus from '../components/icons/MessageCirclePlus';
@@ -29,6 +29,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [storytellerMode, setStorytellerMode] = useState(false);
+  
+  // NEW: Ref for auto-scrolling
+  const chatContainerRef = useRef(null);
 
   useEffect(() => {
     // Mark as client-side after mount
@@ -44,13 +47,22 @@ export default function Home() {
     }
   }, []);
 
+  // NEW: Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   // Load chat history from localStorage
   function loadChatHistory() {
     try {
       const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
       if (hist.length > 0) {
         setShowWelcome(false);
-        setMessages(hist);
+        // FIXED: Ensure no animations on page refresh - set all messages to not streaming
+        const staticMessages = hist.map(msg => ({ ...msg, isStreaming: false }));
+        setMessages(staticMessages);
       }
     } catch (err) {
       console.error('Error loading chat history:', err);
@@ -350,14 +362,13 @@ export default function Home() {
             paddingBottom: '0.5rem',
             borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
           }}>
-            {/* NEW: Always use white logo for bot messages */}
+            {/* FIXED: Only show white logo, remove redundant "GriotBot" text */}
             <img 
               src="/images/GriotBot logo horiz wht.svg"
               alt="GriotBot" 
               style={{
                 height: '20px',
                 width: 'auto',
-                marginRight: '0.5rem',
               }}
               onError={(e) => {
                 // Fallback if logo doesn't exist
@@ -368,9 +379,7 @@ export default function Home() {
             <span style={{ 
               display: 'none',
               fontSize: '1.2rem', 
-              marginRight: '0.5rem' 
             }}>🌿</span>
-            <span style={{ fontWeight: '600' }}>GriotBot</span>
             
             {/* 🆕 Show model info in development mode */}
             {process.env.NODE_ENV === 'development' && message.modelUsed && (
@@ -617,7 +626,7 @@ export default function Home() {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow-x: hidden;
+            /* FIXED: Remove overflow-x: hidden to prevent scrolling issues */
             transition: background-color 0.3s, color 0.3s;
             line-height: 1.6;
           }
@@ -846,7 +855,7 @@ export default function Home() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        overflow: 'hidden',
+        // FIXED: Remove overflow: hidden to prevent double scrolling
         padding: '1rem',
         paddingTop: '90px', // Account for fixed header
         paddingBottom: '220px', // Account for unified footer height
@@ -1045,16 +1054,19 @@ export default function Home() {
           </div>
         )}
         
-        <div style={{
-          width: '100%',
-          maxWidth: '875px',
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1,
-          overflowY: 'auto',
-          height: 'calc(100vh - 350px)', // Account for fixed header and input area
-          scrollBehavior: 'smooth',
-        }}>
+        <div 
+          ref={chatContainerRef}
+          style={{
+            width: '100%',
+            maxWidth: '875px',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            // FIXED: Remove double scrolling - let this container handle all scrolling
+            overflowY: 'auto',
+            scrollBehavior: 'smooth',
+          }}
+        >
           {messages.map((message, index) => renderMessage(message, index))}
           
           {isLoading && (
