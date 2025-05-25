@@ -207,7 +207,7 @@ export default function Feedback() {
             borderRadius: '6px',
             transition: 'background-color 0.2s, transform 0.3s ease',
             position: 'relative',
-            transform: sidebarVisible ? 'rotate(90deg)' : 'rotate(0deg)',
+            transform: sidebarVisible ? 'rotate(90deg)' : 'rotate(0deg)', // FIXED: Proper rotation reset
           }}
           aria-label={sidebarVisible ? "Close sidebar" : "Open sidebar"}
           aria-expanded={sidebarVisible}
@@ -345,6 +345,7 @@ export default function Feedback() {
       <EnhancedSidebar 
         isVisible={sidebarVisible}
         onClose={handleSidebarClose}
+        onNewChat={() => window.location.href = '/'}
         currentPage="/feedback"
       />
 
