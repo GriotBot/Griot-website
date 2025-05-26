@@ -1,11 +1,11 @@
-// File: /pages/index.js - COMPLETE WITH CENTERED LOGO TEMPLATE
+// File: /pages/index.js - FIXED ICON IMPORT ERROR
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import EnhancedSidebar from '../components/EnhancedSidebar';
 import { 
   Menu, 
-  MessageCirclePlus, 
+  PlusCircle,  // FIXED: Changed from MessageCirclePlus to PlusCircle
   LogIn, 
   Sun, 
   Moon,
@@ -489,7 +489,7 @@ export default function Home() {
           alignItems: 'center',
           gap: '0.5rem',
         }}>
-          {/* New Chat */}
+          {/* New Chat - FIXED: Using PlusCircle instead of MessageCirclePlus */}
           <button 
             onClick={handleNewChat}
             style={{
@@ -513,7 +513,7 @@ export default function Home() {
               e.target.style.backgroundColor = 'transparent';
             }}
           >
-            <MessageCirclePlus size={24} />
+            <PlusCircle size={24} />
           </button>
           
           {/* Account */}
