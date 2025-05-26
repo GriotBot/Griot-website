@@ -718,7 +718,7 @@ export default function Feedback() {
                     )}
                   </button>
                 </form>
-              </div>
+                </div>
             </div>
           ) : (
             <div style={{
@@ -791,11 +791,27 @@ export default function Feedback() {
             </div>
 
             <div style={{ padding: '2rem' }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '1rem',
-              }}>
+              {/* Mobile responsive styles */}
+              <style dangerouslySetInnerHTML={{ __html: `
+                .contact-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr 1fr;
+                  gap: 1rem;
+                }
+                @media (max-width: 768px) {
+                  .contact-grid {
+                    grid-template-columns: 1fr 1fr !important;
+                    gap: 0.75rem !important;
+                  }
+                }
+                @media (max-width: 480px) {
+                  .contact-grid {
+                    grid-template-columns: 1fr !important;
+                  }
+                }
+              `}} />
+              
+              <div className="contact-grid">
                 {/* Email */}
                 <a 
                   href="mailto:chat@griotbot.com" 
