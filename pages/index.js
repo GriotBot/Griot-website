@@ -1,4 +1,4 @@
-// File: /pages/index.js - UPDATED WITH CENTERED LOGO
+// File: /pages/index.js - COMPLETE WITH CENTERED LOGO TEMPLATE
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
