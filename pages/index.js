@@ -1,22 +1,22 @@
-// File: /pages/index.js - ENHANCED WITH SMART ROUTING MONITORING + TWEAKS
-import { useEffect, useState, useRef } from 'react';
+// File: /pages/index.js - UPDATED WITH CENTERED LOGO
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import EnhancedSidebar from '../components/EnhancedSidebar';
-import MessageCirclePlus from '../components/icons/MessageCirclePlus';
-import ModelUsageDashboard from '../components/ModelUsageDashboard';
 import { 
   Menu, 
+  MessageCirclePlus, 
   LogIn, 
   Sun, 
   Moon,
+  ArrowUpCircle,
   Copy,
   ThumbsUp,
   ThumbsDown,
-  RotateCw,
-  ArrowUpCircle  // NEW: Import arrow-up-circle icon
+  RotateCcw
 } from 'react-feather';
 
-// MOVED TO TOP: Constants for React-idiomatic approach
+// PROVERBS ARRAY
 const PROVERBS = [
   "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
   "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
@@ -36,67 +36,51 @@ const PROVERBS = [
 ];
 
 export default function Home() {
-  // State to ensure we can access DOM elements after mounting
-  const [isClient, setIsClient] = useState(false);
-  
   // State management
+  const [isClient, setIsClient] = useState(false);
   const [theme, setTheme] = useState('light');
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  
-  // Chat state
+  const [currentProverb, setCurrentProverb] = useState('');
+  const [logoError, setLogoError] = useState(false);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [storytellerMode, setStorytellerMode] = useState(false);
-  
-  // NEW: React state for proverb (replaces DOM manipulation)
-  const [currentProverb, setCurrentProverb] = useState('');
-  
-  // NEW: Ref for auto-scrolling
-  const chatContainerRef = useRef(null);
+  const [message, setMessage] = useState('');
+  const [storyMode, setStoryMode] = useState(false);
 
   useEffect(() => {
-    // Mark as client-side after mount
     setIsClient(true);
-
-    // Load chat history and preferences
-    loadChatHistory();
     loadPreferences();
-
-    // NEW: Initialize proverb with React state instead of DOM manipulation
     showRandomProverb();
-
-    // Only console log - no more DOM manipulation needed
-    if (typeof window !== 'undefined') {
-      console.log('✅ GriotBot chat initialized with React state management');
-    }
+    loadChatHistory();
   }, []);
 
-  // NEW: Auto-scroll to bottom when messages change
-  useEffect(() => {
-    // Use setTimeout to prevent scroll during rapid message updates
-    const scrollTimer = setTimeout(() => {
-      if (chatContainerRef.current) {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      }
-    }, 50); // Small delay to let content settle
+  // Load user preferences
+  function loadPreferences() {
+    try {
+      const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
+      const savedStoryMode = localStorage.getItem('griotbot-storyteller') === 'true';
+      setTheme(savedTheme);
+      setStoryMode(savedStoryMode);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } catch (err) {
+      console.error('Error loading preferences:', err);
+    }
+  }
 
-    return () => clearTimeout(scrollTimer);
-  }, [messages]);
+  // Random proverb using React state
+  const showRandomProverb = () => {
+    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
+    setCurrentProverb(PROVERBS[randomIndex]);
+  };
 
-  // Load chat history from localStorage
+  // Load chat history
   function loadChatHistory() {
     try {
       const hist = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
       if (hist.length > 0) {
         setShowWelcome(false);
-        // FIXED: Ensure no streaming effects on page refresh - remove streaming flags and add IDs
-        const staticMessages = hist.map((msg, index) => ({ 
-          ...msg, 
-          isStreaming: false,
-          id: msg.id || `loaded-${index}-${Date.now()}`  // Ensure each message has an ID
-        }));
-        setMessages(staticMessages);
+        setMessages(hist);
       }
     } catch (err) {
       console.error('Error loading chat history:', err);
@@ -104,58 +88,15 @@ export default function Home() {
     }
   }
 
-  // Load user preferences
-  function loadPreferences() {
+  // Save chat history
+  function saveChatHistory(msgs) {
     try {
-      const savedStorytellerMode = localStorage.getItem('griotbot-storyteller-mode');
-      if (savedStorytellerMode !== null) {
-        setStorytellerMode(JSON.parse(savedStorytellerMode));
-      }
-      
-      // Load theme preference
-      const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
-      setTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme);
-    } catch (err) {
-      console.error('Error loading preferences:', err);
-    }
-  }
-
-  // Save chat history to localStorage
-  function saveChatHistory(newMessages) {
-    try {
-      const historyToSave = newMessages.slice(-50); // Keep only the most recent 50 messages
+      const historyToSave = msgs.slice(-50); // Keep only last 50 messages
       localStorage.setItem('griotbot-history', JSON.stringify(historyToSave));
     } catch (err) {
       console.error('Error saving chat history:', err);
     }
   }
-
-  // REACT-IDIOMATIC: Random proverb using state instead of DOM manipulation
-  const showRandomProverb = () => {
-    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
-    setCurrentProverb(PROVERBS[randomIndex]);
-  };
-
-  // Handle suggestion card clicks - now moved to JSX onClick handlers
-  const handleSuggestionClick = (prompt) => {
-    // Hide welcome screen and send the suggested prompt
-    setShowWelcome(false);
-    handleSendMessage(prompt);
-  };
-
-  // Handle new chat - clear everything
-  const handleNewChat = () => {
-    setMessages([]);
-    setShowWelcome(true);
-    setSidebarVisible(false);
-    localStorage.removeItem('griotbot-history');
-    setStorytellerMode(false);
-    localStorage.removeItem('griotbot-storyteller-mode');
-    // NEW: Generate new proverb using React state
-    showRandomProverb();
-    console.log('🔄 New chat started - history cleared');
-  };
 
   // Handle sidebar toggle
   const handleSidebarToggle = () => {
@@ -175,446 +116,187 @@ export default function Home() {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  // Handle storyteller mode change
-  const handleStorytellerModeChange = (newMode) => {
-    setStorytellerMode(newMode);
-    localStorage.setItem('griotbot-storyteller-mode', JSON.stringify(newMode));
+  // Handle new chat
+  const handleNewChat = () => {
+    setMessages([]);
+    setShowWelcome(true);
+    localStorage.removeItem('griotbot-history');
+    setSidebarVisible(false);
   };
 
-  // 🎯 TRUE STREAMING MESSAGE HANDLER - Shows text as AI generates it
-  const handleSendMessage = async (messageText, customStorytellerMode = null) => {
-    const useStorytellerMode = customStorytellerMode !== null ? customStorytellerMode : storytellerMode;
-    
-    if (!messageText || typeof messageText !== 'string' || !messageText.trim()) {
-      return;
-    }
+  // Handle storyteller mode toggle
+  const handleStoryModeToggle = () => {
+    const newMode = !storyMode;
+    setStoryMode(newMode);
+    localStorage.setItem('griotbot-storyteller', newMode.toString());
+  };
 
-    const userMessage = {
-      role: 'user',
-      content: messageText.trim(),
-      time: new Date().toISOString()
-    };
+  // Handle suggestion click
+  const handleSuggestionClick = (prompt) => {
+    setMessage(prompt);
+    // Auto-submit the suggestion
+    handleSendMessage(prompt);
+  };
 
-    // Add user message to state
-    const newMessagesWithUser = [...messages, userMessage];
-    setMessages(newMessagesWithUser);
+  // Handle send message with streaming support
+  const handleSendMessage = async (messageText = message, storytellerMode = storyMode) => {
+    if (!messageText.trim()) return;
+
     setIsLoading(true);
     setShowWelcome(false);
 
-    // Create initial empty bot message that we'll update with streaming content
-    const botMessageId = Date.now();
+    // Add user message
+    const userMsg = {
+      id: Date.now(),
+      role: 'user',
+      content: messageText,
+      timestamp: new Date().toISOString()
+    };
+
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setMessage('');
+
+    // Create initial bot message for streaming
+    const botMessageId = Date.now() + 1;
     const initialBotMessage = {
       id: botMessageId,
       role: 'bot',
       content: '',
-      time: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
       isStreaming: true
     };
 
-    const messagesWithEmptyBot = [...newMessagesWithUser, initialBotMessage];
-    setMessages(messagesWithEmptyBot);
+    setMessages([...newMessages, initialBotMessage]);
 
     try {
-      // 🚀 API call with streaming enabled
-      console.log('🚀 Sending streaming request to API...');
-      const res = await fetch('/api/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ 
-          prompt: messageText.trim(),
-          storytellerMode: useStorytellerMode
-          // NOTE: Removed stream: true since current API doesn't support it yet
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: messageText,
+          storytellerMode: storytellerMode
         })
       });
-      
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Check if response is streaming or regular JSON
-      if (!res.body || res.headers.get('content-type')?.includes('application/json')) {
-        // FALLBACK: Handle regular JSON response (current API setup)
-        console.log('📄 Regular JSON response detected, processing normally');
-        const data = await res.json();
+      // Check if response is streaming or JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        // Handle JSON response (fallback)
+        const data = await response.json();
         const botResponse = data.choices?.[0]?.message?.content || 
-                          data.choices?.[0]?.text?.trim() ||
+                          data.choices?.[0]?.text?.trim() || 
                           'I apologize, but I seem to be having trouble processing your request.';
-        
-        // Update the bot message with complete response
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.id === botMessageId 
-              ? { 
-                  ...msg, 
-                  content: botResponse,
-                  isStreaming: false,
-                  modelUsed: data.model_used,
-                  estimatedCost: data.estimated_cost,
-                  isFree: data.is_free
-                }
-              : msg
-          )
-        );
 
-        // Log model usage for cost monitoring
-        if (window.logModelUsage && data.model_used) {
-          console.log(`📊 Logging model usage: ${data.model_used}, Cost: ${data.estimated_cost || 0}, Free: ${data.is_free || false}`);
-          window.logModelUsage(data.model_used, data.estimated_cost || 0, data.usage || {});
-        }
+        const finalBotMessage = {
+          id: botMessageId,
+          role: 'bot',
+          content: botResponse,
+          timestamp: new Date().toISOString(),
+          isStreaming: false
+        };
 
-        // Save to history
-        const finalMessages = messagesWithEmptyBot.map(msg => 
-          msg.id === botMessageId 
-            ? { ...msg, content: botResponse, isStreaming: false }
-            : msg
-        );
+        const finalMessages = [...newMessages, finalBotMessage];
+        setMessages(finalMessages);
         saveChatHistory(finalMessages);
-        
-        setIsLoading(false);
-        return;
-      }
+      } else {
+        // Handle streaming response
+        const reader = response.body.getReader();
+        let accumulatedContent = '';
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedContent = '';
-      let buffer = '';
-
-      try {
         while (true) {
           const { done, value } = await reader.read();
           
-          if (done) {
-            console.log('✅ Streaming completed');
-            break;
-          }
+          if (done) break;
 
-          // Decode the chunk
-          buffer += decoder.decode(value, { stream: true });
-          
-          // Process complete lines (Server-Sent Events format)
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n');
 
           for (const line of lines) {
             if (line.startsWith('data: ')) {
-              const data = line.slice(6); // Remove 'data: ' prefix
+              const data = line.slice(6);
+              if (data === '[DONE]') break;
               
-              if (data === '[DONE]') {
-                console.log('🏁 Stream finished with [DONE]');
-                break;
-              }
-
               try {
                 const parsed = JSON.parse(data);
-                const content = parsed.choices?.[0]?.delta?.content || '';
+                const content = parsed.choices?.[0]?.delta?.content || 
+                              parsed.choices?.[0]?.text || '';
                 
                 if (content) {
                   accumulatedContent += content;
                   
-                  // Update the bot message with new content in real-time
+                  // Update the bot message with accumulated content
                   setMessages(prevMessages => 
                     prevMessages.map(msg => 
                       msg.id === botMessageId 
-                        ? { 
-                            ...msg, 
-                            content: accumulatedContent,
-                            modelUsed: parsed.model,
-                            estimatedCost: parsed.estimated_cost,
-                            isFree: parsed.is_free
-                          }
+                        ? { ...msg, content: accumulatedContent }
                         : msg
                     )
                   );
                 }
-              } catch (parseError) {
-                // Skip malformed JSON chunks
-                console.warn('Failed to parse chunk:', data);
+              } catch (e) {
+                console.error('Error parsing SSE data:', e);
               }
             }
           }
         }
-      } finally {
-        reader.releaseLock();
+
+        // Finalize the streaming message
+        const finalMessages = newMessages.concat([{
+          id: botMessageId,
+          role: 'bot',
+          content: accumulatedContent || 'I apologize, but I seem to be having trouble processing your request.',
+          timestamp: new Date().toISOString(),
+          isStreaming: false
+        }]);
+
+        setMessages(finalMessages);
+        saveChatHistory(finalMessages);
       }
 
-      // Mark streaming as complete
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.id === botMessageId 
-            ? { ...msg, isStreaming: false, content: accumulatedContent || 'No response received.' }
-            : msg
-        )
-      );
+    } catch (error) {
+      console.error('Error sending message:', error);
+      
+      const errorMessage = {
+        id: botMessageId,
+        role: 'bot',
+        content: `I'm sorry, I encountered an error: ${error.message}. Please try again later.`,
+        timestamp: new Date().toISOString(),
+        isStreaming: false
+      };
 
-      // 🎯 Log final model usage for cost monitoring
-      if (window.logModelUsage) {
-        // Note: Final model info should come from the last chunk
-        console.log(`📊 Streaming completed. Final content length: ${accumulatedContent.length} characters`);
-      }
-
-      // Save chat history with final content
-      const finalMessages = messagesWithEmptyBot.map(msg => 
-        msg.id === botMessageId 
-          ? { ...msg, isStreaming: false, content: accumulatedContent }
-          : msg
-      );
+      const finalMessages = [...newMessages, errorMessage];
+      setMessages(finalMessages);
       saveChatHistory(finalMessages);
-      
-    } catch (err) {
-      console.error('Streaming API error:', err);
-      
-      // Show error message in the bot response
-      const errorMessage = `I'm sorry, I encountered an error: ${err.message}. Please try again later.`;
-      
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.id === botMessageId 
-            ? { ...msg, content: errorMessage, isStreaming: false, isError: true }
-            : msg
-        )
-      );
-
-      // Save error state to history
-      const errorMessages = messagesWithEmptyBot.map(msg => 
-        msg.id === botMessageId 
-          ? { ...msg, content: errorMessage, isStreaming: false }
-          : msg
-      );
-      saveChatHistory(errorMessages);
     } finally {
       setIsLoading(false);
+      
+      // Auto-scroll to bottom with delay
+      setTimeout(() => {
+        const chatContainer = document.querySelector('#chat-container');
+        if (chatContainer) {
+          chatContainer.scrollTo({
+            top: chatContainer.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
     }
   };
 
-  // Format time for display
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleSendMessage();
   };
 
-  // Render message with appropriate styling
-  const renderMessage = (message, index) => {
-    const isUser = message.role === 'user';
-    
-    return (
-      <div
-        key={message.id || index}
-        style={{
-          padding: '1rem 1.2rem',
-          margin: '0.5rem 0',
-          borderRadius: '12px',
-          maxWidth: '80%',
-          wordWrap: 'break-word',
-          boxShadow: '0 3px 6px var(--shadow-color)',
-          alignSelf: isUser ? 'flex-end' : 'flex-start',
-          backgroundColor: isUser ? 'var(--user-bubble)' : 'var(--bot-bubble-start)',
-          background: isUser ? 'var(--user-bubble)' : 
-                     message.isError ? '#d32f2f' :
-                     'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))',
-          color: isUser ? 'var(--user-text)' : 'var(--bot-text)',
-          animation: 'message-fade-in 0.3s ease-out forwards',
-          lineHeight: 1.6
-        }}
-      >
-        {!isUser && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: '0.8rem',
-            paddingBottom: '0.5rem',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            {/* FIXED: Proper fallback text for logo */}
-            <img 
-              src="/images/GriotBot logo horiz wht.svg"
-              alt="GriotBot" 
-              style={{
-                height: '20px',
-                width: 'auto',
-              }}
-              onError={(e) => {
-                // Fallback: Show "GriotBot" text if logo doesn't exist
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'inline';
-              }}
-            />
-            <span style={{ 
-              display: 'none',
-              fontSize: '0.9rem',
-              fontWeight: '600'
-            }}>GriotBot</span>
-            
-            {/* 🆕 Show model info in development mode */}
-            {process.env.NODE_ENV === 'development' && message.modelUsed && (
-              <span style={{
-                fontSize: '0.7rem',
-                opacity: '0.6',
-                marginLeft: '0.5rem',
-                background: message.isFree ? 'rgba(76, 175, 80, 0.3)' : 'rgba(255, 193, 7, 0.3)',
-                padding: '2px 6px',
-                borderRadius: '4px',
-              }}>
-                {message.isFree ? '🆓' : '💰'} {message.modelUsed?.split('/').pop()?.split(':')[0] || 'Unknown'}
-              </span>
-            )}
-          </div>
-        )}
-        
-        <div style={{ whiteSpace: 'pre-wrap' }}>
-          {message.content}
-          {/* Show cursor while streaming */}
-          {!isUser && message.isStreaming && (
-            <span style={{
-              animation: 'blink 1s infinite',
-              marginLeft: '2px',
-              fontSize: '1.1em'
-            }}>|</span>
-          )}
-        </div>
-        
-        <div style={{
-          fontSize: '0.7rem',
-          opacity: '0.7',
-          marginTop: '0.5rem',
-          textAlign: 'right'
-        }}>
-          {formatTime(message.time)}
-        </div>
-
-        {/* Action buttons for bot messages */}
-        {!isUser && (
-          <div style={{
-            display: 'flex',
-            gap: '0.5rem',
-            marginTop: '0.8rem',
-            paddingTop: '0.5rem',
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-            justifyContent: 'flex-start',
-          }}>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(message.content);
-                // Could add a toast notification here
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--bot-text)',
-                cursor: 'pointer',
-                padding: '4px',
-                borderRadius: '4px',
-                opacity: '0.7',
-                transition: 'opacity 0.2s, background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              title="Copy message"
-              onMouseEnter={(e) => {
-                e.target.style.opacity = '1';
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.opacity = '0.7';
-                e.target.style.backgroundColor = 'transparent';
-              }}
-            >
-              <Copy size={16} />
-            </button>
-            
-            <button
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--bot-text)',
-                cursor: 'pointer',
-                padding: '4px',
-                borderRadius: '4px',
-                opacity: '0.7',
-                transition: 'opacity 0.2s, background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              title="Good response"
-              onMouseEnter={(e) => {
-                e.target.style.opacity = '1';
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.opacity = '0.7';
-                e.target.style.backgroundColor = 'transparent';
-              }}
-            >
-              <ThumbsUp size={16} />
-            </button>
-            
-            <button
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--bot-text)',
-                cursor: 'pointer',
-                padding: '4px',
-                borderRadius: '4px',
-                opacity: '0.7',
-                transition: 'opacity 0.2s, background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              title="Poor response"
-              onMouseEnter={(e) => {
-                e.target.style.opacity = '1';
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.opacity = '0.7';
-                e.target.style.backgroundColor = 'transparent';
-              }}
-            >
-              <ThumbsDown size={16} />
-            </button>
-            
-            <button
-              onClick={() => {
-                // Re-send the original user message to get a new response
-                const userMessages = messages.filter(m => m.role === 'user');
-                const correspondingUserMessage = userMessages[Math.floor(index / 2)];
-                if (correspondingUserMessage) {
-                  handleSendMessage(correspondingUserMessage.content);
-                }
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--bot-text)',
-                cursor: 'pointer',
-                padding: '4px',
-                borderRadius: '4px',
-                opacity: '0.7',
-                transition: 'opacity 0.2s, background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              title="Regenerate response"
-              onMouseEnter={(e) => {
-                e.target.style.opacity = '1';
-                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.opacity = '0.7';
-                e.target.style.backgroundColor = 'transparent';
-              }}
-            >
-              <RotateCw size={16} />
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  };
+  if (!isClient) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -623,11 +305,12 @@ export default function Home() {
         <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         
-        {/* FIXED: Comprehensive favicon setup without redundancy */}
+        {/* Favicon setup */}
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#c49a6c" />
+        
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -688,7 +371,6 @@ export default function Home() {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            /* FIXED: Remove overflow-x: hidden to prevent scrolling issues */
             transition: background-color 0.3s, color 0.3s;
             line-height: 1.6;
           }
@@ -698,26 +380,15 @@ export default function Home() {
             to { opacity: 1; transform: translateY(0); }
           }
 
-          .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
+          .message {
+            animation: message-fade-in 0.3s ease-out forwards;
           }
 
-          @keyframes spin {
-            to { transform: rotate(360deg); }
+          .blinking-cursor::after {
+            content: '|';
+            animation: blink 1s infinite;
           }
 
-          @keyframes typing-bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-          }
-          
           @keyframes blink {
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0; }
@@ -725,7 +396,7 @@ export default function Home() {
         `}} />
       </Head>
       
-      {/* HEADER + CONTROLS */}
+      {/* HEADER */}
       <div style={{
         position: 'fixed',
         top: 0,
@@ -763,7 +434,7 @@ export default function Home() {
             borderRadius: '6px',
             transition: 'background-color 0.2s, transform 0.3s ease',
             position: 'relative',
-            transform: sidebarVisible ? 'rotate(90deg)' : 'rotate(0deg)', // Rotate when sidebar is open
+            transform: sidebarVisible ? 'rotate(90deg)' : 'rotate(0deg)',
           }}
           aria-label={sidebarVisible ? "Close sidebar" : "Open sidebar"}
           aria-expanded={sidebarVisible}
@@ -779,36 +450,37 @@ export default function Home() {
           <Menu size={24} />
         </button>
         
-        {/* CENTER - Logo */}
+        {/* CENTER - Logo (Absolutely centered on screen) */}
         <div style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          flex: 1,
         }}>
-          <img 
-            src="/images/GriotBot logo horiz wht.svg" 
-            alt="GriotBot" 
-            style={{
-              height: '40px',
-              width: 'auto',
-            }}
-            onError={(e) => {
-              // Fallback if logo doesn't exist
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
-          />
-          {/* Fallback text logo */}
-          <div style={{
-            display: 'none',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-          }}>
-            🌿 GriotBot
-          </div>
+          {!logoError ? (
+            <img 
+              src="/images/GriotBot logo horiz wht.svg" 
+              alt="GriotBot" 
+              style={{
+                height: '40px',
+                width: 'auto',
+              }}
+              onError={() => setLogoError(true)}
+            />
+          ) : (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '1.2rem',
+              fontWeight: 'bold',
+            }}>
+              🌿 GriotBot
+            </div>
+          )}
         </div>
         
         {/* RIGHT SIDE - Action Icons */}
@@ -905,26 +577,22 @@ export default function Home() {
         isVisible={sidebarVisible}
         onClose={handleSidebarClose}
         onNewChat={handleNewChat}
+        currentPage="/"
       />
 
-      {/* 🎯 SMART ROUTING MONITORING DASHBOARD */}
-      <ModelUsageDashboard />
-
       {/* MAIN CHAT AREA */}
-      <main style={{
+      <main id="chat-container" style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        // FIXED: Better overflow control to prevent temporary scrollbars
-        overflow: 'hidden',
+        overflow: 'auto',
         padding: '1rem',
-        paddingTop: '90px', // Account for fixed header
-        paddingBottom: '220px', // Account for unified footer height
+        paddingTop: '90px',
+        paddingBottom: '140px',
         transition: 'background-color 0.3s',
         marginTop: 0,
-        minHeight: 0, // Allows flex shrinking
       }}>
         {showWelcome && (
           <div style={{
@@ -932,42 +600,32 @@ export default function Home() {
             flexDirection: 'column',
             alignItems: 'center',
             textAlign: 'center',
-            maxWidth: '875px',
+            maxWidth: '700px',
             margin: '1rem auto 2rem',
             transition: 'opacity 0.3s',
+            width: '100%',
           }}>
-            <div style={{ 
-              fontSize: '4rem', 
-              marginBottom: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <img 
-                src={theme === 'dark' ? '/images/logo-light.svg' : '/images/logo-dark.svg'}
-                alt="GriotBot Logo" 
-                style={{
-                  height: '80px',
-                  width: 'auto',
-                }}
-                onError={(e) => {
-                  // Fallback if logo doesn't exist
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                }}
-              />
-              <span style={{ 
-                display: 'none',
-                fontSize: '4rem',
-              }}>🌿</span>
+            <div style={{ fontSize: '4rem', marginBottom: '0.5rem', transition: 'opacity 0.3s' }}>
+              {!logoError ? (
+                <img 
+                  src={theme === 'dark' ? "/images/logo-light.svg" : "/images/logo-dark.svg"}
+                  alt="GriotBot Logo" 
+                  style={{
+                    height: '120px',
+                    width: 'auto',
+                  }}
+                  onError={() => <div>🌿</div>}
+                />
+              ) : (
+                <div>🌿</div>
+              )}
             </div>
-            
-            <h1 style={{ 
+            <h1 style={{
               fontFamily: 'Lora, serif',
               fontSize: '2rem',
               margin: '0.5rem 0',
             }}>Welcome to GriotBot</h1>
-            <p style={{ 
+            <p style={{
               fontFamily: 'Montserrat, sans-serif',
               color: 'var(--text-color)',
               opacity: 0.8,
@@ -982,8 +640,10 @@ export default function Home() {
               fontFamily: 'Lora, serif',
               lineHeight: 1.7,
               marginBottom: '2rem',
+              transition: 'opacity 0.3s, color 0.3s',
               position: 'relative',
               padding: '0 1.5rem',
+              width: '100%',
             }}>
               "A people without the knowledge of their past history,<br/>
               origin and culture is like a tree without roots."
@@ -1001,9 +661,8 @@ export default function Home() {
               gap: '1rem',
               marginBottom: '2rem',
               width: '100%',
-              maxWidth: '875px',
+              maxWidth: '700px',
             }}>
-              {/* FIXED: React-idiomatic suggestion cards with onClick handlers */}
               <div 
                 onClick={() => handleSuggestionClick("Tell me a story about resilience from the African diaspora")}
                 style={{
@@ -1147,279 +806,357 @@ export default function Home() {
           </div>
         )}
         
-        <div 
-          ref={chatContainerRef}
-          style={{
-            width: '100%',
-            maxWidth: '875px',
-            display: 'flex',
-            flexDirection: 'column',
-            flex: 1,
-            // FIXED: Better scrolling to prevent temporary scrollbar
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            scrollBehavior: 'smooth',
-            minHeight: 0, // Prevents flex item from overflowing
-          }}
-        >
-          {messages.map((message, index) => renderMessage(message, index))}
-          
-          {/* Show loading indicator only when waiting for stream to start */}
-          {isLoading && !messages.some(m => m.isStreaming) && (
-            <div style={{
-              padding: '1rem 1.2rem',
-              margin: '0.5rem 0',
-              borderRadius: '12px',
-              maxWidth: '80%',
-              alignSelf: 'flex-start',
-              background: 'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))',
-              color: 'var(--bot-text)',
-              display: 'flex',
-              alignItems: 'center',
-              opacity: 0.8,
-            }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-              }}>
-                <span style={{
-                  height: '8px',
-                  width: '8px',
-                  margin: '0 2px',
-                  backgroundColor: 'var(--bot-text)',
-                  borderRadius: '50%',
-                  display: 'inline-block',
-                  opacity: 0.7,
-                  animation: 'typing-bounce 1.4s infinite ease-in-out both',
-                }}></span>
-                <span style={{
-                  height: '8px',
-                  width: '8px',
-                  margin: '0 2px',
-                  backgroundColor: 'var(--bot-text)',
-                  borderRadius: '50%',
-                  display: 'inline-block',
-                  opacity: 0.7,
-                  animation: 'typing-bounce 1.4s infinite ease-in-out both',
-                  animationDelay: '0.2s',
-                }}></span>
-                <span style={{
-                  height: '8px',
-                  width: '8px',
-                  margin: '0 2px',
-                  backgroundColor: 'var(--bot-text)',
-                  borderRadius: '50%',
-                  display: 'inline-block',
-                  opacity: 0.7,
-                  animation: 'typing-bounce 1.4s infinite ease-in-out both',
-                  animationDelay: '0.4s',
-                }}></span>
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* UNIFIED FOOTER: INPUT + PROVERB + COPYRIGHT */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        width: '100%',
-        background: 'var(--bg-color)',
-        borderTop: '1px solid var(--input-border)',
-        transition: 'background-color 0.3s',
-        zIndex: 100,
-        boxShadow: '0 -4px 20px var(--shadow-color)',
-        padding: 0,
-      }}>
-        {/* INPUT AREA */}
         <div style={{
-          padding: '1rem',
+          width: '100%',
+          maxWidth: '700px',
           display: 'flex',
-          justifyContent: 'center',
+          flexDirection: 'column',
         }}>
-          <div style={{
-            width: '100%',
-            maxWidth: '875px',
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                const message = formData.get('message');
-                if (message && message.trim()) {
-                  handleSendMessage(message, storytellerMode);
-                  e.target.reset();
-                }
-              }}
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`message ${msg.role}`}
               style={{
-                display: 'flex',
-                flexDirection: 'column',
+                padding: '1rem 1.2rem',
+                margin: '0.5rem 0',
+                borderRadius: '12px',
+                maxWidth: '80%',
+                wordWrap: 'break-word',
+                boxShadow: '0 3px 6px var(--shadow-color)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                lineHeight: 1.6,
+                alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                backgroundColor: msg.role === 'user' ? 'var(--user-bubble)' : undefined,
+                background: msg.role === 'bot' ? 'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))' : undefined,
+                color: msg.role === 'user' ? 'var(--user-text)' : 'var(--bot-text)',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 5px 10px var(--shadow-color)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 3px 6px var(--shadow-color)';
               }}
             >
-              <div style={{
-                position: 'relative',
-                display: 'flex',
-                boxShadow: '0 4px 12px var(--shadow-color)',
-                borderRadius: '12px',
-                backgroundColor: 'var(--input-bg)',
-              }}>
-                <textarea 
-                  name="message"
-                  placeholder="Ask GriotBot about Black history, culture, or personal advice..." 
-                  required 
-                  disabled={isLoading}
-                  style={{
-                    flex: 1,
-                    padding: '0.9rem 1rem',
-                    border: '1px solid var(--input-border)',
-                    borderRight: 'none',
-                    borderRadius: '12px 0 0 12px',
-                    outline: 'none',
-                    resize: 'none',
-                    minHeight: '55px',
-                    maxHeight: '120px',
-                    transition: 'border 0.3s, box-shadow 0.3s, background-color 0.3s',
-                    backgroundColor: 'var(--input-bg)',
-                    color: 'var(--input-text)',
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontSize: '1rem',
-                    lineHeight: 1.5,
-                  }}
-                  rows="1"
-                />
-                <button 
-                  type="submit"
-                  disabled={isLoading}
-                  style={{
-                    width: '55px',
-                    background: 'var(--accent-color)',
-                    color: 'white',
-                    borderRadius: '0 12px 12px 0',
-                    transition: 'background-color 0.3s, transform 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: 'none',
-                    cursor: isLoading ? 'not-allowed' : 'pointer',
-                    opacity: isLoading ? 0.7 : 1,
-                  }}
-                >
-                  {isLoading ? (
-                    <div className="spinner"></div>
-                  ) : (
-                    // ArrowUpCircle icon is already implemented correctly
-                    <ArrowUpCircle size={24} />
-                  )}
-                </button>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: '0.5rem',
-                fontSize: '0.8rem',
-              }}>
-                <div style={{
-                  color: 'var(--text-color)',
-                  opacity: 0.7,
-                }}>
-                  Free users: 30 messages per day
-                </div>
-                
+              {msg.role === 'bot' && (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
+                  marginBottom: '0.8rem',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
                 }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                  }}>
-                    Storyteller Mode
-                    <div style={{
-                      position: 'relative',
-                      display: 'inline-block',
-                      width: '36px',
-                      height: '20px',
-                      marginLeft: '0.5rem',
-                    }}>
-                      <input 
-                        type="checkbox" 
-                        checked={storytellerMode}
-                        onChange={(e) => handleStorytellerModeChange(e.target.checked)}
-                        style={{
-                          opacity: 0,
-                          width: 0,
-                          height: 0,
-                        }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        cursor: 'pointer',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: storytellerMode ? 'var(--accent-color)' : 'rgba(0,0,0,0.25)',
-                        transition: '.3s',
-                        borderRadius: '20px',
-                      }}>
-                        <span style={{
-                          position: 'absolute',
-                          content: '""',
-                          height: '16px',
-                          width: '16px',
-                          left: storytellerMode ? '18px' : '2px',
-                          bottom: '2px',
-                          backgroundColor: 'white',
-                          transition: '.3s',
-                          borderRadius: '50%',
-                        }}></span>
-                      </span>
-                    </div>
-                  </label>
+                  {!logoError ? (
+                    <img 
+                      src="/images/GriotBot logo horiz wht.svg" 
+                      alt="GriotBot" 
+                      style={{
+                        height: '20px',
+                        width: 'auto',
+                      }}
+                      onError={() => setLogoError(true)}
+                    />
+                  ) : (
+                    <span style={{ fontSize: '1rem' }}>🌿 GriotBot</span>
+                  )}
                 </div>
+              )}
+              
+              <div className={msg.isStreaming ? 'blinking-cursor' : ''}>
+                {msg.content}
               </div>
-            </form>
-          </div>
+              
+              {msg.role === 'bot' && !msg.isStreaming && (
+                <div style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  marginTop: '0.8rem',
+                  paddingTop: '0.5rem',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                }}>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(msg.content)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      padding: '0.25rem',
+                      borderRadius: '4px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    title="Copy message"
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <Copy size={14} />
+                  </button>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      padding: '0.25rem',
+                      borderRadius: '4px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    title="Good response"
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <ThumbsUp size={14} />
+                  </button>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      padding: '0.25rem',
+                      borderRadius: '4px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    title="Poor response"
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <ThumbsDown size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleSendMessage(messages[messages.findIndex(m => m.id === msg.id) - 1]?.content || '')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      padding: '0.25rem',
+                      borderRadius: '4px',
+                      transition: 'background-color 0.2s',
+                    }}
+                    title="Regenerate response"
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
+      </main>
 
-        {/* PROVERB - NOW USING REACT STATE */}
-        <div 
-          style={{
-            width: '100%',
-            textAlign: 'center',
-            fontSize: '0.9rem',
-            fontStyle: 'italic',
-            padding: '0.8rem 1rem 0.5rem 1rem',
-            color: 'var(--wisdom-color)',
-            transition: 'color 0.3s',
-            opacity: 0.9,
-            fontFamily: 'Lora, serif',
-          }}
-          aria-label={`Proverb: ${currentProverb}`}
-        >
-          {currentProverb}
-        </div>
-        
-        {/* COPYRIGHT */}
-        <div style={{
+      {/* MESSAGE INPUT FORM */}
+      <div style={{
+        position: 'fixed',
+        bottom: 50,
+        left: 0,
+        width: '100%',
+        background: 'var(--bg-color)',
+        padding: '1rem',
+        borderTop: '1px solid var(--input-border)',
+        transition: 'background-color 0.3s',
+        display: 'flex',
+        justifyContent: 'center',
+        zIndex: 50,
+      }}>
+        <form onSubmit={handleSubmit} style={{
+          width: '100%',
+          maxWidth: '700px',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <div style={{
+            position: 'relative',
+            display: 'flex',
+            boxShadow: '0 4px 12px var(--shadow-color)',
+            borderRadius: '12px',
+            backgroundColor: 'var(--input-bg)',
+          }}>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Ask GriotBot about Black history, culture, or personal advice..."
+              required
+              rows="1"
+              disabled={isLoading}
+              style={{
+                flex: 1,
+                padding: '0.9rem 1rem',
+                border: '1px solid var(--input-border)',
+                borderRight: 'none',
+                borderRadius: '12px 0 0 12px',
+                outline: 'none',
+                resize: 'none',
+                minHeight: '55px',
+                maxHeight: '120px',
+                transition: 'border 0.3s, box-shadow 0.3s, background-color 0.3s',
+                backgroundColor: 'var(--input-bg)',
+                color: 'var(--input-text)',
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: '1rem',
+                lineHeight: 1.5,
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !message.trim()}
+              style={{
+                width: '55px',
+                background: 'var(--accent-color)',
+                color: 'white',
+                borderRadius: '0 12px 12px 0',
+                transition: 'background-color 0.3s, transform 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                cursor: isLoading || !message.trim() ? 'not-allowed' : 'pointer',
+                opacity: isLoading || !message.trim() ? 0.7 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading && message.trim()) {
+                  e.target.style.background = 'var(--accent-hover)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading && message.trim()) {
+                  e.target.style.background = 'var(--accent-color)';
+                }
+              }}
+            >
+              <ArrowUpCircle size={24} />
+            </button>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '0.5rem',
+            fontSize: '0.8rem',
+          }}>
+            <div style={{
+              color: 'var(--text-color)',
+              opacity: 0.7,
+            }}>
+              Free users: 30 messages per day
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+              }}>
+                Storyteller Mode
+                <div style={{
+                  position: 'relative',
+                  display: 'inline-block',
+                  width: '36px',
+                  height: '20px',
+                  marginLeft: '0.5rem',
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={storyMode}
+                    onChange={handleStoryModeToggle}
+                    style={{
+                      opacity: 0,
+                      width: 0,
+                      height: 0,
+                    }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    cursor: 'pointer',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: storyMode ? 'var(--accent-color)' : 'rgba(0,0,0,0.25)',
+                    transition: '.3s',
+                    borderRadius: '20px',
+                  }}>
+                    <span style={{
+                      position: 'absolute',
+                      content: '""',
+                      height: '16px',
+                      width: '16px',
+                      left: storyMode ? '18px' : '2px',
+                      bottom: '2px',
+                      backgroundColor: 'white',
+                      transition: '.3s',
+                      borderRadius: '50%',
+                    }}></span>
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {/* FOOTER - PROVERB & COPYRIGHT */}
+      <div 
+        style={{
+          position: 'fixed',
+          bottom: '30px',
           width: '100%',
           textAlign: 'center',
-          fontSize: '0.8rem',
-          color: 'var(--text-color)',
-          opacity: 0.7,
+          fontSize: '0.9rem',
+          fontStyle: 'italic',
+          padding: '0 1rem',
+          color: 'var(--wisdom-color)',
           transition: 'color 0.3s',
-          padding: '0 1rem 0.8rem 1rem',
-        }}>
-          © 2025 GriotBot. All rights reserved.
-        </div>
+          opacity: 0.8,
+          fontFamily: 'Lora, serif',
+          zIndex: 40,
+        }}
+        aria-label={`Proverb: ${currentProverb}`}
+      >
+        {currentProverb}
+      </div>
+      
+      <div style={{
+        position: 'fixed',
+        bottom: '10px',
+        width: '100%',
+        textAlign: 'center',
+        fontSize: '0.8rem',
+        color: 'var(--text-color)',
+        opacity: 0.6,
+        transition: 'color 0.3s',
+        zIndex: 40,
+      }}>
+        © 2025 GriotBot. All rights reserved.
       </div>
     </>
   );
