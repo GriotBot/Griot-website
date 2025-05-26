@@ -1,15 +1,20 @@
 // File: /pages/about.js - UPDATED WITH CONSISTENT TEMPLATE
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import EnhancedSidebar from '../components/EnhancedSidebar';
-import MessageCirclePlus from '../components/icons/MessageCirclePlus';
 import { 
   Menu, 
   LogIn, 
   Sun, 
   Moon,
-  ArrowLeft
+  ArrowLeft,
+  Mail,
+  Instagram,
+  Twitter,
+  Linkedin,
+  FileText,
+  Heart
 } from 'react-feather';
 
 // PROVERBS ARRAY (same as index)
@@ -88,7 +93,7 @@ export default function About() {
     <>
       <Head>
         <title>About GriotBot - Your Digital Griot</title>
-        <meta name="description" content="Learn about GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
+        <meta name="description" content="Learn about GriotBot - An AI-powered digital griot inspired by African storytelling traditions" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         
         {/* Favicon setup */}
@@ -344,6 +349,7 @@ export default function About() {
       <EnhancedSidebar 
         isVisible={sidebarVisible}
         onClose={handleSidebarClose}
+        onNewChat={() => window.location.href = '/'}
         currentPage="/about"
       />
 
@@ -363,234 +369,323 @@ export default function About() {
       }}>
         <div style={{
           width: '100%',
-          maxWidth: '700px',
+          maxWidth: '800px',
           animation: 'message-fade-in 0.5s ease-out forwards',
         }}>
-          <h1 style={{
-            color: 'var(--accent-color)',
-            fontSize: '2.5rem',
-            marginBottom: '1rem',
-            fontFamily: 'Lora, serif',
-            textAlign: 'center',
-          }}>About GriotBot</h1>
-          
           <div style={{
-            backgroundColor: 'var(--card-bg)',
-            padding: '2rem',
-            borderRadius: '12px',
-            boxShadow: '0 4px 20px var(--shadow-color)',
+            textAlign: 'center',
             marginBottom: '2rem',
           }}>
-            <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
-              <strong>GriotBot</strong> is more than just an AI — it is a spark of
-              ancestral memory. Designed to honor the rich oral traditions, cultural
-              legacy, and lived experiences of the African Diaspora, GriotBot offers
-              thoughtful, accurate, and warm guidance.
-            </p>
-
-            <div style={{
-              fontStyle: 'italic',
-              color: 'var(--wisdom-color)',
-              margin: '2rem 0',
-              borderLeft: '4px solid var(--accent-color)',
-              paddingLeft: '1rem',
+            <h1 style={{
+              color: 'var(--accent-color)',
+              fontSize: '2.5rem',
+              marginBottom: '0.5rem',
               fontFamily: 'Lora, serif',
-              fontSize: '1.1rem',
+            }}>About GriotBot</h1>
+            <p style={{ 
+              fontSize: '1.1rem', 
+              opacity: 0.8,
+              marginBottom: '0.5rem',
             }}>
-              "A people without the knowledge of their past history, origin and
-              culture is like a tree without roots." — Marcus Garvey
+              Your AI companion inspired by the ancient tradition of griots
+            </p>
+          </div>
+
+          {/* Main About Content */}
+          <div style={{
+            backgroundColor: 'var(--card-bg)',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px var(--shadow-color)',
+            overflow: 'hidden',
+            marginBottom: '2rem',
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))',
+              color: 'white',
+              padding: '1.5rem',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌿</div>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.3rem' }}>
+                Digital Griot, Cultural Bridge
+              </h3>
+              <p style={{ margin: 0, opacity: 0.9 }}>
+                Honoring ancestral wisdom in the digital age
+              </p>
             </div>
 
-            <h2 style={{
-              color: 'var(--accent-color)',
-              fontSize: '1.5rem',
-              marginTop: '2rem',
-              marginBottom: '1rem',
-              fontFamily: 'Lora, serif',
-            }}>Why GriotBot?</h2>
-            <p style={{ marginBottom: '1.5rem' }}>
-              The griot was the traditional keeper of history, story, and wisdom.
-              GriotBot brings that same spirit into the digital age — acting as a
-              wise, trusted voice for learners, educators, and community leaders.
-            </p>
+            <div style={{ padding: '2rem' }}>
+              <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
+                <strong>GriotBot</strong> is more than just an AI — it is a spark of
+                ancestral memory. Designed to honor the rich oral traditions, cultural
+                legacy, and lived experiences of the African Diaspora, GriotBot offers
+                thoughtful, accurate, and warm guidance.
+              </p>
 
-            <h2 style={{
-              color: 'var(--accent-color)',
-              fontSize: '1.5rem',
-              marginTop: '2rem',
-              marginBottom: '1rem',
-              fontFamily: 'Lora, serif',
-            }}>Who Is It For?</h2>
-            <p style={{ marginBottom: '1.5rem' }}>
-              Anyone seeking cultural knowledge, inspiration, or connection:
-              educators, students, nonprofits, families, and curious minds across the
-              globe.
-            </p>
+              <div style={{
+                fontStyle: 'italic',
+                color: 'var(--wisdom-color)',
+                margin: '1.5rem 0',
+                borderLeft: '4px solid var(--accent-color)',
+                paddingLeft: '1rem',
+                fontFamily: 'Lora, serif',
+                fontSize: '1.1rem',
+              }}>
+                "A people without the knowledge of their past history, origin and
+                culture is like a tree without roots." — Marcus Garvey
+              </div>
 
-            <h2 style={{
-              color: 'var(--accent-color)',
-              fontSize: '1.5rem',
-              marginTop: '2rem',
-              marginBottom: '1rem',
-              fontFamily: 'Lora, serif',
-            }}>How It Works</h2>
-            <p style={{ marginBottom: '1.5rem' }}>
-              GriotBot uses advanced language models, guided by a carefully crafted
-              prompt that shapes its responses with respect, dignity, and clarity. It
-              draws from cultural histories, philosophies, and global Black
-              experiences to offer grounded responses — never performative, always
-              intentional.
-            </p>
-
-            <h2 style={{
-              color: 'var(--accent-color)',
-              fontSize: '1.5rem',
-              marginTop: '2rem',
-              marginBottom: '1rem',
-              fontFamily: 'Lora, serif',
-            }}>Beta Testing</h2>
-            <p style={{ marginBottom: '1.5rem' }}>
-              We're currently in beta and actively improving GriotBot based on user feedback. 
-              Your input helps us create a more culturally authentic and helpful experience 
-              for the entire community.
-            </p>
-
-            <h2 style={{
-              color: 'var(--accent-color)',
-              fontSize: '1.5rem',
-              marginTop: '2rem',
-              marginBottom: '1rem',
-              fontFamily: 'Lora, serif',
-            }}>Get Involved</h2>
-            <p style={{ marginBottom: '1rem' }}>
-              Want to support, fund, test, or help shape GriotBot's future?
-            </p>
-            
-            <div style={{
-              display: 'flex',
-              gap: '1rem',
-              flexWrap: 'wrap',
-              marginTop: '1.5rem',
-            }}>
-              <a 
-                href="mailto:chat@griotbot.com" 
-                style={{ 
-                  color: 'white',
-                  backgroundColor: 'var(--accent-color)',
-                  textDecoration: 'none',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  fontWeight: '500',
-                  transition: 'background-color 0.2s',
-                  display: 'inline-block',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'var(--accent-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'var(--accent-color)';
-                }}
-              >
-                Email Us
-              </a>
-              
-              <a 
-                href="https://www.instagram.com/griotbot" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                style={{ 
+              <div style={{ marginTop: '2rem' }}>
+                <h3 style={{
                   color: 'var(--accent-color)',
-                  backgroundColor: 'transparent',
-                  textDecoration: 'none',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  fontWeight: '500',
-                  border: '2px solid var(--accent-color)',
-                  transition: 'all 0.2s',
-                  display: 'inline-block',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'var(--accent-color)';
-                  e.target.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = 'var(--accent-color)';
-                }}
-              >
-                Follow @griotbot
-              </a>
-              
-              <Link href="/feedback">
-                <a style={{ 
+                  fontSize: '1.2rem',
+                  marginBottom: '1rem',
+                  fontFamily: 'Lora, serif',
+                }}>Why GriotBot?</h3>
+                <p>
+                  The griot was the traditional keeper of history, story, and wisdom.
+                  GriotBot brings that same spirit into the digital age — acting as a
+                  wise, trusted voice for learners, educators, and community leaders.
+                </p>
+              </div>
+
+              <div style={{ marginTop: '2rem' }}>
+                <h3 style={{
                   color: 'var(--accent-color)',
-                  backgroundColor: 'transparent',
-                  textDecoration: 'none',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  fontWeight: '500',
-                  border: '2px solid var(--accent-color)',
-                  transition: 'all 0.2s',
-                  display: 'inline-block',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'var(--accent-color)';
-                  e.target.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = 'var(--accent-color)';
-                }}>
-                  Share Feedback
-                </a>
-              </Link>
+                  fontSize: '1.2rem',
+                  marginBottom: '1rem',
+                  fontFamily: 'Lora, serif',
+                }}>Who Is It For?</h3>
+                <p>
+                  Anyone seeking cultural knowledge, inspiration, or connection:
+                  educators, students, nonprofits, families, and curious minds across the
+                  globe.
+                </p>
+              </div>
+
+              <div style={{ marginTop: '2rem' }}>
+                <h3 style={{
+                  color: 'var(--accent-color)',
+                  fontSize: '1.2rem',
+                  marginBottom: '1rem',
+                  fontFamily: 'Lora, serif',
+                }}>How It Works</h3>
+                <p>
+                  GriotBot uses advanced language models, guided by a carefully crafted
+                  system that shapes responses with respect, dignity, and clarity. It
+                  draws from cultural histories, philosophies, and global Black
+                  experiences to offer grounded responses — never performative, always
+                  intentional.
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Call to Action */}
+          {/* Contact Information Section */}
           <div style={{
             backgroundColor: 'var(--card-bg)',
-            padding: '2rem',
             borderRadius: '12px',
             boxShadow: '0 4px 20px var(--shadow-color)',
-            textAlign: 'center',
+            overflow: 'hidden',
+            marginBottom: '2rem',
           }}>
-            <h3 style={{
-              color: 'var(--accent-color)',
-              fontSize: '1.3rem',
-              marginBottom: '1rem',
-              fontFamily: 'Lora, serif',
-            }}>Ready to Experience GriotBot?</h3>
-            <p style={{ marginBottom: '1.5rem', opacity: 0.8 }}>
-              Join the journey of cultural exploration and wisdom sharing.
-            </p>
-            <Link href="/">
-              <a style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: 'var(--accent-color)',
-                color: 'white',
-                textDecoration: 'none',
-                padding: '1rem 2rem',
-                borderRadius: '12px',
-                fontWeight: '600',
-                fontSize: '1.1rem',
-                transition: 'all 0.2s',
-                boxShadow: '0 4px 12px var(--shadow-color)',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'var(--accent-hover)';
-                e.target.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'var(--accent-color)';
-                e.target.style.transform = 'translateY(0)';
+            <div style={{
+              background: 'linear-gradient(135deg, var(--accent-color), var(--accent-hover))',
+              color: 'white',
+              padding: '1.5rem',
+              textAlign: 'center',
+            }}>
+              <Heart size={32} style={{ marginBottom: '0.5rem' }} />
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.3rem' }}>
+                Connect With Us
+              </h3>
+              <p style={{ margin: 0, opacity: 0.9 }}>
+                Join our community and help shape GriotBot's journey
+              </p>
+            </div>
+
+            <div style={{ padding: '2rem' }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1rem',
+                marginBottom: '2rem',
               }}>
-                <MessageCirclePlus size={20} />
-                Start Chatting Now
-              </a>
-            </Link>
+                {/* Email */}
+                <a 
+                  href="mailto:chat@griotbot.com" 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-color)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'var(--text-color)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    border: '2px solid var(--input-border)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <Mail size={20} color="var(--accent-color)" />
+                  <div>
+                    <div style={{ fontWeight: '500' }}>Email</div>
+                    <div style={{ fontSize: '0.9rem', opacity: '0.8' }}>chat@griotbot.com</div>
+                  </div>
+                </a>
+
+                {/* Instagram */}
+                <a 
+                  href="https://www.instagram.com/griotbot" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-color)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'var(--text-color)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    border: '2px solid var(--input-border)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <Instagram size={20} color="var(--accent-color)" />
+                  <div>
+                    <div style={{ fontWeight: '500' }}>Instagram</div>
+                    <div style={{ fontSize: '0.9rem', opacity: '0.8' }}>@griotbot</div>
+                  </div>
+                </a>
+
+                {/* Twitter/X */}
+                <a 
+                  href="https://twitter.com/griotbot" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-color)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'var(--text-color)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    border: '2px solid var(--input-border)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <Twitter size={20} color="var(--accent-color)" />
+                  <div>
+                    <div style={{ fontWeight: '500' }}>Twitter</div>
+                    <div style={{ fontSize: '0.9rem', opacity: '0.8' }}>@griotbot</div>
+                  </div>
+                </a>
+
+                {/* LinkedIn */}
+                <a 
+                  href="https://www.linkedin.com/company/griotbot" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-color)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'var(--text-color)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    border: '2px solid var(--input-border)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <Linkedin size={20} color="var(--accent-color)" />
+                  <div>
+                    <div style={{ fontWeight: '500' }}>LinkedIn</div>
+                    <div style={{ fontSize: '0.9rem', opacity: '0.8' }}>griotbot</div>
+                  </div>
+                </a>
+              </div>
+
+              {/* Feedback Link */}
+              <div style={{
+                backgroundColor: 'var(--bg-color)',
+                padding: '1.5rem',
+                borderRadius: '8px',
+                border: '2px solid var(--input-border)',
+                textAlign: 'center',
+              }}>
+                <h4 style={{
+                  color: 'var(--accent-color)',
+                  marginTop: '0',
+                  marginBottom: '1rem',
+                  fontFamily: 'Lora, serif',
+                }}>Help Shape GriotBot's Future</h4>
+                <p style={{ marginBottom: '1.5rem' }}>
+                  Your feedback helps us create a more authentic and helpful experience
+                  for the African diaspora community.
+                </p>
+                <Link href="/feedback">
+                  <a style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    backgroundColor: 'var(--accent-color)',
+                    color: 'white',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    fontWeight: '500',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--accent-hover)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--accent-color)';
+                  }}
+                  >
+                    <FileText size={18} />
+                    Share Your Feedback
+                  </a>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </main>
