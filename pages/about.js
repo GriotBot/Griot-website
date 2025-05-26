@@ -227,12 +227,15 @@ export default function About() {
           <Menu size={24} />
         </button>
         
-        {/* CENTER - Logo */}
+        {/* CENTER - Logo (Absolutely centered on screen) */}
         <div style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          flex: 1,
         }}>
           {!logoError ? (
             <img 
