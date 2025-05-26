@@ -9,7 +9,14 @@ import {
   Sun, 
   Moon,
   ArrowLeft,
-  MessageSquare
+  MessageSquare,
+  Send,
+  Mail,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Heart,
+  CheckCircle
 } from 'react-feather';
 
 // PROVERBS ARRAY (same as index)
@@ -39,6 +46,16 @@ export default function Feedback() {
   const [currentProverb, setCurrentProverb] = useState('');
   const [logoError, setLogoError] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    rating: '',
+    likes: '',
+    improvements: '',
+    authenticity: '',
+    additionalFeedback: ''
+  });
 
   useEffect(() => {
     setIsClient(true);
@@ -79,6 +96,41 @@ export default function Feedback() {
     setTheme(newTheme);
     localStorage.setItem('griotbot-theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Simulate form submission (replace with actual endpoint)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setFormSubmitted(true);
+      setFormData({
+        name: '',
+        email: '',
+        rating: '',
+        likes: '',
+        improvements: '',
+        authenticity: '',
+        additionalFeedback: ''
+      });
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isClient) {
@@ -166,6 +218,11 @@ export default function Feedback() {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
           }
+
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
         `}} />
       </Head>
       
@@ -207,7 +264,7 @@ export default function Feedback() {
             borderRadius: '6px',
             transition: 'background-color 0.2s, transform 0.3s ease',
             position: 'relative',
-            transform: sidebarVisible ? 'rotate(90deg)' : 'rotate(0deg)', // FIXED: Proper rotation reset
+            transform: sidebarVisible ? 'rotate(90deg)' : 'rotate(0deg)',
           }}
           aria-label={sidebarVisible ? "Close sidebar" : "Open sidebar"}
           aria-expanded={sidebarVisible}
@@ -408,6 +465,7 @@ export default function Feedback() {
               borderRadius: '12px',
               boxShadow: '0 4px 20px var(--shadow-color)',
               overflow: 'hidden',
+              marginBottom: '2rem',
             }}>
               <div style={{
                 background: 'linear-gradient(135deg, var(--accent-color), var(--accent-hover))',
@@ -425,12 +483,35 @@ export default function Feedback() {
               </div>
 
               <div style={{ padding: '2rem' }}>
-                <form 
-                  action="https://formspree.io/f/your-form-id"
-                  method="POST"
-                  onSubmit={() => setFormSubmitted(true)}
-                  style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-                >
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '0.5rem',
+                      fontWeight: '500',
+                      color: 'var(--text-color)',
+                    }}>
+                      Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '2px solid var(--input-border)',
+                        borderRadius: '8px',
+                        backgroundColor: 'var(--input-bg)',
+                        color: 'var(--input-text)',
+                        fontSize: '1rem',
+                        fontFamily: 'inherit',
+                      }}
+                      placeholder="Your name"
+                    />
+                  </div>
+
                   <div>
                     <label style={{
                       display: 'block',
@@ -442,6 +523,8 @@ export default function Feedback() {
                     </label>
                     <select 
                       name="rating"
+                      value={formData.rating}
+                      onChange={handleInputChange}
                       required
                       style={{
                         width: '100%',
@@ -451,6 +534,7 @@ export default function Feedback() {
                         backgroundColor: 'var(--input-bg)',
                         color: 'var(--input-text)',
                         fontSize: '1rem',
+                        fontFamily: 'inherit',
                       }}
                     >
                       <option value="">Select a rating</option>
@@ -472,6 +556,8 @@ export default function Feedback() {
                     </label>
                     <textarea
                       name="likes"
+                      value={formData.likes}
+                      onChange={handleInputChange}
                       rows="3"
                       placeholder="Tell us what resonated with you..."
                       style={{
@@ -499,6 +585,8 @@ export default function Feedback() {
                     </label>
                     <textarea
                       name="improvements"
+                      value={formData.improvements}
+                      onChange={handleInputChange}
                       rows="3"
                       placeholder="Share your suggestions for making GriotBot better..."
                       style={{
@@ -526,6 +614,8 @@ export default function Feedback() {
                     </label>
                     <select 
                       name="authenticity"
+                      value={formData.authenticity}
+                      onChange={handleInputChange}
                       required
                       style={{
                         width: '100%',
@@ -535,6 +625,7 @@ export default function Feedback() {
                         backgroundColor: 'var(--input-bg)',
                         color: 'var(--input-text)',
                         fontSize: '1rem',
+                        fontFamily: 'inherit',
                       }}
                     >
                       <option value="">Select authenticity level</option>
@@ -557,6 +648,8 @@ export default function Feedback() {
                     <input
                       type="email"
                       name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       placeholder="your@email.com"
                       style={{
                         width: '100%',
@@ -566,37 +659,63 @@ export default function Feedback() {
                         backgroundColor: 'var(--input-bg)',
                         color: 'var(--input-text)',
                         fontSize: '1rem',
+                        fontFamily: 'inherit',
                       }}
                     />
-                    <small style={{ opacity: 0.7, fontSize: '0.9rem' }}>
+                    <small style={{ opacity: 0.7, fontSize: '0.9rem', display: 'block', marginTop: '0.25rem' }}>
                       Only if you'd like us to follow up with you
                     </small>
                   </div>
 
                   <button
                     type="submit"
+                    disabled={isSubmitting}
                     style={{
-                      backgroundColor: 'var(--accent-color)',
+                      backgroundColor: isSubmitting ? '#ccc' : 'var(--accent-color)',
                       color: 'white',
                       border: 'none',
                       padding: '1rem 2rem',
                       borderRadius: '8px',
                       fontSize: '1.1rem',
                       fontWeight: '600',
-                      cursor: 'pointer',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                       alignSelf: 'center',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = 'var(--accent-hover)';
-                      e.target.style.transform = 'translateY(-2px)';
+                      if (!isSubmitting) {
+                        e.target.style.backgroundColor = 'var(--accent-hover)';
+                        e.target.style.transform = 'translateY(-2px)';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'var(--accent-color)';
-                      e.target.style.transform = 'translateY(0)';
+                      if (!isSubmitting) {
+                        e.target.style.backgroundColor = 'var(--accent-color)';
+                        e.target.style.transform = 'translateY(0)';
+                      }
                     }}
                   >
-                    Submit Feedback
+                    {isSubmitting ? (
+                      <>
+                        <div style={{
+                          width: '18px',
+                          height: '18px',
+                          border: '2px solid rgba(255,255,255,0.3)',
+                          borderTop: '2px solid white',
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite',
+                        }} />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={18} />
+                        Submit Feedback
+                      </>
+                    )}
                   </button>
                 </form>
               </div>
@@ -608,11 +727,9 @@ export default function Feedback() {
               borderRadius: '12px',
               boxShadow: '0 4px 20px var(--shadow-color)',
               textAlign: 'center',
+              marginBottom: '2rem',
             }}>
-              <div style={{
-                fontSize: '3rem',
-                marginBottom: '1rem',
-              }}>🙏</div>
+              <CheckCircle size={48} color="var(--accent-color)" style={{ marginBottom: '1rem' }} />
               <h3 style={{
                 color: 'var(--accent-color)',
                 fontSize: '1.5rem',
@@ -621,7 +738,7 @@ export default function Feedback() {
               }}>
                 Asante Sana - Thank You!
               </h3>
-              <p style={{ marginBottom: '1.5rem' }}>
+              <p style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
                 Your feedback helps us honor the griot tradition while building
                 better technology for our community.
               </p>
@@ -651,72 +768,164 @@ export default function Feedback() {
             </div>
           )}
 
-          {/* Additional Info */}
+          {/* Contact Information Section */}
           <div style={{
             backgroundColor: 'var(--card-bg)',
-            padding: '1.5rem',
             borderRadius: '12px',
             boxShadow: '0 4px 20px var(--shadow-color)',
-            marginTop: '2rem',
-            textAlign: 'center',
+            overflow: 'hidden',
           }}>
-            <h4 style={{
-              color: 'var(--accent-color)',
-              marginBottom: '1rem',
-              fontFamily: 'Lora, serif',
-            }}>
-              Other Ways to Connect
-            </h4>
             <div style={{
-              display: 'flex',
-              gap: '1rem',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
+              background: 'linear-gradient(135deg, var(--bot-bubble-start), var(--bot-bubble-end))',
+              color: 'white',
+              padding: '1.5rem',
+              textAlign: 'center',
             }}>
-              <a 
-                href="mailto:chat@griotbot.com"
-                style={{
-                  color: 'var(--accent-color)',
-                  textDecoration: 'none',
-                  padding: '0.5rem 1rem',
-                  border: '2px solid var(--accent-color)',
-                  borderRadius: '6px',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'var(--accent-color)';
-                  e.target.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = 'var(--accent-color)';
-                }}
-              >
-                Email Us
-              </a>
-              <a 
-                href="https://www.instagram.com/griotbot"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: 'var(--accent-color)',
-                  textDecoration: 'none',
-                  padding: '0.5rem 1rem',
-                  border: '2px solid var(--accent-color)',
-                  borderRadius: '6px',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'var(--accent-color)';
-                  e.target.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = 'var(--accent-color)';
-                }}
-              >
-                @griotbot
-              </a>
+              <Heart size={32} style={{ marginBottom: '0.5rem' }} />
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.3rem' }}>
+                Other Ways to Connect
+              </h3>
+              <p style={{ margin: 0, opacity: 0.9 }}>
+                Prefer to reach out directly? We're here to listen.
+              </p>
+            </div>
+
+            <div style={{ padding: '2rem' }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1rem',
+              }}>
+                {/* Email */}
+                <a 
+                  href="mailto:chat@griotbot.com" 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-color)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'var(--text-color)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    border: '2px solid var(--input-border)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <Mail size={20} color="var(--accent-color)" />
+                  <div>
+                    <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>Email</div>
+                    <div style={{ fontSize: '0.8rem', opacity: '0.7' }}>chat@griotbot.com</div>
+                  </div>
+                </a>
+
+                {/* Instagram */}
+                <a 
+                  href="https://www.instagram.com/griotbot" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-color)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'var(--text-color)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    border: '2px solid var(--input-border)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <Instagram size={20} color="var(--accent-color)" />
+                  <div>
+                    <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>Instagram</div>
+                    <div style={{ fontSize: '0.8rem', opacity: '0.7' }}>@griotbot</div>
+                  </div>
+                </a>
+
+                {/* Twitter/X */}
+                <a 
+                  href="https://twitter.com/griotbot" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-color)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'var(--text-color)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    border: '2px solid var(--input-border)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <Twitter size={20} color="var(--accent-color)" />
+                  <div>
+                    <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>Twitter</div>
+                    <div style={{ fontSize: '0.8rem', opacity: '0.7' }}>@griotbot</div>
+                  </div>
+                </a>
+
+                {/* LinkedIn */}
+                <a 
+                  href="https://www.linkedin.com/company/griotbot" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-color)',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: 'var(--text-color)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    border: '2px solid var(--input-border)',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <Linkedin size={20} color="var(--accent-color)" />
+                  <div>
+                    <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>LinkedIn</div>
+                    <div style={{ fontSize: '0.8rem', opacity: '0.7' }}>griotbot</div>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
         </div>
