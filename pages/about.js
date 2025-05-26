@@ -1,4 +1,4 @@
-// File: /pages/about.js - UPDATED WITH CONSISTENT TEMPLATE
+// File: /pages/about.js - UPDATED WITH SINGLE ROW CONTACTS
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -405,7 +405,6 @@ export default function About() {
               padding: '1.5rem',
               textAlign: 'center',
             }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌿</div>
               <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.3rem' }}>
                 Digital Griot, Cultural Bridge
               </h3>
@@ -505,12 +504,28 @@ export default function About() {
             </div>
 
             <div style={{ padding: '2rem' }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '1rem',
-                marginBottom: '2rem',
-              }}>
+              {/* Mobile responsive styles */}
+              <style dangerouslySetInnerHTML={{ __html: `
+                .contact-grid {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr 1fr;
+                  gap: 1rem;
+                  margin-bottom: 2rem;
+                }
+                @media (max-width: 768px) {
+                  .contact-grid {
+                    grid-template-columns: 1fr 1fr !important;
+                    gap: 0.75rem !important;
+                  }
+                }
+                @media (max-width: 480px) {
+                  .contact-grid {
+                    grid-template-columns: 1fr !important;
+                  }
+                }
+              `}} />
+              
+              <div className="contact-grid">
                 {/* Email */}
                 <a 
                   href="mailto:chat@griotbot.com" 
@@ -640,7 +655,7 @@ export default function About() {
                     <div style={{ fontSize: '0.9rem', opacity: '0.8' }}>griotbot</div>
                   </div>
                 </a>
-              </div>
+                </div>
 
               {/* Feedback Link */}
               <div style={{
