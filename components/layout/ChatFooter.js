@@ -50,6 +50,13 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
     }
     
     setMessage('');
+    setInputHeight(55); // Reset to single line height
+    
+    // Also reset the textarea height in the DOM
+    const textarea = e.target.querySelector('textarea');
+    if (textarea) {
+      textarea.style.height = '55px';
+    }
   };
 
   // Handle storyteller mode toggle
@@ -251,11 +258,23 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
         © 2025 GriotBot. All rights reserved.
       </div>
 
-      {/* Spinning keyframes */}
+      {/* Spinning keyframes and responsive styles */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+          form[style*="maxWidth: '70%'"] {
+            max-width: 90% !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          form[style*="maxWidth: '70%'"] {
+            max-width: 95% !important;
+          }
         }
       `}} />
     </footer>
