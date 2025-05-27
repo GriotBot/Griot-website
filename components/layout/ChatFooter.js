@@ -78,7 +78,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
     
     // Calculate new height based on scroll height
     const scrollHeight = e.target.scrollHeight;
-    const maxHeight = 105; // 3 lines max (approximately)
+    const maxHeight = 85; // Reduced to show exactly 3 lines (was 105px)
     const minHeight = 55;  // 1 line min
     
     // Only expand if content requires it
@@ -94,7 +94,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
       bottom: 0,
       left: 0,
       right: 0,
-      height: `${Math.max(189, 134 + (inputHeight - 55))}px`, // Dynamic height based on input
+      height: `${Math.max(189, 189 + (inputHeight - 55))}px`, // Proper footer expansion calculation
       background: 'var(--bg-color)',
       borderTop: '1px solid var(--input-border)',
       padding: '1rem',
@@ -123,7 +123,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
           backgroundColor: 'var(--input-bg)',
           border: '1px solid var(--input-border)',
           overflow: 'hidden',
-          minHeight: '55px', // Ensure minimum height for alignment
+          height: `${inputHeight}px`, // Set explicit height based on input
           alignItems: 'stretch' // Make button stretch to match input height
         }}>
           <textarea
@@ -139,7 +139,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
               outline: 'none',
               resize: 'none',
               minHeight: '55px',
-              maxHeight: '105px', // 3 lines max
+              maxHeight: '85px', // Reduced to exactly 3 lines (was 105px)
               backgroundColor: 'transparent',
               color: 'var(--input-text)',
               fontFamily: 'var(--body-font)',
@@ -162,8 +162,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
             disabled={disabled || !message.trim()}
             style={{
               width: '55px',
-              minHeight: '55px', // Minimum height matches input
-              height: '100%', // Fill the container height
+              height: '100%', // Fill the container height (which is set to inputHeight)
               background: disabled || !message.trim() ? '#ccc' : 'var(--accent-color)',
               color: 'white',
               border: 'none',
@@ -171,7 +170,8 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'background-color 0.3s, transform 0.2s'
+              transition: 'background-color 0.3s, transform 0.2s',
+              borderRadius: '0 12px 12px 0' // Match the container border radius
             }}
             onMouseEnter={(e) => {
               if (!disabled && message.trim()) {
