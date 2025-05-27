@@ -39,9 +39,12 @@ export default function EnhancedSidebar({
   ];
 
   const NavLink = ({ href, label, icon: Icon, isActive, action }) => {
+    // Only highlight if it's an exact match (not just a partial match)
+    const shouldHighlight = isActive && href !== '/comingsoon';
+    
     const linkClasses = `
       flex items-center gap-3 p-3 rounded-lg transition-all duration-200
-      ${isActive 
+      ${shouldHighlight 
         ? 'bg-white bg-opacity-20 text-white font-medium' 
         : 'text-gray-200 hover:bg-white hover:bg-opacity-10 hover:text-white'
       }
@@ -243,7 +246,7 @@ export default function EnhancedSidebar({
                 href={link.href}
                 label={link.label}
                 icon={link.icon}
-                isActive={currentPath === link.href}
+                isActive={currentPath === link.href && link.href !== '/comingsoon'}
               />
             ))}
           </div>
@@ -259,7 +262,7 @@ export default function EnhancedSidebar({
                 href={link.href}
                 label={link.label}
                 icon={link.icon}
-                isActive={currentPath === link.href}
+                isActive={currentPath === link.href && link.href !== '/comingsoon'}
               />
             ))}
           </div>
