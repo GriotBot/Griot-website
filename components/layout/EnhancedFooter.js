@@ -1,13 +1,13 @@
-// components/layout/EnhancedFooter.js
-import { useState, useEffect } from 'react'
+// File: components/layout/StandardFooter.js
+import { useState, useEffect } from 'react';
 
-export default function EnhancedFooter() {
-  const [proverb, setProverb] = useState('')
+export default function StandardFooter() {
+  const [currentProverb, setCurrentProverb] = useState('');
 
-  // Full proverb list
-  const list = [
+  // Proverbs array
+  const PROVERBS = [
     "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-    "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
+    "Until the lion learns to write, every story will glorify the hunter. — African Proverb", 
     "We are the drums, we are the dance. — Afro-Caribbean Proverb",
     "A tree cannot stand without its roots. — Jamaican Proverb",
     "Unity is strength, division is weakness. — Swahili Proverb",
@@ -21,36 +21,54 @@ export default function EnhancedFooter() {
     "It takes a village to raise a child. — African Proverb",
     "The fool speaks, the wise listen. — Ethiopian Proverb",
     "When the music changes, so does the dance. — Haitian Proverb"
-  ]
+  ];
 
+  // Initialize with random proverb
   useEffect(() => {
-    const rotate = () => {
-      setProverb(list[Math.floor(Math.random() * list.length)])
-    }
-    rotate()
-    const id = setInterval(rotate, 30000)
-    return () => clearInterval(id)
-  }, [])
+    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
+    setCurrentProverb(PROVERBS[randomIndex]);
+  }, []);
 
   return (
-    <footer
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: 'var(--bg-color)',
-        textAlign: 'center',
-        padding: '0.5rem 1rem',
+    <footer style={{
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 'var(--footer-height-standard)',
+      background: 'rgb(239, 230, 223)', // Updated RGB color behind all elements
+      borderTop: '1px solid var(--input-border)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: '0.5rem',
+      padding: '1rem',
+      zIndex: 50
+    }}>
+      {/* Proverb */}
+      <div style={{
+        fontSize: '1.05rem', // Slightly larger as requested
         fontStyle: 'italic',
-        fontFamily: 'Lora, serif',
-        fontSize: '0.9rem',
-      }}
-    >
-      {proverb}
-      <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '0.25rem' }}>
+        color: 'var(--wisdom-color)',
+        textAlign: 'center',
+        fontFamily: 'var(--quote-font)',
+        opacity: 0.8,
+        lineHeight: '1.4',
+        maxWidth: '90%'
+      }}>
+        {currentProverb}
+      </div>
+
+      {/* Copyright */}
+      <div style={{
+        fontSize: '0.8rem',
+        color: 'var(--text-color)',
+        opacity: 0.6,
+        textAlign: 'center'
+      }}>
         © 2025 GriotBot. All rights reserved.
       </div>
     </footer>
-  )
+  );
 }
