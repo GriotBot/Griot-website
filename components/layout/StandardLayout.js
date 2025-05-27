@@ -1,7 +1,8 @@
 // File: components/layout/StandardLayout.js
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { Menu, Home, Plus, User, Sun, Moon } from 'react-feather';
+import { Menu, Home, User, Sun, Moon } from 'react-feather';
+import MessageCirclePlus from '../icons/MessageCirclePlus';
 import EnhancedSidebar from './EnhancedSidebar';
 import ChatFooter from './ChatFooter';
 import StandardFooter from './StandardFooter';
