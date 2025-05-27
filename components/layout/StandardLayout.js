@@ -254,8 +254,27 @@ export default function StandardLayout({
 
           {/* Center - Logo */}
           <a href="/" className="menu-center">
-            <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
-            <span>GriotBot</span>
+            <img 
+              src="/images/GriotBot logo horiz wht.svg"
+              alt="GriotBot"
+              style={{ 
+                height: '32px',
+                width: 'auto'
+              }}
+              onError={(e) => {
+                // Fallback to text+emoji if logo file not found
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div style={{ 
+              display: 'none',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
+              <span>GriotBot</span>
+            </div>
           </a>
 
           {/* Right Side - Action Icons */}
