@@ -1,9 +1,8 @@
-// File: components/layout/EnhancedSidebar.js - Updated with requested changes
-import { useState, useEffect } from 'react';
+// File: components/layout/EnhancedSidebar.js - FIXED VERSION
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { 
-  Menu, X, Home, MessageCircle, Archive, Users, 
+  X, Home, MessageCircle, Archive, Users, 
   BookOpen, MapPin, Info, MessageSquare 
 } from 'react-feather';
 
@@ -13,24 +12,7 @@ export default function EnhancedSidebar({
   onNewChat, 
   currentPage = '/' 
 }) {
-  const router = useRouter();
-  const [isExiting, setIsExiting] = useState(false);
-
-  // Handle exit animation when navigating to different pages
-  const handleNavigation = (href) => {
-    if (href !== router.pathname) {
-      setIsExiting(true);
-      // Small delay for exit animation, then navigate
-      setTimeout(() => {
-        router.push(href);
-        setIsExiting(false);
-        onToggle(); // Close sidebar after navigation
-      }, 200);
-    } else {
-      onToggle(); // Just close if same page
-    }
-  };
-
+  
   // Close sidebar on escape key
   useEffect(() => {
     const handleEscape = (e) => {
@@ -42,6 +24,11 @@ export default function EnhancedSidebar({
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isVisible, onToggle]);
+
+  // Simple navigation handler that closes sidebar
+  const handleNavClick = () => {
+    onToggle(); // Close sidebar when navigating
+  };
 
   return (
     <>
@@ -55,15 +42,13 @@ export default function EnhancedSidebar({
             width: '100%',
             height: '100%',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 999,
-            opacity: isExiting ? 0 : 1,
-            transition: 'opacity 0.2s ease-out'
+            zIndex: 999
           }}
           onClick={onToggle}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - SIMPLIFIED TRANSFORM LOGIC */}
       <nav 
         style={{
           position: 'fixed',
@@ -74,9 +59,7 @@ export default function EnhancedSidebar({
           background: 'var(--sidebar-bg)',
           color: 'var(--sidebar-text)',
           padding: '1rem',
-          transform: isVisible ? 
-            (isExiting ? 'translateX(-100%)' : 'translateX(0)') : 
-            'translateX(-100%)',
+          transform: isVisible ? 'translateX(0)' : 'translateX(-100%)', // SIMPLIFIED
           transition: 'transform 0.3s ease-in-out',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
@@ -133,30 +116,33 @@ export default function EnhancedSidebar({
         </div>
 
         {/* Return to Chat Button */}
-        <button
-          onClick={() => handleNavigation('/')}
-          style={{
-            background: 'var(--accent-color)',
-            color: 'white',
-            border: 'none',
-            padding: '0.6rem 0.8rem',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.4rem',
-            fontSize: '0.8rem',
-            fontWeight: '500',
-            transition: 'background-color 0.2s',
-            marginBottom: '0.5rem'
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = 'var(--accent-hover)'}
-          onMouseOut={(e) => e.target.style.backgroundColor = 'var(--accent-color)'}
-        >
-          <Home size={14} />
-          Return to Chat
-        </button>
+        <Link href="/">
+          <a
+            onClick={handleNavClick}
+            style={{
+              background: 'var(--accent-color)',
+              color: 'white',
+              border: 'none',
+              padding: '0.6rem 0.8rem',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
+              fontSize: '0.8rem',
+              fontWeight: '500',
+              textDecoration: 'none',
+              transition: 'background-color 0.2s',
+              marginBottom: '0.5rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'var(--accent-hover)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'var(--accent-color)'}
+          >
+            <Home size={14} />
+            Return to Chat
+          </a>
+        </Link>
         
         {/* Conversations Section */}
         <div style={{ marginBottom: '1rem' }}>
@@ -199,29 +185,27 @@ export default function EnhancedSidebar({
             New Chat
           </button>
           
-          <button
-            onClick={() => handleNavigation('/comingsoon')}
-            style={{
-              color: 'var(--sidebar-text)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.4rem 0.6rem',
-              borderRadius: '4px',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              width: '100%',
-              textAlign: 'left',
-              fontSize: '0.8rem'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            <Archive size={14} />
-            Saved Chats
-          </button>
+          <Link href="/comingsoon">
+            <a
+              onClick={handleNavClick}
+              style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.8rem'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <Archive size={14} />
+              Saved Chats
+            </a>
+          </Link>
         </div>
         
         {/* Explore Section */}
@@ -237,79 +221,73 @@ export default function EnhancedSidebar({
             Explore
           </h3>
           
-          <button
-            onClick={() => handleNavigation('/comingsoon')}
-            style={{
-              color: 'var(--sidebar-text)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.4rem 0.6rem',
-              borderRadius: '4px',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              width: '100%',
-              textAlign: 'left',
-              marginBottom: '0.3rem',
-              fontSize: '0.8rem'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            <Users size={14} />
-            Historical Figures
-          </button>
+          <Link href="/comingsoon">
+            <a
+              onClick={handleNavClick}
+              style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                marginBottom: '0.3rem',
+                fontSize: '0.8rem'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <Users size={14} />
+              Historical Figures
+            </a>
+          </Link>
           
-          <button
-            onClick={() => handleNavigation('/comingsoon')}
-            style={{
-              color: 'var(--sidebar-text)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.4rem 0.6rem',
-              borderRadius: '4px',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              width: '100%',
-              textAlign: 'left',
-              marginBottom: '0.3rem',
-              fontSize: '0.8rem'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            <BookOpen size={14} />
-            Cultural Stories
-          </button>
+          <Link href="/comingsoon">
+            <a
+              onClick={handleNavClick}
+              style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                marginBottom: '0.3rem',
+                fontSize: '0.8rem'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <BookOpen size={14} />
+              Cultural Stories
+            </a>
+          </Link>
           
-          <button
-            onClick={() => handleNavigation('/comingsoon')}
-            style={{
-              color: 'var(--sidebar-text)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.4rem 0.6rem',
-              borderRadius: '4px',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              width: '100%',
-              textAlign: 'left',
-              fontSize: '0.8rem'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-          >
-            <MapPin size={14} />
-            Diaspora Community
-          </button>
+          <Link href="/comingsoon">
+            <a
+              onClick={handleNavClick}
+              style={{
+                color: 'var(--sidebar-text)',
+                textDecoration: 'none',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.8rem'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <MapPin size={14} />
+              Diaspora Community
+            </a>
+          </Link>
         </div>
         
         {/* About Section */}
@@ -325,54 +303,52 @@ export default function EnhancedSidebar({
             About
           </h3>
           
-          <button
-            onClick={() => handleNavigation('/about')}
-            style={{
-              color: 'var(--sidebar-text)',
-              background: currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.4rem 0.6rem',
-              borderRadius: '4px',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              width: '100%',
-              textAlign: 'left',
-              marginBottom: '0.3rem',
-              fontSize: '0.8rem'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent'}
-          >
-            <Info size={14} />
-            About GriotBot
-          </button>
+          <Link href="/about">
+            <a
+              onClick={handleNavClick}
+              style={{
+                color: 'var(--sidebar-text)',
+                background: currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                textDecoration: 'none',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                marginBottom: '0.3rem',
+                fontSize: '0.8rem'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent'}
+            >
+              <Info size={14} />
+              About GriotBot
+            </a>
+          </Link>
           
-          <button
-            onClick={() => handleNavigation('/feedback')}
-            style={{
-              color: 'var(--sidebar-text)',
-              background: currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.4rem 0.6rem',
-              borderRadius: '4px',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              width: '100%',
-              textAlign: 'left',
-              fontSize: '0.8rem'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent'}
-          >
-            <MessageSquare size={14} />
-            Share Feedback
-          </button>
+          <Link href="/feedback">
+            <a
+              onClick={handleNavClick}
+              style={{
+                color: 'var(--sidebar-text)',
+                background: currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                textDecoration: 'none',
+                padding: '0.4rem 0.6rem',
+                borderRadius: '4px',
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.8rem'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <MessageSquare size={14} />
+              Share Feedback
+            </a>
+          </Link>
         </div>
         
         {/* Footer */}
