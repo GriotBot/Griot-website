@@ -103,7 +103,8 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
       justifyContent: 'flex-end', // Push content to bottom, expand upward
       gap: '0.5rem',
       zIndex: 50,
-      transition: 'background-color 0.3s, height 0.2s ease'
+      transition: 'background-color 0.3s, height 0.2s ease',
+      filter: 'brightness(0.8)' // 20% darker (80% brightness)
     }}>
       {/* Chat Input Form */}
       <form onSubmit={handleSubmit} style={{ 
