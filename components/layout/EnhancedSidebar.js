@@ -1,288 +1,393 @@
-// File: components/layout/EnhancedSidebar.js
+// File: components/layout/EnhancedSidebar.js - Updated with requested changes
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { 
-  Home, 
-  X, 
-  Plus, 
-  MessageCircle, 
-  Bookmark, 
-  Users, 
-  Book, 
-  MapPin, 
-  Info, 
-  MessageSquare 
+  Menu, X, Home, MessageCircle, Archive, Users, 
+  BookOpen, MapPin, Info, MessageSquare 
 } from 'react-feather';
 
 export default function EnhancedSidebar({ 
-  visible = false, 
-  onClose, 
-  currentPath = '/',
-  onNewChat 
+  isVisible, 
+  onToggle, 
+  onNewChat, 
+  currentPage = '/' 
 }) {
-  
-  // Navigation sections data
-  const conversationLinks = [
-    { href: '/', label: 'New Chat', icon: Plus, action: onNewChat },
-    { href: '/comingsoon', label: 'Saved Conversations', icon: MessageCircle },
-    { href: '/comingsoon', label: 'Saved Stories', icon: Bookmark }
-  ];
+  const router = useRouter();
+  const [isExiting, setIsExiting] = useState(false);
 
-  const exploreLinks = [
-    { href: '/comingsoon', label: 'Historical Figures', icon: Users },
-    { href: '/comingsoon', label: 'Cultural Stories', icon: Book },
-    { href: '/comingsoon', label: 'Diaspora Community', icon: MapPin }
-  ];
-
-  const aboutLinks = [
-    { href: '/about', label: 'About GriotBot', icon: Info },
-    { href: '/feedback', label: 'Share Feedback', icon: MessageSquare }
-  ];
-
-  const NavLink = ({ href, label, icon: Icon, isActive, action }) => {
-    // Only highlight if it's an exact match (not just a partial match)
-    const shouldHighlight = isActive && href !== '/comingsoon';
-    
-    const linkClasses = `
-      flex items-center gap-3 p-3 rounded-lg transition-all duration-200
-      ${shouldHighlight 
-        ? 'bg-white bg-opacity-20 text-white font-medium' 
-        : 'text-gray-200 hover:bg-white hover:bg-opacity-10 hover:text-white'
-      }
-    `;
-
-    if (action) {
-      return (
-        <button
-          onClick={action}
-          className={linkClasses}
-          style={{
-            background: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
-            color: isActive ? 'white' : 'rgba(255,255,255,0.8)',
-            border: 'none',
-            width: '100%',
-            textAlign: 'left',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontSize: 'inherit'
-          }}
-          onMouseEnter={(e) => {
-            if (!isActive) {
-              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.color = 'white';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isActive) {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = 'rgba(255,255,255,0.8)';
-            }
-          }}
-        >
-          <Icon size={18} />
-          <span>{label}</span>
-        </button>
-      );
+  // Handle exit animation when navigating to different pages
+  const handleNavigation = (href) => {
+    if (href !== router.pathname) {
+      setIsExiting(true);
+      // Small delay for exit animation, then navigate
+      setTimeout(() => {
+        router.push(href);
+        setIsExiting(false);
+        onToggle(); // Close sidebar after navigation
+      }, 200);
+    } else {
+      onToggle(); // Just close if same page
     }
-
-    return (
-      <Link href={href}>
-        <a
-          className={linkClasses}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '12px',
-            borderRadius: '8px',
-            transition: 'all 0.2s',
-            background: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
-            color: isActive ? 'white' : 'rgba(255,255,255,0.8)',
-            textDecoration: 'none',
-            fontWeight: isActive ? '500' : '400'
-          }}
-          onMouseEnter={(e) => {
-            if (!isActive) {
-              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.color = 'white';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isActive) {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = 'rgba(255,255,255,0.8)';
-            }
-          }}
-        >
-          <Icon size={18} />
-          <span>{label}</span>
-        </a>
-      </Link>
-    );
   };
 
-  const SectionTitle = ({ children }) => (
-    <h3 style={{
-      fontSize: '0.8rem',
-      fontWeight: '600',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-      color: 'rgba(255,255,255,0.6)',
-      marginBottom: '8px',
-      marginTop: '24px'
-    }}>
-      {children}
-    </h3>
-  );
+  // Close sidebar on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isVisible) {
+        onToggle();
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isVisible, onToggle]);
 
   return (
-    <aside
-      style={{
-        position: 'fixed',
-        top: '72px', // Start below top menu
-        left: '0',
-        height: 'calc(100vh - 72px)',
-        width: '189px',
-        background: 'var(--sidebar-bg)',
-        color: 'var(--sidebar-text)',
-        transform: visible ? 'translateX(0)' : 'translateX(-100%)',
-        transition: 'transform 0.3s ease-in-out',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        boxShadow: '4px 0 20px var(--shadow-color)',
-        zIndex: 1000,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '1.5rem 1rem',
-        overflowY: 'auto'
-      }}
-      aria-hidden={!visible}
-      aria-label="Main navigation"
-    >
-      {/* Header with Return to Chat and Close */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '2rem',
-        paddingBottom: '1rem',
-        borderBottom: '1px solid rgba(255,255,255,0.2)'
-      }}>
-        <Link href="/">
-          <a style={{
+    <>
+      {/* Overlay */}
+      {isVisible && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999,
+            opacity: isExiting ? 0 : 1,
+            transition: 'opacity 0.2s ease-out'
+          }}
+          onClick={onToggle}
+        />
+      )}
+
+      {/* Sidebar */}
+      <nav 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          height: '100%',
+          width: '189px', // Fixed width as specified
+          background: 'var(--sidebar-bg)',
+          color: 'var(--sidebar-text)',
+          padding: '1rem',
+          transform: isVisible ? 
+            (isExiting ? 'translateX(-100%)' : 'translateX(0)') : 
+            'translateX(-100%)',
+          transition: 'transform 0.3s ease-in-out',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          boxShadow: '4px 0 20px var(--shadow-color)',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
+          fontSize: '0.85rem', // Smaller text for better fit
+          boxSizing: 'border-box'
+        }}
+        aria-hidden={!isVisible}
+        aria-label="Main navigation"
+      >
+        {/* Header with Close Button */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingBottom: '0.75rem',
+          borderBottom: '1px solid rgba(255,255,255,0.2)',
+          marginBottom: '0.5rem'
+        }}>
+          <h2 style={{
+            margin: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            color: 'var(--accent-color)',
-            textDecoration: 'none',
-            fontWeight: '500',
-            fontSize: '0.9rem',
-            padding: '6px 12px',
-            borderRadius: '6px',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = 'rgba(215, 114, 44, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent';
-          }}
+            gap: '0.4rem',
+            fontFamily: 'var(--heading-font)',
+            fontSize: '1rem' // Smaller header text
+          }}>
+            <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🌿</span>
+            GriotBot
+          </h2>
+          
+          <button
+            onClick={onToggle}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--sidebar-text)',
+              cursor: 'pointer',
+              padding: '0.3rem',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.8rem'
+            }}
+            aria-label="Close sidebar"
           >
-            <Home size={16} />
-            <span>Return to Chat</span>
-          </a>
-        </Link>
-        
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Return to Chat Button */}
         <button
-          onClick={onClose}
+          onClick={() => handleNavigation('/')}
           style={{
-            background: 'none',
+            background: 'var(--accent-color)',
+            color: 'white',
             border: 'none',
-            color: 'rgba(255,255,255,0.6)',
+            padding: '0.6rem 0.8rem',
+            borderRadius: '6px',
             cursor: 'pointer',
-            padding: '4px',
-            borderRadius: '4px',
-            transition: 'color 0.2s, background-color 0.2s'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.4rem',
+            fontSize: '0.8rem',
+            fontWeight: '500',
+            transition: 'background-color 0.2s',
+            marginBottom: '0.5rem'
           }}
-          onMouseEnter={(e) => {
-            e.target.style.color = 'white';
-            e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.color = 'rgba(255,255,255,0.6)';
-            e.target.style.backgroundColor = 'transparent';
-          }}
-          aria-label="Close sidebar"
+          onMouseOver={(e) => e.target.style.backgroundColor = 'var(--accent-hover)'}
+          onMouseOut={(e) => e.target.style.backgroundColor = 'var(--accent-color)'}
         >
-          <X size={18} />
+          <Home size={14} />
+          Return to Chat
         </button>
-      </div>
-
-      {/* Navigation Sections */}
-      <nav style={{ flex: 1 }}>
+        
         {/* Conversations Section */}
-        <div>
-          <SectionTitle>Conversations</SectionTitle>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {conversationLinks.map((link) => (
-              <NavLink
-                key={link.label}
-                href={link.href}
-                label={link.label}
-                icon={link.icon}
-                isActive={currentPath === link.href}
-                action={link.action}
-              />
-            ))}
-          </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '0.75rem', // Smaller section headers
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.4rem',
+            opacity: '0.8',
+            fontWeight: '600'
+          }}>
+            Conversations
+          </h3>
+          
+          <button
+            onClick={() => {
+              if (onNewChat) onNewChat();
+              onToggle();
+            }}
+            style={{
+              color: 'var(--sidebar-text)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem 0.6rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              width: '100%',
+              textAlign: 'left',
+              marginBottom: '0.3rem',
+              fontSize: '0.8rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+          >
+            <MessageCircle size={14} />
+            New Chat
+          </button>
+          
+          <button
+            onClick={() => handleNavigation('/comingsoon')}
+            style={{
+              color: 'var(--sidebar-text)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem 0.6rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              width: '100%',
+              textAlign: 'left',
+              fontSize: '0.8rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+          >
+            <Archive size={14} />
+            Saved Chats
+          </button>
         </div>
-
+        
         {/* Explore Section */}
-        <div>
-          <SectionTitle>Explore</SectionTitle>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {exploreLinks.map((link) => (
-              <NavLink
-                key={link.label}
-                href={link.href}
-                label={link.label}
-                icon={link.icon}
-                isActive={currentPath === link.href && link.href !== '/comingsoon'}
-              />
-            ))}
-          </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '0.75rem', // Smaller section headers
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.4rem',
+            opacity: '0.8',
+            fontWeight: '600'
+          }}>
+            Explore
+          </h3>
+          
+          <button
+            onClick={() => handleNavigation('/comingsoon')}
+            style={{
+              color: 'var(--sidebar-text)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem 0.6rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              width: '100%',
+              textAlign: 'left',
+              marginBottom: '0.3rem',
+              fontSize: '0.8rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+          >
+            <Users size={14} />
+            Historical Figures
+          </button>
+          
+          <button
+            onClick={() => handleNavigation('/comingsoon')}
+            style={{
+              color: 'var(--sidebar-text)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem 0.6rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              width: '100%',
+              textAlign: 'left',
+              marginBottom: '0.3rem',
+              fontSize: '0.8rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+          >
+            <BookOpen size={14} />
+            Cultural Stories
+          </button>
+          
+          <button
+            onClick={() => handleNavigation('/comingsoon')}
+            style={{
+              color: 'var(--sidebar-text)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem 0.6rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              width: '100%',
+              textAlign: 'left',
+              fontSize: '0.8rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+          >
+            <MapPin size={14} />
+            Diaspora Community
+          </button>
         </div>
-
+        
         {/* About Section */}
-        <div>
-          <SectionTitle>About</SectionTitle>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {aboutLinks.map((link) => (
-              <NavLink
-                key={link.label}
-                href={link.href}
-                label={link.label}
-                icon={link.icon}
-                isActive={currentPath === link.href && link.href !== '/comingsoon'}
-              />
-            ))}
-          </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '0.75rem', // Smaller section headers
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '0.4rem',
+            opacity: '0.8',
+            fontWeight: '600'
+          }}>
+            About
+          </h3>
+          
+          <button
+            onClick={() => handleNavigation('/about')}
+            style={{
+              color: 'var(--sidebar-text)',
+              background: currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem 0.6rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              width: '100%',
+              textAlign: 'left',
+              marginBottom: '0.3rem',
+              fontSize: '0.8rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent'}
+          >
+            <Info size={14} />
+            About GriotBot
+          </button>
+          
+          <button
+            onClick={() => handleNavigation('/feedback')}
+            style={{
+              color: 'var(--sidebar-text)',
+              background: currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.4rem 0.6rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              width: '100%',
+              textAlign: 'left',
+              fontSize: '0.8rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent'}
+          >
+            <MessageSquare size={14} />
+            Share Feedback
+          </button>
+        </div>
+        
+        {/* Footer */}
+        <div style={{
+          marginTop: 'auto',
+          fontSize: '0.7rem', // Smaller footer text
+          opacity: '0.7',
+          textAlign: 'center',
+          fontStyle: 'italic',
+          fontFamily: 'var(--quote-font)',
+          lineHeight: '1.3'
+        }}>
+          "Preserving our stories,<br/>empowering our future."
         </div>
       </nav>
-
-      {/* Footer Quote */}
-      <div style={{
-        marginTop: 'auto',
-        paddingTop: '1.5rem',
-        fontSize: '0.75rem',
-        opacity: '0.7',
-        textAlign: 'center',
-        fontStyle: 'italic',
-        fontFamily: 'var(--quote-font)',
-        lineHeight: '1.4',
-        color: 'rgba(255,255,255,0.6)'
-      }}>
-        "Preserving our stories,<br/>empowering our future."
-      </div>
-    </aside>
+    </>
   );
 }
