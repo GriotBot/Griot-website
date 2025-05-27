@@ -1,11 +1,7 @@
-// File: /components/layout/StandardLayout.js - UPDATED with Chat Integration
-
+// File: components/layout/StandardLayout.js
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
-import { Menu, MessageCircle, Plus, LogIn, Sun, Moon } from 'react-feather';
-
-// Import sub-components
+import { Menu, Home, Plus, User, Sun, Moon } from 'react-feather';
 import EnhancedSidebar from './EnhancedSidebar';
 import ChatFooter from './ChatFooter';
 import StandardFooter from './StandardFooter';
@@ -13,62 +9,56 @@ import StandardFooter from './StandardFooter';
 export default function StandardLayout({ 
   children, 
   pageType = 'standard', // 'index' or 'standard'
-  title = 'GriotBot',
-  description = 'Your AI companion for culturally rich conversations and wisdom',
+  title = 'GriotBot - Your Digital Griot',
+  description = 'An AI-powered digital griot providing culturally rich responses',
   currentPath = '/',
-  // NEW: Chat-specific props for index page
-  onSendMessage,
+  // Chat-specific props for index page
+  onSendMessage = null,
   chatDisabled = false
 }) {
-  // Global state
-  const [isClient, setIsClient] = useState(false);
-  const [theme, setTheme] = useState('light');
+  // State management
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [logoError, setLogoError] = useState(false);
+  const [theme, setTheme] = useState('light');
 
-  // Initialize client-side functionality
+  // Initialize theme from localStorage
   useEffect(() => {
-    setIsClient(true);
-    loadThemePreference();
-  }, []);
-
-  // Load theme preference
-  const loadThemePreference = () => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
-  };
+  }, []);
 
-  // Toggle theme
-  const handleThemeToggle = () => {
+  // Theme toggle function
+  const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('griotbot-theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  // Toggle sidebar with animation
+  // Sidebar toggle
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
   };
 
-  // Handle new chat (for index page)
-  const handleNewChat = () => {
-    if (currentPath === '/') {
-      // Clear chat history and reset state
-      localStorage.removeItem('griotbot-history');
-      window.location.reload();
-    } else {
-      // Navigate to homepage
-      window.location.href = '/';
-    }
+  // Close sidebar when clicking outside
+  const closeSidebar = () => {
+    setSidebarVisible(false);
   };
 
-  if (!isClient) {
-    return null; // Prevent hydration mismatch
-  }
+  // New chat handler
+  const handleNewChat = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('griotbot-history');
+      if (currentPath !== '/') {
+        window.location.href = '/';
+      } else {
+        // Trigger new chat reset on index page
+        window.location.reload();
+      }
+    }
+  };
 
   return (
     <>
@@ -81,16 +71,28 @@ export default function StandardLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
         
-        {/* Global CSS Variables and Styles - SAME AS BEFORE */}
+        {/* CSS Variables */}
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
-            /* Color System */
+            /* Layout Variables */
+            --topmenu-height: 72px;
+            --sidebar-width: 189px;
+            --footer-height-index: 189px;
+            --footer-height-standard: 95px;
+            --sidebar-right-width: 189px;
+            
+            /* Color Variables */
             --bg-color: #f8f5f0;
             --text-color: #33302e;
             --header-bg: #c49a6c;
             --header-text: #33302e;
             --sidebar-bg: rgba(75, 46, 42, 0.97);
             --sidebar-text: #f8f5f0;
+            --user-bubble: #bd8735;
+            --user-text: #f8f5f0;
+            --bot-bubble-start: #7d8765;
+            --bot-bubble-end: #5e6e4f;
+            --bot-text: #f8f5f0;
             --accent-color: #d7722c;
             --accent-hover: #c86520;
             --wisdom-color: #6b4226;
@@ -99,14 +101,9 @@ export default function StandardLayout({
             --input-text: #33302e;
             --shadow-color: rgba(75, 46, 42, 0.15);
             --card-bg: #ffffff;
-            --footer-bg: rgba(248, 245, 240, 0.98);
-            
-            /* Layout Constants */
-            --topmenu-height: 72px;
-            --sidebar-width: 189px;
-            --footer-height-index: 189px;
-            --footer-height-standard: 95px;
-            --sidebar-right-width: 189px; /* Future use */
+            --body-font: 'Montserrat', sans-serif;
+            --heading-font: 'Lora', serif;
+            --quote-font: 'Lora', serif;
           }
           
           [data-theme="dark"] {
@@ -116,6 +113,11 @@ export default function StandardLayout({
             --header-text: #f0ece4;
             --sidebar-bg: rgba(40, 30, 25, 0.97);
             --sidebar-text: #f0ece4;
+            --user-bubble: #bb7e41;
+            --user-text: #f0ece4;
+            --bot-bubble-start: #5e6e4f;
+            --bot-bubble-end: #3e4a38;
+            --bot-text: #f0ece4;
             --accent-color: #d7722c;
             --accent-hover: #e8833d;
             --wisdom-color: #e0c08f;
@@ -124,23 +126,18 @@ export default function StandardLayout({
             --input-text: #f0ece4;
             --shadow-color: rgba(0, 0, 0, 0.3);
             --card-bg: #352e29;
-            --footer-bg: rgba(41, 36, 32, 0.98);
           }
 
-          /* Global Reset */
-          * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-          }
-
+          /* Global Styles */
+          * { box-sizing: border-box; }
+          
           body {
-            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            font-family: var(--body-font);
             background-color: var(--bg-color);
             color: var(--text-color);
-            line-height: 1.6;
             transition: background-color 0.3s, color 0.3s;
-            overflow-x: hidden;
+            line-height: 1.6;
           }
 
           /* Layout Structure */
@@ -150,197 +147,104 @@ export default function StandardLayout({
             min-height: 100vh;
             position: relative;
           }
-
-          /* Top Menu Styles */
-          .topmenu {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+          
+          .top-menu {
             height: var(--topmenu-height);
             background-color: var(--header-bg);
             color: var(--header-text);
             display: flex;
             align-items: center;
-            justify-content: space-between;
             padding: 0 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
             box-shadow: 0 2px 10px var(--shadow-color);
-            z-index: 1000;
             transition: background-color 0.3s;
           }
-
-          .topmenu-left {
+          
+          .menu-left {
             display: flex;
             align-items: center;
-            width: 200px; /* Fixed width for consistent spacing */
+            gap: 1rem;
           }
-
-          .topmenu-center {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-
-          .topmenu-right {
+          
+          .menu-center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            width: 200px; /* Fixed width for consistent spacing */
-            justify-content: flex-end;
+            font-family: var(--heading-font);
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-decoration: none;
+            color: var(--header-text);
           }
-
+          
+          .menu-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+          
           .menu-button {
             background: none;
             border: none;
-            cursor: pointer;
-            padding: 12px;
-            border-radius: 8px;
             color: var(--header-text);
-            transition: transform 0.3s ease, background-color 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .menu-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-          }
-
-          .menu-button.active {
-            transform: rotate(90deg);
-          }
-
-          .logo-link {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--header-text);
-            font-family: 'Lora', serif;
-            font-size: 1.2rem;
-            font-weight: bold;
-          }
-
-          .logo-image {
-            height: 40px;
-            width: auto;
-          }
-
-          .logo-fallback {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-          }
-
-          .icon-button {
-            background: none;
-            border: none;
             cursor: pointer;
             padding: 8px;
             border-radius: 6px;
-            color: var(--header-text);
-            transition: background-color 0.2s, transform 0.2s;
+            transition: background-color 0.2s, transform 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
           }
-
-          .icon-button:hover {
+          
+          .menu-button:hover {
             background-color: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
           }
-
-          /* New Chat Icon - Special styling */
-          .new-chat-icon {
-            position: relative;
+          
+          .menu-button.rotated {
+            transform: rotate(90deg);
           }
-
-          .new-chat-icon::after {
-            content: '+';
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            background-color: var(--accent-color);
-            color: white;
-            font-size: 10px;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-          }
-
-          /* Main Content Area */
+          
           .main-content {
+            flex: 1;
             margin-top: var(--topmenu-height);
-            min-height: calc(100vh - var(--topmenu-height));
-            transition: margin-left 0.3s ease;
+            margin-bottom: ${pageType === 'index' ? 'var(--footer-height-index)' : 'var(--footer-height-standard)'};
+            overflow-y: auto;
+            padding: 1rem;
           }
-
-          .main-content.index-page {
-            margin-bottom: var(--footer-height-index);
-          }
-
-          .main-content.standard-page {
-            margin-bottom: var(--footer-height-standard);
-          }
-
-          /* Content wrapper for proper spacing */
-          .content-wrapper {
-            padding: 2rem;
-            max-width: 100%;
-            margin: 0 auto;
-          }
-
-          .content-wrapper.with-sidebar {
-            margin-left: var(--sidebar-width);
-          }
-
-          /* Responsive Design */
-          @media (max-width: 768px) {
-            .topmenu-left, .topmenu-right {
-              width: auto;
-            }
-
-            .topmenu-right {
-              gap: 0.25rem;
-            }
-
-            .content-wrapper.with-sidebar {
-              margin-left: 0;
-            }
-
-            .icon-button {
-              padding: 6px;
-            }
-          }
-
-          @media (max-width: 480px) {
-            .topmenu {
-              padding: 0 0.5rem;
-            }
-
-            .logo-image {
-              height: 32px;
-            }
-
-            .content-wrapper {
-              padding: 1rem;
-            }
+          
+          /* Overlay for sidebar */
+          .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: ${sidebarVisible ? '1' : '0'};
+            visibility: ${sidebarVisible ? 'visible' : 'hidden'};
+            transition: opacity 0.3s, visibility 0.3s;
           }
         `}} />
       </Head>
 
       <div className="layout-container">
-        {/* TOP MENU - SAME AS BEFORE */}
-        <header className="topmenu">
-          {/* Left Section - Menu Icon */}
-          <div className="topmenu-left">
+        {/* Top Menu - Always 72px tall */}
+        <header className="top-menu">
+          {/* Left Side - Menu Icon */}
+          <div className="menu-left">
             <button 
+              className={`menu-button ${sidebarVisible ? 'rotated' : ''}`}
               onClick={toggleSidebar}
-              className={`menu-button ${sidebarVisible ? 'active' : ''}`}
               aria-label="Toggle sidebar"
               aria-expanded={sidebarVisible}
             >
@@ -348,52 +252,35 @@ export default function StandardLayout({
             </button>
           </div>
 
-          {/* Center Section - Logo */}
-          <div className="topmenu-center">
-            <Link href="/">
-              <a className="logo-link">
-                {!logoError ? (
-                  <img 
-                    src="/images/GriotBot logo horiz wht.svg"
-                    alt="GriotBot"
-                    className="logo-image"
-                    onError={() => setLogoError(true)}
-                  />
-                ) : (
-                  <div className="logo-fallback">
-                    <span style={{ fontSize: '1.5rem' }}>🌿</span>
-                    <span>GriotBot</span>
-                  </div>
-                )}
-              </a>
-            </Link>
-          </div>
+          {/* Center - Logo */}
+          <a href="/" className="menu-center">
+            <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
+            <span>GriotBot</span>
+          </a>
 
-          {/* Right Section - Action Icons */}
-          <div className="topmenu-right">
-            {/* New Chat Icon */}
+          {/* Right Side - Action Icons */}
+          <div className="menu-right">
             <button 
+              className="menu-button"
               onClick={handleNewChat}
-              className="icon-button"
               aria-label="New chat"
               title="New Chat"
             >
-              <div className="new-chat-icon">
-                <MessageCircle size={20} />
-              </div>
+              <Plus size={20} />
             </button>
-
-            {/* Login Icon */}
-            <Link href="/comingsoon">
-              <a className="icon-button" aria-label="Login" title="Log In">
-                <LogIn size={20} />
-              </a>
-            </Link>
-
-            {/* Theme Toggle */}
+            
             <button 
-              onClick={handleThemeToggle}
-              className="icon-button"
+              className="menu-button"
+              onClick={() => window.location.href = '/comingsoon'}
+              aria-label="Account"
+              title="Account"
+            >
+              <User size={20} />
+            </button>
+            
+            <button 
+              className="menu-button"
+              onClick={toggleTheme}
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
             >
@@ -402,21 +289,23 @@ export default function StandardLayout({
           </div>
         </header>
 
-        {/* ENHANCED SIDEBAR - SAME AS BEFORE */}
+        {/* Sidebar Overlay */}
+        <div className="sidebar-overlay" onClick={closeSidebar} />
+
+        {/* Enhanced Sidebar */}
         <EnhancedSidebar 
-          isVisible={sidebarVisible}
-          onClose={() => setSidebarVisible(false)}
+          visible={sidebarVisible}
+          onClose={closeSidebar}
           currentPath={currentPath}
+          onNewChat={handleNewChat}
         />
 
-        {/* MAIN CONTENT AREA */}
-        <main className={`main-content ${pageType}-page`}>
-          <div className={`content-wrapper ${sidebarVisible ? 'with-sidebar' : ''}`}>
-            {children}
-          </div>
+        {/* Main Content Area */}
+        <main className="main-content">
+          {children}
         </main>
 
-        {/* FOOTER - UPDATED to pass chat props */}
+        {/* Footer - Conditional based on page type */}
         {pageType === 'index' ? (
           <ChatFooter 
             onSendMessage={onSendMessage}
@@ -429,190 +318,3 @@ export default function StandardLayout({
     </>
   );
 }
-
-//=============================================================================
-// File: /pages/index.js - UPDATED to use StandardLayout with chat integration
-//=============================================================================
-
-import { useState, useEffect } from 'react';
-import StandardLayout from '../components/layout/StandardLayout';
-
-export default function Home() {
-  // Chat state
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
-
-  // Initialize chat history
-  useEffect(() => {
-    loadChatHistory();
-  }, []);
-
-  // Load chat history from localStorage
-  const loadChatHistory = () => {
-    try {
-      const history = JSON.parse(localStorage.getItem('griotbot-history') || '[]');
-      if (history.length > 0) {
-        setMessages(history);
-        setShowWelcome(false);
-      }
-    } catch (error) {
-      console.error('Error loading chat history:', error);
-    }
-  };
-
-  // Save chat history to localStorage
-  const saveChatHistory = (newMessages) => {
-    try {
-      localStorage.setItem('griotbot-history', JSON.stringify(newMessages.slice(-50)));
-    } catch (error) {
-      console.error('Error saving chat history:', error);
-    }
-  };
-
-  // Handle sending messages - THIS IS THE KEY INTEGRATION
-  const handleSendMessage = async (messageText, storytellerMode) => {
-    if (!messageText.trim()) return;
-
-    setIsLoading(true);
-    setShowWelcome(false);
-
-    // Add user message
-    const userMessage = {
-      id: `user_${Date.now()}`,
-      role: 'user',
-      content: messageText,
-      timestamp: new Date().toISOString(),
-    };
-
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-
-    try {
-      // Call API
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: messageText,
-          storytellerMode: storytellerMode,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const botResponse = data.choices?.[0]?.message?.content || 
-                         'I apologize, but I seem to be having trouble processing your request.';
-
-      // Add bot message
-      const botMessage = {
-        id: `bot_${Date.now()}`,
-        role: 'bot',
-        content: botResponse,
-        timestamp: new Date().toISOString(),
-      };
-
-      const finalMessages = [...updatedMessages, botMessage];
-      setMessages(finalMessages);
-      saveChatHistory(finalMessages);
-
-    } catch (error) {
-      console.error('Chat error:', error);
-      
-      const errorMessage = {
-        id: `error_${Date.now()}`,
-        role: 'bot',
-        content: 'I apologize, but I encountered an error. Please try again later.',
-        timestamp: new Date().toISOString(),
-      };
-
-      const finalMessages = [...updatedMessages, errorMessage];
-      setMessages(finalMessages);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle suggestion clicks
-  const handleSuggestionClick = (prompt) => {
-    handleSendMessage(prompt, false);
-  };
-
-  return (
-    <StandardLayout 
-      pageType="index"
-      title="GriotBot - Your Digital Griot"
-      description="An AI-powered digital griot providing culturally rich conversations and wisdom"
-      currentPath="/"
-      onSendMessage={handleSendMessage}  // ← KEY: Pass handler to layout
-      chatDisabled={isLoading}           // ← KEY: Pass loading state
-    >
-      {/* Chat Messages Area - SAME CONTENT AS BEFORE */}
-      <div style={{
-        minHeight: 'calc(100vh - var(--topmenu-height) - var(--footer-height-index) - 4rem)',
-        display: 'flex',
-        flexDirection: 'column',
-        maxWidth: '700px',
-        margin: '0 auto',
-        width: '100%',
-      }}>
-        
-        {/* Welcome Screen */}
-        {showWelcome && (
-          <WelcomeScreen onSuggestionClick={handleSuggestionClick} />
-        )}
-
-        {/* Chat Messages */}
-        {messages.length > 0 && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            marginBottom: '2rem',
-          }}>
-            {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
-            ))}
-          </div>
-        )}
-
-        {/* Loading Indicator */}
-        {isLoading && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '1rem',
-            color: 'var(--text-color)',
-            opacity: 0.7,
-          }}>
-            <div style={{
-              width: '20px',
-              height: '20px',
-              border: '2px solid var(--accent-color)',
-              borderTop: '2px solid transparent',  
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-            }} />
-            GriotBot is thinking...
-          </div>
-        )}
-      </div>
-
-      {/* Animation styles */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `
-      }} />
-    </StandardLayout>
-  );
-}
-
-// Helper components (WelcomeScreen, ChatMessage) would be the same as before...
