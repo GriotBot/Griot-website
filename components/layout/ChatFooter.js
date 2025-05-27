@@ -6,6 +6,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
   const [message, setMessage] = useState('');
   const [storytellerMode, setStorytellerMode] = useState(false);
   const [currentProverb, setCurrentProverb] = useState('');
+  const [inputHeight, setInputHeight] = useState(55); // Track input height for footer expansion
 
   // Proverbs array
   const PROVERBS = [
@@ -61,13 +62,20 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
     }
   };
 
-  // Auto-expand textarea
+  // Auto-expand textarea and adjust footer height
   const handleInputChange = (e) => {
     setMessage(e.target.value);
     
     // Reset height to recalculate
     e.target.style.height = 'auto';
-    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+    
+    // Calculate new height (max 3 lines = ~105px)
+    const maxHeight = 105; // 3 lines max
+    const minHeight = 55;  // 1 line min
+    const newHeight = Math.min(Math.max(e.target.scrollHeight, minHeight), maxHeight);
+    
+    e.target.style.height = newHeight + 'px';
+    setInputHeight(newHeight);
   };
 
   return (
@@ -76,7 +84,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
       bottom: 0,
       left: 0,
       right: 0,
-      height: 'var(--footer-height-index)',
+      height: `${Math.max(189, 134 + (inputHeight - 55))}px`, // Dynamic height based on input
       background: 'var(--bg-color)',
       borderTop: '1px solid var(--input-border)',
       padding: '1rem',
@@ -84,87 +92,99 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
       flexDirection: 'column',
       gap: '0.5rem',
       zIndex: 50,
-      transition: 'background-color 0.3s'
+      transition: 'background-color 0.3s, height 0.2s ease'
     }}>
       {/* Chat Input Form */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
-        <div style={{ flex: 1, position: 'relative' }}>
+      <form onSubmit={handleSubmit} style={{ 
+        display: 'flex', 
+        gap: '0.5rem', 
+        alignItems: 'flex-end',
+        maxWidth: '70%', // 30% reduction from 100%
+        margin: '0 auto',
+        width: '100%'
+      }}>
+        <div style={{ 
+          flex: 1, 
+          position: 'relative',
+          display: 'flex',
+          boxShadow: '0 2px 4px var(--shadow-color)',
+          borderRadius: '12px',
+          backgroundColor: 'var(--input-bg)',
+          border: '1px solid var(--input-border)',
+          overflow: 'hidden'
+        }}>
           <textarea
             value={message}
             onChange={handleInputChange}
             placeholder="Ask GriotBot about Black history, culture, or personal advice..."
             disabled={disabled}
             style={{
-              width: '100%',
+              flex: 1,
               padding: '0.9rem 1rem',
-              border: '1px solid var(--input-border)',
-              borderRadius: '12px',
+              border: 'none',
               outline: 'none',
               resize: 'none',
               minHeight: '55px',
-              maxHeight: '120px',
-              backgroundColor: 'var(--input-bg)',
+              maxHeight: '105px', // 3 lines max
+              backgroundColor: 'transparent',
               color: 'var(--input-text)',
               fontFamily: 'var(--body-font)',
               fontSize: '1rem',
-              lineHeight: '1.5',
-              transition: 'border-color 0.3s, box-shadow 0.3s',
-              boxShadow: '0 2px 4px var(--shadow-color)'
+              lineHeight: '1.5'
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = 'var(--accent-color)';
-              e.target.style.boxShadow = '0 0 0 1px var(--accent-color)';
+              e.target.parentElement.style.borderColor = 'var(--accent-color)';
+              e.target.parentElement.style.boxShadow = '0 0 0 1px var(--accent-color)';
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = 'var(--input-border)';
-              e.target.style.boxShadow = '0 2px 4px var(--shadow-color)';
+              e.target.parentElement.style.borderColor = 'var(--input-border)';
+              e.target.parentElement.style.boxShadow = '0 2px 4px var(--shadow-color)';
             }}
           />
+          
+          <button
+            type="submit"
+            disabled={disabled || !message.trim()}
+            style={{
+              width: '55px',
+              height: '55px',
+              background: disabled || !message.trim() ? '#ccc' : 'var(--accent-color)',
+              color: 'white',
+              border: 'none',
+              cursor: disabled || !message.trim() ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background-color 0.3s, transform 0.2s',
+              alignSelf: 'flex-end' // Align to bottom of the input
+            }}
+            onMouseEnter={(e) => {
+              if (!disabled && message.trim()) {
+                e.target.style.backgroundColor = 'var(--accent-hover)';
+                e.target.style.transform = 'translateY(-1px)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!disabled && message.trim()) {
+                e.target.style.backgroundColor = 'var(--accent-color)';
+                e.target.style.transform = 'translateY(0)';
+              }
+            }}
+          >
+            {disabled ? (
+              <div style={{
+                width: '20px',
+                height: '20px',
+                border: '2px solid #fff',
+                borderTop: '2px solid transparent',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }} />
+            ) : (
+              <ArrowUpCircle size={24} />
+            )}
+          </button>
         </div>
-        
-        <button
-          type="submit"
-          disabled={disabled || !message.trim()}
-          style={{
-            width: '55px',
-            height: '55px',
-            background: disabled || !message.trim() ? '#ccc' : 'var(--accent-color)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '12px',
-            cursor: disabled || !message.trim() ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background-color 0.3s, transform 0.2s',
-            boxShadow: '0 2px 4px var(--shadow-color)'
-          }}
-          onMouseEnter={(e) => {
-            if (!disabled && message.trim()) {
-              e.target.style.backgroundColor = 'var(--accent-hover)';
-              e.target.style.transform = 'translateY(-1px)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!disabled && message.trim()) {
-              e.target.style.backgroundColor = 'var(--accent-color)';
-              e.target.style.transform = 'translateY(0)';
-            }
-          }}
-        >
-          {disabled ? (
-            <div style={{
-              width: '20px',
-              height: '20px',
-              border: '2px solid #fff',
-              borderTop: '2px solid transparent',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }} />
-          ) : (
-            <ArrowUpCircle size={24} />
-          )}
-        </button>
       </form>
 
       {/* Form Actions */}
