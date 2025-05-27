@@ -45,7 +45,8 @@ export default function StandardFooter() {
       gap: '0.5rem',
       padding: '1rem',
       zIndex: 50,
-      transition: 'background-color 0.3s'
+      transition: 'background-color 0.3s',
+      filter: 'brightness(0.8)' // 20% darker (80% brightness)
     }}>
       {/* Proverb */}
       <div style={{
