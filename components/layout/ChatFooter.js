@@ -78,7 +78,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
     
     // Calculate new height based on scroll height
     const scrollHeight = e.target.scrollHeight;
-    const maxHeight = 85; // Reduced to show exactly 3 lines (was 105px)
+    const maxHeight = 77; // Further reduced to show exactly 3 lines (was 85px)
     const minHeight = 55;  // 1 line min
     
     // Only expand if content requires it
@@ -139,7 +139,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
               outline: 'none',
               resize: 'none',
               minHeight: '55px',
-              maxHeight: '85px', // Reduced to exactly 3 lines (was 105px)
+              maxHeight: '77px', // Reduced to exactly 3 lines (was 85px)
               backgroundColor: 'transparent',
               color: 'var(--input-text)',
               fontFamily: 'var(--body-font)',
@@ -171,7 +171,9 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'background-color 0.3s, transform 0.2s',
-              borderRadius: '0 12px 12px 0' // Match the container border radius
+              borderRadius: '0 11px 11px 0', // Slightly smaller radius to fit perfectly
+              margin: '0', // Remove any default margins
+              padding: '0' // Remove any default padding
             }}
             onMouseEnter={(e) => {
               if (!disabled && message.trim()) {
