@@ -36,7 +36,7 @@ export default function StandardFooter() {
       left: 0,
       right: 0,
       height: 'var(--footer-height-standard)',
-      background: 'var(--bg-color)',
+      background: 'rgb(216, 199, 186)', // Specific RGB color behind all elements
       borderTop: '1px solid var(--input-border)',
       display: 'flex',
       flexDirection: 'column',
@@ -44,9 +44,7 @@ export default function StandardFooter() {
       alignItems: 'center',
       gap: '0.5rem',
       padding: '1rem',
-      zIndex: 50,
-      transition: 'background-color 0.3s',
-      filter: 'brightness(0.8)' // 20% darker (80% brightness)
+      zIndex: 50
     }}>
       {/* Proverb */}
       <div style={{
