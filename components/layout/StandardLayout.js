@@ -286,7 +286,7 @@ export default function StandardLayout({
               aria-label="New chat"
               title="New Chat"
             >
-              <Plus size={20} />
+              <MessageCirclePlus size={20} />
             </button>
             
             <button 
