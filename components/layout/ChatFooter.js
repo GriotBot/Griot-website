@@ -95,7 +95,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
       left: 0,
       right: 0,
       height: `${Math.max(189, 189 + (inputHeight - 55))}px`, // Proper footer expansion calculation
-      background: 'var(--bg-color)',
+      background: 'rgb(216, 199, 186)', // Specific RGB color behind all elements
       borderTop: '1px solid var(--input-border)',
       padding: '1rem',
       display: 'flex',
@@ -103,8 +103,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
       justifyContent: 'flex-end', // Push content to bottom, expand upward
       gap: '0.5rem',
       zIndex: 50,
-      transition: 'background-color 0.3s, height 0.2s ease',
-      filter: 'brightness(0.8)' // 20% darker (80% brightness)
+      transition: 'height 0.2s ease'
     }}>
       {/* Chat Input Form */}
       <form onSubmit={handleSubmit} style={{ 
