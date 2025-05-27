@@ -1,90 +1,32 @@
 /* styles/globals.css */
 
-/* CSS Variables */
 :root {
-  --bg-color: #f8f5f0;
-  --text-color: #33302e;
-  --header-bg: #c49a6c;
-  --header-text: #33302e;
-  --sidebar-bg: rgba(75, 46, 42, 0.97);
-  --sidebar-text: #f8f5f0;
-  --accent-color: #d7722c;
-  --accent-hover: #c86520;
-  --wisdom-color: #6b4226;
-  --card-bg: #ffffff;
-  --shadow-color: rgba(75, 46, 42, 0.15);
+  --brand-background: #FBF9F4; /* Light beige for page background */
+  --brand-surface: #FFFFFF;    /* White for cards, etc. */
+  --brand-header: #F5F0E8;     /* Light beige for header */
+  --brand-footer-bg: #EDE6DA;  /* Beige for footer area background */
+  --brand-primary: #8C5A4F;   /* Reddish-brown/terracotta for buttons, accents */
+  --brand-secondary: #C0A08D; /* Lighter earthy tone */
+  --brand-text-main: #3D3530;  /* Dark brown for main text */
+  --brand-text-muted: #73655D; /* Muted brown for secondary text */
+  --brand-border: #D9C9B8;    /* Light brown for borders */
+
+  /* Define your chosen font */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Add other fonts if needed, e.g., --font-display */
 }
 
-[data-theme="dark"] {
-  --bg-color: #292420;
-  --text-color: #f0ece4;
-  --header-bg: #50392d;
-  --header-text: #f0ece4;
-  --sidebar-bg: rgba(40, 30, 25, 0.97);
-  --sidebar-text: #f0ece4;
-  --accent-color: #d7722c;
-  --accent-hover: #e8833d;
-  --wisdom-color: #e0c08f;
-  --card-bg: #352e29;
-  --shadow-color: rgba(0, 0, 0, 0.3);
+/* Apply base styles to the body */
+body {
+  background-color: var(--brand-background);
+  color: var(--brand-text-main);
+  font-family: var(--font-sans);
+  /* Any other global resets or base styles you have */
 }
 
-/* Global Reset */
-* {
-  box-sizing: border-box;
-}
+/* Ensure you import your web font if it's not a system font */
+/* If you chose 'Inter' from Google Fonts, you'd typically have an @import at the very top of this file,
+   OR link it in your pages/_document.js <Head> */
+/* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); */
 
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Montserrat', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  line-height: 1.6;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Lora', serif;
-  font-weight: 600;
-  margin-top: 0;
-}
-
-a {
-  color: var(--accent-color);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-a:hover {
-  color: var(--accent-hover);
-}
-
-button {
-  font-family: inherit;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-button:focus-visible {
-  outline: 2px solid var(--accent-color);
-}
-
-/* Utility Classes */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+/* You might have other global styles here already. Integrate with them. */
