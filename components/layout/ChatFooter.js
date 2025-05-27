@@ -95,7 +95,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
       left: 0,
       right: 0,
       height: `${Math.max(189, 189 + (inputHeight - 55))}px`, // Proper footer expansion calculation
-      background: 'rgb(216, 199, 186)', // Specific RGB color behind all elements
+      background: 'rgb(239, 230, 223)', // Updated RGB color behind all elements
       borderTop: '1px solid var(--input-border)',
       padding: '1rem',
       display: 'flex',
