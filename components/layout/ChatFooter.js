@@ -74,12 +74,15 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
     setMessage(e.target.value);
     
     // Reset height to recalculate
-    e.target.style.height = 'auto';
+    e.target.style.height = '55px'; // Always reset to single line first
     
-    // Calculate new height (max 3 lines = ~105px)
-    const maxHeight = 105; // 3 lines max
+    // Calculate new height based on scroll height
+    const scrollHeight = e.target.scrollHeight;
+    const maxHeight = 105; // 3 lines max (approximately)
     const minHeight = 55;  // 1 line min
-    const newHeight = Math.min(Math.max(e.target.scrollHeight, minHeight), maxHeight);
+    
+    // Only expand if content requires it
+    const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
     
     e.target.style.height = newHeight + 'px';
     setInputHeight(newHeight);
@@ -106,7 +109,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
         display: 'flex', 
         gap: '0.5rem', 
         alignItems: 'flex-end',
-        maxWidth: '70%', // 30% reduction from 100%
+        maxWidth: '55%', // Additional 15% reduction (from 70% to 55%)
         margin: '0 auto',
         width: '100%'
       }}>
@@ -118,16 +121,19 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
           borderRadius: '12px',
           backgroundColor: 'var(--input-bg)',
           border: '1px solid var(--input-border)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          minHeight: '55px', // Ensure minimum height for alignment
+          alignItems: 'stretch' // Make button stretch to match input height
         }}>
           <textarea
             value={message}
             onChange={handleInputChange}
             placeholder="Ask GriotBot about Black history, culture, or personal advice..."
             disabled={disabled}
+            rows={1} // Start with exactly 1 row
             style={{
               flex: 1,
-              padding: '0.9rem 1rem',
+              padding: '16px 1rem', // Adjusted padding for better 1-line alignment
               border: 'none',
               outline: 'none',
               resize: 'none',
@@ -137,7 +143,8 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
               color: 'var(--input-text)',
               fontFamily: 'var(--body-font)',
               fontSize: '1rem',
-              lineHeight: '1.5'
+              lineHeight: '1.375', // Better line height for single line
+              overflow: 'hidden' // Hide scrollbar during expansion
             }}
             onFocus={(e) => {
               e.target.parentElement.style.borderColor = 'var(--accent-color)';
@@ -154,7 +161,8 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
             disabled={disabled || !message.trim()}
             style={{
               width: '55px',
-              height: '55px',
+              minHeight: '55px', // Minimum height matches input
+              height: '100%', // Fill the container height
               background: disabled || !message.trim() ? '#ccc' : 'var(--accent-color)',
               color: 'white',
               border: 'none',
@@ -162,8 +170,7 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'background-color 0.3s, transform 0.2s',
-              alignSelf: 'flex-end' // Align to bottom of the input
+              transition: 'background-color 0.3s, transform 0.2s'
             }}
             onMouseEnter={(e) => {
               if (!disabled && message.trim()) {
@@ -194,14 +201,17 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
         </div>
       </form>
 
-      {/* Form Actions */}
+      {/* Form Actions - Aligned with text field edges */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         fontSize: '0.8rem',
         color: 'var(--text-color)',
-        opacity: 0.7
+        opacity: 0.7,
+        maxWidth: '55%', // Match the form width
+        margin: '0 auto',
+        width: '100%'
       }}>
         <span>Free users: 30 messages per day</span>
         
@@ -266,14 +276,14 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
         }
         
         @media (max-width: 768px) {
-          form[style*="maxWidth: '70%'"] {
-            max-width: 90% !important;
+          form[style*="maxWidth: '55%'"], div[style*="maxWidth: '55%'"] {
+            max-width: 75% !important;
           }
         }
         
         @media (max-width: 480px) {
-          form[style*="maxWidth: '70%'"] {
-            max-width: 95% !important;
+          form[style*="maxWidth: '55%'"], div[style*="maxWidth: '55%'"] {
+            max-width: 85% !important;
           }
         }
       `}} />
