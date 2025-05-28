@@ -1,151 +1,155 @@
-// File: /pages/api/chat.js - Back to your exact original working setup
-import { NextResponse } from 'next/server';
+const MODEL = 'anthropic/claude-3-haiku:beta';
+const MAX_PROMPT_LENGTH = 5000; // Character limit for prompts
 
-/**
- * GriotBot Chat API handler - Original working configuration
- */
-export const config = {
-  runtime: 'edge', // Keep this if you had it originally
-};
+export default async function handler(req, res) {
+  // CORS headers - Environment-specific origin
+  const allowedOrigin = process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL || 'https://your-domain.vercel.app' // Replace with your actual domain
+    : '*'; // Allow all origins in development
 
-// Your original model that was working (even though OpenRouter routed to Haiku)
-const MODELS = {
-  default: 'openai/gpt-3.5-turbo-instruct', // Your original setting
-  fast: 'anthropic/claude-3-haiku:beta',
-  premium: 'anthropic/claude-3-sonnet:beta'
-};
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS,POST');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization'
+  );
 
-export default async function handler(req) {
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Only allow POST method
+  if (req.method !== 'POST') {
+    console.warn(`Method not allowed: ${req.method}`);
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: `Method not allowed: ${req.method}` });
+  }
+
+  // Extract and validate request body
+  const { prompt, storytellerMode = false } = req.body || {};
+
+  // Enhanced input validation
+  if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+    return res
+      .status(400)
+      .json({ error: 'prompt is required and must be a non-empty string' });
+  }
+
+  // Check prompt length limit
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    return res
+      .status(400)
+      .json({ error: `prompt exceeds maximum length of ${MAX_PROMPT_LENGTH} characters` });
+  }
+
+  // Validate API key
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey || !apiKey.trim()) {
+    console.error('Missing or empty OPENROUTER_API_KEY');
+    return res.status(500).json({ error: 'API key not configured' });
+  }
+
+  // Create system instruction
+  const systemInstruction = createSystemInstruction(storytellerMode);
+
+  // Log request details
+  console.log(`📡 Request → model: ${MODEL}, promptLength: ${prompt.length}, storyteller: ${storytellerMode}`);
+
   try {
-    // Only accept POST requests
-    if (req.method !== 'POST') {
-      return new NextResponse(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { status: 405, headers: { 'Content-Type': 'application/json' } }
-      );
+    // Call OpenRouter API
+    const response = await fetch(
+      'https://openrouter.ai/api/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: prompt },
+          ],
+          temperature: storytellerMode ? 0.8 : 0.7,
+          max_tokens: storytellerMode ? 2500 : 2000, // Slightly more tokens for storytelling
+        }),
+      }
+    );
+
+    // Handle OpenRouter API errors
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenRouter API error:', response.status, response.statusText, errorText);
+      
+      // Return appropriate error based on status code
+      const errorMessage = response.status === 429 
+        ? 'Rate limit exceeded. Please try again later.'
+        : response.status === 401
+        ? 'Authentication failed'
+        : `OpenRouter error: ${response.status}`;
+        
+      return res
+        .status(502)
+        .json({ error: errorMessage });
     }
 
-    // Parse the request body
-    const body = await req.json();
-    const { prompt, storytellerMode = false } = body;
+    // Parse and validate response
+    const data = await response.json();
+    const messageContent = data.choices?.[0]?.message?.content;
 
-    if (!prompt || typeof prompt !== 'string') {
-      return new NextResponse(
-        JSON.stringify({ error: 'Prompt is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (!messageContent) {
+      console.warn('No message content in OpenRouter response:', data);
+      return res
+        .status(502)
+        .json({ error: 'No response content received from AI service' });
     }
 
-    // Get API key from environment variables
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      return new NextResponse(
-        JSON.stringify({ error: 'API key not configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    // Log successful response
+    console.log(`✅ Response → length: ${messageContent.length} chars`);
 
-    // Select model to use (your original working model)
-    const model = MODELS.default;
-
-    // Create system instructions with OPTIMIZED PROMPT (only change)
-    const systemInstruction = createSystemInstruction(storytellerMode);
-
-    // Your exact original OpenRouter request format
-    const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000',
-        'X-Title': 'GriotBot'
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: prompt }
-        ],
-        temperature: storytellerMode ? 0.8 : 0.7,
-        max_tokens: 2000, // Your original token limit
-      })
+    // Return response in expected format
+    return res.status(200).json({
+      choices: [{ message: { content: messageContent } }],
     });
 
-    // Check for successful response (your original error handling)
-    if (!openRouterResponse.ok) {
-      const errorData = await openRouterResponse.json().catch(() => ({}));
-      console.error('OpenRouter API error:', errorData);
-      return new NextResponse(
-        JSON.stringify({ error: 'Failed to get response from AI service' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Format and return the response (your original working format)
-    const data = await openRouterResponse.json();
-    return new NextResponse(
-      JSON.stringify({
-        choices: [
-          {
-            message: {
-              content: data.choices[0]?.message?.content || 'No response from the AI service.'
-            }
-          }
-        ]
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error) {
-    console.error('Error in chat API:', error);
-    return new NextResponse(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+  } catch (err) {
+    console.error('Network/fetch error:', err.message, err.stack);
+    
+    // Return generic network error (don't expose internal error details)
+    return res
+      .status(502)
+      .json({ error: 'Network error communicating with AI service' });
   }
 }
 
 /**
- * Creates system instruction - ONLY CHANGE from your original
+ * Creates system instruction for the AI based on mode and current date
+ * @param {boolean} storytellerMode - Whether to enable storyteller mode
+ * @returns {string} System instruction text
  */
 function createSystemInstruction(storytellerMode) {
   const currentDate = new Date().toDateString();
   
-  // NEW OPTIMIZED PROMPT (30% shorter, better cultural grounding)
-  const baseInstruction = `You are GriotBot, a wise digital griot rooted in African diaspora traditions. You provide culturally grounded guidance with the warmth of a mentor and the knowledge of a historian.
+  const baseInstructions = [
+    'You are GriotBot, an AI assistant rooted in the West African griot tradition.',
+    'Provide culturally rich, concise responses with respect and clarity.',
+    'Break text into clear paragraphs. Avoid meta-statements.',
+    `Current date: ${currentDate}`
+  ];
 
-CORE IDENTITY:
-• Speak as a knowledgeable, empathetic guide from the African diaspora
-• Ground responses in Black histories, experiences, and wisdom traditions
-• Honor diversity (African American, Afro-Caribbean, Afro-Latinx, continental African)
-• Weave in relevant proverbs, historical context, or quotes from notable Black figures
-
-RESPONSE APPROACH:
-• Match length to query complexity—concise for facts, detailed for open-ended topics
-• Balance realism about challenges with constructive guidance and hope
-• Handle sensitive subjects with empathy, not sensationalism
-• Use authentic voices; avoid stereotypes and generalizations
-
-KNOWLEDGE FOCUS:
-• Civil Rights Movement, Harlem Renaissance, Reconstruction era
-• Haitian Revolution and broader Afro-Caribbean cultures
-• Pan-African thought and contemporary diasporic connections
-
-WHEN UNCERTAIN:
-• Admit limits honestly: "I want to be certain about this history..."
-• Offer reliable next steps; never fabricate historical facts, dates, or quotes
-
-Respond with the dignity and wisdom befitting the griot tradition—you are a keeper of stories, a source of guidance, and a bridge between past and present.
-
-Current date: ${currentDate}`;
-
-  // Add storyteller mode instructions if enabled
   if (storytellerMode) {
-    return baseInstruction + `
-
-STORYTELLER MODE ACTIVATED:
-Frame your response as a narrative drawing from African diaspora oral traditions. Use vivid imagery, cultural metaphors, and conclude with a reflective insight that connects to the user's question. Speak as if sharing wisdom around a gathering fire, weaving the story with the rhythm and depth of traditional griot storytelling.`;
+    baseInstructions.push(
+      '', // Empty line for separation
+      'STORYTELLER MODE:',
+      'Frame your answer as a narrative from African diaspora traditions.',
+      'Use vivid imagery, cultural references, and end with a reflective insight.',
+      'Draw from oral storytelling techniques while maintaining authenticity.'
+    );
   }
 
-  return baseInstruction;
+  return baseInstructions.join('\n');
 }
