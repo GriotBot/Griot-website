@@ -1,10 +1,10 @@
 // File: components/layout/StandardLayout.js
-// Updated to use EnhancedFooter conditionally (exclude index page)
+// Updated to conditionally show StandardFooter (exclude index page)
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import EnhancedSidebar from './EnhancedSidebar';
-import EnhancedFooter from './EnhancedFooter';
+import StandardFooter from './StandardFooter';
 
 export default function StandardLayout({ 
   children, 
@@ -86,13 +86,9 @@ export default function StandardLayout({
         {children}
       </div>
 
-      {/* CONDITIONAL FOOTER: Only show EnhancedFooter on non-index pages */}
+      {/* CONDITIONAL FOOTER: Only show StandardFooter on non-index pages */}
       {!isIndexPage && (
-        <EnhancedFooter 
-          showProverbRotation={true}
-          customProverb={currentProverb}
-          backgroundColor="var(--bg-color)"
-        />
+        <StandardFooter currentProverb={currentProverb} />
       )}
 
       <style jsx>{`
