@@ -1,4 +1,4 @@
-// File: pages/index.js - Updated with Enhanced Message Display
+// File: pages/index.js - Updated with Clean Welcome Screen
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -230,7 +230,7 @@ export default function Home() {
     setCurrentProverb(PROVERBS[randomIndex]);
   };
 
-  // NEW: Handle message regeneration
+  // Handle message regeneration
   const handleRegenerateMessage = async (messageId) => {
     const messageIndex = messages.findIndex(msg => msg.id === messageId);
     if (messageIndex === -1 || messageIndex === 0) return;
@@ -247,7 +247,7 @@ export default function Home() {
     await handleSendMessage(userMessage.content, false);
   };
 
-  // NEW: Handle message feedback
+  // Handle message feedback
   const handleMessageFeedback = (messageId, feedbackType) => {
     console.log(`Feedback for message ${messageId}: ${feedbackType}`);
     
@@ -278,15 +278,14 @@ export default function Home() {
         <div className="main-content">
           {showWelcome && (
             <div className="welcome-container">
-              <div className="logo-display">🌿</div>
               <h1 className="welcome-title">Welcome to GriotBot</h1>
               <p className="welcome-subtitle">
                 Your AI companion for culturally rich conversations and wisdom
               </p>
               
               <div className="quote-container">
-                "A people without the knowledge of their past history,<br/>
-                origin and culture is like a tree without roots."
+                A people without the knowledge of their past history,<br/>
+                origin and culture is like a tree without roots.
                 <span className="quote-attribution">— Marcus Mosiah Garvey</span>
               </div>
               
@@ -305,7 +304,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* ENHANCED: Replace your current chat display with this */}
           <EnhancedChatContainer
             messages={messages}
             isLoading={isLoading}
@@ -340,12 +338,6 @@ export default function Home() {
           padding: 1rem;
         }
 
-        .logo-display {
-          font-size: 4rem;
-          margin-bottom: 1rem;
-          opacity: 0.9;
-        }
-
         .welcome-title {
           font-family: var(--heading-font, 'Lora', serif);
           font-size: 2.5rem;
@@ -370,31 +362,8 @@ export default function Home() {
           font-family: var(--quote-font, 'Lora', serif);
           line-height: 1.7;
           margin-bottom: 2.5rem;
-          position: relative;
-          padding: 0 2rem;
           max-width: 600px;
-        }
-
-        .quote-container::before,
-        .quote-container::after {
-          content: '"';
-          font-size: 3rem;
-          line-height: 0;
-          position: absolute;
-          color: var(--accent-color, #d7722c);
-          opacity: 0.6;
-        }
-
-        .quote-container::before {
-          left: 0;
-          top: 1rem;
-        }
-
-        .quote-container::after {
-          content: '"';
-          right: 0;
-          bottom: 0;
-          transform: translateY(-50%);
+          padding: 0 1rem;
         }
 
         .quote-attribution {
@@ -461,7 +430,7 @@ export default function Home() {
 
           .quote-container {
             font-size: 1.1rem;
-            padding: 0 1.5rem;
+            padding: 0 0.5rem;
           }
 
           .suggestion-cards {
@@ -475,17 +444,12 @@ export default function Home() {
         }
 
         @media (max-width: 480px) {
-          .logo-display {
-            font-size: 3rem;
-          }
-
           .welcome-title {
             font-size: 1.75rem;
           }
 
           .quote-container {
             font-size: 1rem;
-            padding: 0 1rem;
           }
         }
       `}</style>
