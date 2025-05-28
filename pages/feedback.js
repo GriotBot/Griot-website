@@ -1,6 +1,6 @@
-// File: pages/feedback.js (UPDATED WITH STANDARD LAYOUT)
+// File: pages/feedback.js (IMPROVED VERSION)
 import { useState } from 'react';
-import { Mail, Instagram, Twitter, Linkedin, Send, CheckCircle } from 'react-feather';
+import { Mail, Instagram, Twitter, Linkedin, Send, CheckCircle, AlertCircle } from 'react-feather';
 import StandardLayout from '../components/layout/StandardLayout';
 
 export default function Feedback() {
@@ -15,6 +15,7 @@ export default function Feedback() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -23,17 +24,65 @@ export default function Feedback() {
       ...prev,
       [name]: value
     }));
+    
+    // Clear any previous error when user starts typing
+    if (submitError) {
+      setSubmitError('');
+    }
   };
 
-  // Handle form submission
+  // Enhanced form validation
+  const validateForm = () => {
+    // Check if at least one meaningful field is filled
+    const hasContent = formData.message.trim() || 
+                      formData.features.trim() || 
+                      formData.culturalAccuracy || 
+                      formData.userExperience;
+    
+    if (!hasContent) {
+      setSubmitError('Please provide some feedback before submitting.');
+      return false;
+    }
+
+    // Validate email format if provided
+    if (formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        setSubmitError('Please enter a valid email address.');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // Handle form submission with better error handling
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // In a real implementation, this would send to your backend
-      // For now, we'll simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate API call - replace with actual API endpoint
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Submission failed: ${response.status}`);
+      }
       
       setSubmitSuccess(true);
       setFormData({
@@ -45,88 +94,129 @@ export default function Feedback() {
         features: '',
         message: ''
       });
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => setSubmitSuccess(false), 5000);
+      
     } catch (error) {
       console.error('Feedback submission error:', error);
+      setSubmitError('Unable to submit feedback. Please try again or contact us directly.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Contact links data
+  // Contact links data with more stable keys
   const contactLinks = [
     {
+      id: 'email',
       icon: Mail,
       label: 'Email',
       value: 'chat@griotbot.com',
-      href: 'mailto:chat@griotbot.com'
+      href: 'mailto:chat@griotbot.com',
+      ariaLabel: 'Send email to GriotBot team'
     },
     {
+      id: 'instagram',
       icon: Instagram,
       label: 'Instagram', 
       value: '@griotbot',
-      href: 'https://www.instagram.com/griotbot'
+      href: 'https://www.instagram.com/griotbot',
+      ariaLabel: 'Follow GriotBot on Instagram'
     },
     {
+      id: 'twitter',
       icon: Twitter,
       label: 'Twitter',
       value: '@griotbot', 
-      href: 'https://twitter.com/griotbot'
+      href: 'https://twitter.com/griotbot',
+      ariaLabel: 'Follow GriotBot on Twitter'
     },
     {
+      id: 'linkedin',
       icon: Linkedin,
       label: 'LinkedIn',
       value: 'griotbot',
-      href: 'https://www.linkedin.com/company/griotbot'
+      href: 'https://www.linkedin.com/company/griotbot',
+      ariaLabel: 'Connect with GriotBot on LinkedIn'
     }
   ];
 
   return (
     <StandardLayout 
       pageType="standard"
-      title="GriotBot Feedback"
-      description="Share your feedback and help improve GriotBot"
+      title="GriotBot Feedback - Help Us Improve"
+      description="Share your feedback about GriotBot's cultural accuracy, features, and user experience to help us improve"
       currentPath="/feedback"
     >
-      <div style={{
+      <article style={{
         maxWidth: '700px',
         margin: '0 auto',
-        lineHeight: 1.6
+        lineHeight: 1.6,
+        padding: '0 1rem'
       }}>
-        <h1 style={{
-          color: 'var(--text-color)',
-          fontSize: '2rem',
-          marginBottom: '0.5rem',
-          fontFamily: 'var(--heading-font)',
-          textAlign: 'center'
-        }}>
-          We'd Love Your Feedback
-        </h1>
-        
-        <p style={{
-          textAlign: 'center',
-          fontSize: '1.1rem',
-          color: 'var(--text-color)',
-          opacity: 0.8,
-          marginBottom: '2rem'
-        }}>
-          GriotBot is growing, and your voice helps shape the journey.
-        </p>
+        <header style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h1 style={{
+            color: 'var(--text-color)',
+            fontSize: '2rem',
+            marginBottom: '0.5rem',
+            fontFamily: 'var(--heading-font)',
+            margin: '0 0 0.5rem 0'
+          }}>
+            We'd Love Your Feedback
+          </h1>
+          
+          <p style={{
+            fontSize: '1.1rem',
+            color: 'var(--text-color)',
+            opacity: 0.8,
+            margin: '0 0 2rem 0'
+          }}>
+            GriotBot is growing, and your voice helps shape the journey.
+          </p>
+        </header>
 
         {/* Success Message */}
         {submitSuccess && (
-          <div style={{
-            backgroundColor: '#d4edda',
-            color: '#155724',
-            padding: '1rem',
-            borderRadius: '8px',
-            marginBottom: '2rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            border: '1px solid #c3e6cb'
-          }}>
-            <CheckCircle size={20} />
+          <div 
+            style={{
+              backgroundColor: 'var(--success-bg, #d4edda)',
+              color: 'var(--success-text, #155724)',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '2rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              border: '1px solid var(--success-border, #c3e6cb)'
+            }}
+            role="status"
+            aria-live="polite"
+          >
+            <CheckCircle size={20} aria-hidden="true" />
             <span>Thank you! Your feedback has been submitted successfully.</span>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {submitError && (
+          <div 
+            style={{
+              backgroundColor: 'var(--error-bg, #f8d7da)',
+              color: 'var(--error-text, #721c24)',
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '2rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              border: '1px solid var(--error-border, #f5c6cb)'
+            }}
+            role="alert"
+            aria-live="assertive"
+          >
+            <AlertCircle size={20} aria-hidden="true" />
+            <span>{submitError}</span>
           </div>
         )}
 
@@ -140,26 +230,31 @@ export default function Feedback() {
           border: '1px solid var(--input-border)'
         }}>
           {/* Basic Information */}
-          <div style={{
+          <div className="form-row" style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: '1rem',
             marginBottom: '1.5rem'
           }}>
             <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: '500',
-                color: 'var(--text-color)'
-              }}>
+              <label 
+                htmlFor="feedback-name"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: 'var(--text-color)'
+                }}
+              >
                 Name (Optional)
               </label>
               <input
+                id="feedback-name"
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
+                maxLength="100"
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -167,25 +262,33 @@ export default function Feedback() {
                   borderRadius: '8px',
                   backgroundColor: 'var(--input-bg)',
                   color: 'var(--input-text)',
-                  fontSize: '1rem'
+                  fontSize: '1rem',
+                  transition: 'border-color 0.2s ease'
                 }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--accent-color)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--input-border)'}
               />
             </div>
             
             <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: '500',
-                color: 'var(--text-color)'
-              }}>
+              <label 
+                htmlFor="feedback-email"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500',
+                  color: 'var(--text-color)'
+                }}
+              >
                 Email (Optional)
               </label>
               <input
+                id="feedback-email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                maxLength="255"
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -193,23 +296,30 @@ export default function Feedback() {
                   borderRadius: '8px',
                   backgroundColor: 'var(--input-bg)',
                   color: 'var(--input-text)',
-                  fontSize: '1rem'
+                  fontSize: '1rem',
+                  transition: 'border-color 0.2s ease'
                 }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--accent-color)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--input-border)'}
               />
             </div>
           </div>
 
           {/* Feedback Type */}
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              fontWeight: '500',
-              color: 'var(--text-color)'
-            }}>
+            <label 
+              htmlFor="feedback-type"
+              style={{
+                display: 'block',
+                marginBottom: '0.5rem',
+                fontWeight: '500',
+                color: 'var(--text-color)'
+              }}
+            >
               Feedback Type
             </label>
             <select
+              id="feedback-type"
               name="feedbackType"
               value={formData.feedbackType}
               onChange={handleChange}
@@ -220,33 +330,42 @@ export default function Feedback() {
                 borderRadius: '8px',
                 backgroundColor: 'var(--input-bg)',
                 color: 'var(--input-text)',
-                fontSize: '1rem'
+                fontSize: '1rem',
+                cursor: 'pointer'
               }}
             >
               <option value="general">General Feedback</option>
-              <option value="cultural">Cultural Accuracy</option>
+              <option value="cultural-accuracy">Cultural Accuracy</option>
               <option value="technical">Technical Issues</option>
-              <option value="feature">Feature Request</option>
+              <option value="feature-request">Feature Request</option>
               <option value="bug">Bug Report</option>
+              <option value="compliment">Positive Feedback</option>
             </select>
           </div>
 
           {/* Cultural Accuracy Assessment */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
+          <fieldset style={{ 
+            marginBottom: '1.5rem', 
+            border: 'none', 
+            padding: '0',
+            margin: '0 0 1.5rem 0'
+          }}>
+            <legend style={{
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: '500',
-              color: 'var(--text-color)'
+              color: 'var(--text-color)',
+              fontSize: '1rem'
             }}>
               How would you rate GriotBot's cultural authenticity?
-            </label>
+            </legend>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               {['Excellent', 'Good', 'Fair', 'Needs Improvement'].map(rating => (
                 <label key={rating} style={{
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  padding: '0.25rem'
                 }}>
                   <input
                     type="radio"
@@ -260,24 +379,31 @@ export default function Feedback() {
                 </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* User Experience */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
+          <fieldset style={{ 
+            marginBottom: '1.5rem', 
+            border: 'none', 
+            padding: '0',
+            margin: '0 0 1.5rem 0'
+          }}>
+            <legend style={{
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: '500',
-              color: 'var(--text-color)'
+              color: 'var(--text-color)',
+              fontSize: '1rem'
             }}>
               How easy was GriotBot to use?
-            </label>
+            </legend>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               {['Very Easy', 'Easy', 'Moderate', 'Difficult'].map(rating => (
                 <label key={rating} style={{
                   display: 'flex',
                   alignItems: 'center',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  padding: '0.25rem'
                 }}>
                   <input
                     type="radio"
@@ -291,23 +417,28 @@ export default function Feedback() {
                 </label>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* Feature Suggestions */}
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              fontWeight: '500',
-              color: 'var(--text-color)'
-            }}>
+            <label 
+              htmlFor="feedback-features"
+              style={{
+                display: 'block',
+                marginBottom: '0.5rem',
+                fontWeight: '500',
+                color: 'var(--text-color)'
+              }}
+            >
               What features would you like to see added?
             </label>
             <textarea
+              id="feedback-features"
               name="features"
               value={formData.features}
               onChange={handleChange}
               rows="3"
+              maxLength="1000"
               placeholder="Voice interactions, file uploads, community features, etc."
               style={{
                 width: '100%',
@@ -318,26 +449,34 @@ export default function Feedback() {
                 color: 'var(--input-text)',
                 fontSize: '1rem',
                 resize: 'vertical',
-                fontFamily: 'inherit'
+                fontFamily: 'inherit',
+                transition: 'border-color 0.2s ease'
               }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent-color)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--input-border)'}
             />
           </div>
 
           {/* Additional Comments */}
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              fontWeight: '500',
-              color: 'var(--text-color)'
-            }}>
+            <label 
+              htmlFor="feedback-message"
+              style={{
+                display: 'block',
+                marginBottom: '0.5rem',
+                fontWeight: '500',
+                color: 'var(--text-color)'
+              }}
+            >
               Additional Comments
             </label>
             <textarea
+              id="feedback-message"
               name="message"
               value={formData.message}
               onChange={handleChange}
               rows="4"
+              maxLength="2000"
               placeholder="Share any other thoughts, suggestions, or experiences..."
               style={{
                 width: '100%',
@@ -348,8 +487,11 @@ export default function Feedback() {
                 color: 'var(--input-text)',
                 fontSize: '1rem',
                 resize: 'vertical',
-                fontFamily: 'inherit'
+                fontFamily: 'inherit',
+                transition: 'border-color 0.2s ease'
               }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent-color)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--input-border)'}
             />
           </div>
 
@@ -358,7 +500,7 @@ export default function Feedback() {
             type="submit"
             disabled={isSubmitting}
             style={{
-              backgroundColor: isSubmitting ? '#ccc' : 'var(--accent-color)',
+              backgroundColor: isSubmitting ? 'var(--disabled-color, #ccc)' : 'var(--accent-color)',
               color: 'white',
               border: 'none',
               padding: '0.75rem 2rem',
@@ -369,19 +511,23 @@ export default function Feedback() {
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              transition: 'background-color 0.2s',
-              margin: '0 auto'
+              transition: 'background-color 0.2s ease, transform 0.2s ease',
+              margin: '0 auto',
+              opacity: isSubmitting ? 0.7 : 1
             }}
             onMouseEnter={(e) => {
               if (!isSubmitting) {
                 e.target.style.backgroundColor = 'var(--accent-hover)';
+                e.target.style.transform = 'translateY(-1px)';
               }
             }}
             onMouseLeave={(e) => {
               if (!isSubmitting) {
                 e.target.style.backgroundColor = 'var(--accent-color)';
+                e.target.style.transform = 'translateY(0)';
               }
             }}
+            aria-describedby={submitError ? 'form-error' : undefined}
           >
             {isSubmitting ? (
               <>
@@ -397,7 +543,7 @@ export default function Feedback() {
               </>
             ) : (
               <>
-                <Send size={16} />
+                <Send size={16} aria-hidden="true" />
                 Submit Feedback
               </>
             )}
@@ -405,7 +551,7 @@ export default function Feedback() {
         </form>
 
         {/* Contact Information */}
-        <div style={{
+        <section style={{
           backgroundColor: 'var(--card-bg)',
           padding: '2rem',
           borderRadius: '12px',
@@ -417,7 +563,8 @@ export default function Feedback() {
             fontSize: '1.5rem',
             marginBottom: '1rem',
             fontFamily: 'var(--heading-font)',
-            textAlign: 'center'
+            textAlign: 'center',
+            margin: '0 0 1rem 0'
           }}>
             Get in Touch
           </h2>
@@ -426,22 +573,27 @@ export default function Feedback() {
             textAlign: 'center',
             marginBottom: '1.5rem',
             color: 'var(--text-color)',
-            opacity: 0.8
+            opacity: 0.8,
+            margin: '0 0 1.5rem 0'
           }}>
             Have questions or want to connect? Reach out through any of these channels:
           </p>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr 1fr',
-            gap: '1rem'
-          }}>
-            {contactLinks.map((contact, index) => (
+          <div 
+            className="contact-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr 1fr',
+              gap: '1rem'
+            }}
+          >
+            {contactLinks.map((contact) => (
               <a
-                key={index}
+                key={contact.id}
                 href={contact.href}
                 target={contact.href.startsWith('http') ? '_blank' : '_self'}
                 rel={contact.href.startsWith('http') ? 'noopener noreferrer' : ''}
+                aria-label={contact.ariaLabel}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -452,23 +604,40 @@ export default function Feedback() {
                   borderRadius: '8px',
                   textDecoration: 'none',
                   color: 'var(--text-color)',
-                  transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s'
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 4px 12px var(--shadow-color)';
-                  e.target.style.borderColor = 'var(--accent-color)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  e.currentTarget.style.borderColor = 'var(--accent-color)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = 'none';
-                  e.target.style.borderColor = 'var(--input-border)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = 'var(--input-border)';
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px var(--shadow-color)';
+                  e.currentTarget.style.borderColor = 'var(--accent-color)';
+                  e.currentTarget.style.outline = '2px solid var(--accent-color)';
+                  e.currentTarget.style.outlineOffset = '2px';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = 'var(--input-border)';
+                  e.currentTarget.style.outline = 'none';
                 }}
               >
-                <contact.icon size={24} style={{ 
-                  color: 'var(--accent-color)', 
-                  marginBottom: '0.5rem' 
-                }} />
+                <contact.icon 
+                  size={24} 
+                  style={{ 
+                    color: 'var(--accent-color)', 
+                    marginBottom: '0.5rem' 
+                  }} 
+                  aria-hidden="true"
+                />
                 <span style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
                   {contact.label}
                 </span>
@@ -478,29 +647,44 @@ export default function Feedback() {
               </a>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
+      </article>
 
-      {/* Spinning keyframes */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      {/* CSS Animations and Responsive Design */}
+      <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
         
+        .contact-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr 1fr;
+          gap: 1rem;
+        }
+        
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+        }
+        
         @media (max-width: 768px) {
-          .contact-grid, div[style*="grid-template-columns: 1fr 1fr 1fr 1fr"] {
+          .contact-grid {
             grid-template-columns: 1fr 1fr !important;
+          }
+          
+          .form-row {
+            grid-template-columns: 1fr !important;
           }
         }
         
         @media (max-width: 480px) {
-          .contact-grid, div[style*="grid-template-columns: 1fr 1fr 1fr 1fr"],
-          div[style*="grid-template-columns: 1fr 1fr"] {
+          .contact-grid {
             grid-template-columns: 1fr !important;
           }
         }
-      `}} />
+      `}</style>
     </StandardLayout>
   );
 }
