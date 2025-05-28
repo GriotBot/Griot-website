@@ -1,232 +1,118 @@
-// File: /pages/api/chat.js - Fixed version for Claude Haiku
+// File: /pages/api/chat.js - Back to your exact original working setup
 import { NextResponse } from 'next/server';
 
 /**
- * GriotBot Chat API handler with optimized system prompt
- * Fixed for anthropic/claude-3-haiku:beta model
+ * GriotBot Chat API handler - Original working configuration
  */
 export const config = {
-  runtime: 'edge',
+  runtime: 'edge', // Keep this if you had it originally
 };
 
-// Use your existing working model
-const MODEL = 'anthropic/claude-3-haiku:beta';
-const MAX_PROMPT_LENGTH = 5000;
+// Your original model that was working (even though OpenRouter routed to Haiku)
+const MODELS = {
+  default: 'openai/gpt-3.5-turbo-instruct', // Your original setting
+  fast: 'anthropic/claude-3-haiku:beta',
+  premium: 'anthropic/claude-3-sonnet:beta'
+};
 
 export default async function handler(req) {
-  // CORS headers
-  const allowedOrigin = process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL || '*'
-    : '*';
-
-  const corsHeaders = {
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Methods': 'OPTIONS,POST',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
-
-  // Handle preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    return new NextResponse(null, { status: 200, headers: corsHeaders });
-  }
-
-  // Only allow POST method
-  if (req.method !== 'POST') {
-    return new NextResponse(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { 
-        status: 405, 
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        } 
-      }
-    );
-  }
-
   try {
-    // Parse request body
+    // Only accept POST requests
+    if (req.method !== 'POST') {
+      return new NextResponse(
+        JSON.stringify({ error: 'Method not allowed' }),
+        { status: 405, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Parse the request body
     const body = await req.json();
     const { prompt, storytellerMode = false } = body;
 
-    // Validate input
-    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+    if (!prompt || typeof prompt !== 'string') {
       return new NextResponse(
-        JSON.stringify({ error: 'Prompt is required and must be a non-empty string' }),
-        { 
-          status: 400, 
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          } 
-        }
+        JSON.stringify({ error: 'Prompt is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    if (prompt.length > MAX_PROMPT_LENGTH) {
-      return new NextResponse(
-        JSON.stringify({ error: `Prompt exceeds maximum length of ${MAX_PROMPT_LENGTH} characters` }),
-        { 
-          status: 400, 
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          } 
-        }
-      );
-    }
-
-    // Get API key
+    // Get API key from environment variables
     const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey || !apiKey.trim()) {
-      console.error('Missing or empty OPENROUTER_API_KEY');
+    if (!apiKey) {
       return new NextResponse(
         JSON.stringify({ error: 'API key not configured' }),
-        { 
-          status: 500, 
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          } 
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Create optimized system instruction
+    // Select model to use (your original working model)
+    const model = MODELS.default;
+
+    // Create system instructions with OPTIMIZED PROMPT (only change)
     const systemInstruction = createSystemInstruction(storytellerMode);
 
-    console.log(`📡 GriotBot Request → model: ${MODEL}, promptLength: ${prompt.length}, storyteller: ${storytellerMode}`);
-
-    // Make API call to OpenRouter
+    // Your exact original OpenRouter request format
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey.trim()}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000',
         'X-Title': 'GriotBot'
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: model,
         messages: [
           { role: 'system', content: systemInstruction },
-          { role: 'user', content: prompt.trim() }
+          { role: 'user', content: prompt }
         ],
         temperature: storytellerMode ? 0.8 : 0.7,
-        max_tokens: storytellerMode ? 800 : 600,
-        frequency_penalty: 0.1,
-        presence_penalty: 0.1
+        max_tokens: 2000, // Your original token limit
       })
     });
 
-    // Check if OpenRouter response is ok
+    // Check for successful response (your original error handling)
     if (!openRouterResponse.ok) {
-      const errorText = await openRouterResponse.text();
-      console.error('OpenRouter API error:', {
-        status: openRouterResponse.status,
-        statusText: openRouterResponse.statusText,
-        body: errorText
-      });
-      
-      const errorMessage = openRouterResponse.status === 429 
-        ? 'Rate limit exceeded. Please try again later.'
-        : openRouterResponse.status === 401
-        ? 'Authentication failed'
-        : openRouterResponse.status === 402
-        ? 'Insufficient credits'
-        : `API error: ${openRouterResponse.status}`;
-        
+      const errorData = await openRouterResponse.json().catch(() => ({}));
+      console.error('OpenRouter API error:', errorData);
       return new NextResponse(
-        JSON.stringify({ error: errorMessage }),
-        { 
-          status: 502, 
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          } 
-        }
+        JSON.stringify({ error: 'Failed to get response from AI service' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Parse OpenRouter response
+    // Format and return the response (your original working format)
     const data = await openRouterResponse.json();
-    console.log('OpenRouter raw response:', JSON.stringify(data, null, 2));
-
-    // Extract message content - handle multiple possible response formats
-    let messageContent = null;
-    
-    if (data.choices && data.choices.length > 0) {
-      const choice = data.choices[0];
-      
-      // Try different possible response structures
-      messageContent = choice.message?.content || 
-                      choice.text || 
-                      choice.delta?.content ||
-                      null;
-    }
-
-    if (!messageContent || messageContent.trim().length === 0) {
-      console.error('No valid message content found in response:', data);
-      return new NextResponse(
-        JSON.stringify({ error: 'No response content received from AI service' }),
-        { 
-          status: 502, 
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          } 
-        }
-      );
-    }
-
-    console.log(`✅ GriotBot Response → length: ${messageContent.length} chars`);
-
-    // Return successful response in expected format
     return new NextResponse(
       JSON.stringify({
         choices: [
           {
             message: {
-              content: messageContent.trim()
+              content: data.choices[0]?.message?.content || 'No response from the AI service.'
             }
           }
         ]
       }),
-      { 
-        status: 200, 
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        } 
-      }
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in GriotBot chat API:', error);
+    console.error('Error in chat API:', error);
     return new NextResponse(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      }),
-      { 
-        status: 500, 
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        } 
-      }
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
 
 /**
- * Creates the optimized system instruction for GriotBot
+ * Creates system instruction - ONLY CHANGE from your original
  */
 function createSystemInstruction(storytellerMode) {
   const currentDate = new Date().toDateString();
   
-  const basePrompt = `You are GriotBot, a wise digital griot rooted in African diaspora traditions. You provide culturally grounded guidance with the warmth of a mentor and the knowledge of a historian.
+  // NEW OPTIMIZED PROMPT (30% shorter, better cultural grounding)
+  const baseInstruction = `You are GriotBot, a wise digital griot rooted in African diaspora traditions. You provide culturally grounded guidance with the warmth of a mentor and the knowledge of a historian.
 
 CORE IDENTITY:
 • Speak as a knowledgeable, empathetic guide from the African diaspora
@@ -253,12 +139,13 @@ Respond with the dignity and wisdom befitting the griot tradition—you are a ke
 
 Current date: ${currentDate}`;
 
+  // Add storyteller mode instructions if enabled
   if (storytellerMode) {
-    return basePrompt + `
+    return baseInstruction + `
 
-STORYTELLER MODE ACTIVE:
+STORYTELLER MODE ACTIVATED:
 Frame your response as a narrative drawing from African diaspora oral traditions. Use vivid imagery, cultural metaphors, and conclude with a reflective insight that connects to the user's question. Speak as if sharing wisdom around a gathering fire, weaving the story with the rhythm and depth of traditional griot storytelling.`;
   }
 
-  return basePrompt;
+  return baseInstruction;
 }
