@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 export default function StandardFooter() {
   const [currentProverb, setCurrentProverb] = useState('');
 
-  // Proverbs array
+  // Proverbs array with cultural diversity
   const PROVERBS = [
     "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
     "Until the lion learns to write, every story will glorify the hunter. — African Proverb", 
@@ -29,45 +29,61 @@ export default function StandardFooter() {
     setCurrentProverb(PROVERBS[randomIndex]);
   }, []);
 
+  // Get current year for dynamic copyright
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer style={{
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 'var(--footer-height-standard)',
-      background: 'rgb(239, 230, 223)', // Correct RGB color
-      borderTop: '1px solid var(--input-border)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '0.5rem',
-      padding: '1rem',
-      zIndex: 50
-    }}>
+    <footer 
+      role="contentinfo"
+      aria-label="Page footer with cultural proverb and copyright information"
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 'var(--footer-height-standard)',
+        background: 'var(--footer-background-standard, rgb(239, 230, 223))', // CSS variable with fallback
+        borderTop: '1px solid var(--input-border)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '0.5rem',
+        padding: '1rem',
+        zIndex: 50,
+        boxSizing: 'border-box'
+      }}
+    >
       {/* Proverb */}
-      <div style={{
-        fontSize: '1.05rem', // Slightly larger as requested
-        fontStyle: 'italic',
-        color: 'var(--wisdom-color)',
-        textAlign: 'center',
-        fontFamily: 'var(--quote-font)',
-        opacity: 0.8,
-        lineHeight: '1.4',
-        maxWidth: '90%'
-      }}>
+      <div 
+        style={{
+          fontSize: '1.05rem', // Slightly larger as requested
+          fontStyle: 'italic',
+          color: 'var(--wisdom-color)',
+          textAlign: 'center',
+          fontFamily: 'var(--quote-font)',
+          opacity: 0.8,
+          lineHeight: '1.4',
+          maxWidth: '90%'
+        }}
+        aria-live="polite"
+        aria-label="Cultural proverb"
+      >
         {currentProverb}
       </div>
 
       {/* Copyright */}
-      <div style={{
-        fontSize: '0.8rem',
-        color: 'var(--text-color)',
-        opacity: 0.6,
-        textAlign: 'center'
-      }}>
-        © 2025 GriotBot. All rights reserved.
+      <div 
+        style={{
+          fontSize: '0.8rem',
+          color: 'var(--text-color)',
+          opacity: 0.6,
+          textAlign: 'center',
+          fontFamily: 'var(--body-font)'
+        }}
+        aria-label="Copyright information"
+      >
+        © {currentYear} GriotBot. All rights reserved.
       </div>
     </footer>
   );
