@@ -1,4 +1,4 @@
-// File: pages/index.js - Updated with Clean Welcome Screen
+// File: pages/index.js - Updated with Clean Footer (No Border Line)
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -412,6 +412,30 @@ export default function Home() {
           color: var(--text-color, #33302e);
           margin: 0;
           line-height: 1.4;
+        }
+
+        /* FIXED: Remove border-top from form container and adjust spacing */
+        :global(#form-container) {
+          border-top: none !important;
+          padding-top: 0.5rem !important;
+          padding-bottom: 1rem !important;
+        }
+
+        /* FIXED: Ensure storyteller mode toggle is properly positioned */
+        :global(.form-actions) {
+          margin-top: 0.75rem !important;
+          padding: 0 0.25rem !important;
+        }
+
+        /* FIXED: Ensure toggle switch is fully visible */
+        :global(.storyteller-mode) {
+          margin-right: 0.5rem !important;
+        }
+
+        :global(.toggle-switch) {
+          margin-left: 0.5rem !important;
+          position: relative !important;
+          z-index: 10 !important;
         }
 
         @media (max-width: 768px) {
