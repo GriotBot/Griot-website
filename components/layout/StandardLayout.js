@@ -1,11 +1,17 @@
-// File: components/layout/StandardLayout.js - FIXED VERSION
+// File: components/layout/StandardLayout.js - IMPROVED VERSION
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Menu, Home, User, Sun, Moon } from 'react-feather';
 import MessageCirclePlus from '../icons/MessageCirclePlus';
 import EnhancedSidebar from './EnhancedSidebar';
 import ChatFooter from './ChatFooter';
 import StandardFooter from './StandardFooter';
+
+// Constants for localStorage keys
+const THEME_STORAGE_KEY = 'griotbot-theme';
+const CHAT_HISTORY_STORAGE_KEY = 'griotbot-history';
 
 export default function StandardLayout({ 
   children, 
@@ -20,11 +26,13 @@ export default function StandardLayout({
   // State management
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [theme, setTheme] = useState('light');
+  const [logoError, setLogoError] = useState(false);
+  const router = useRouter();
 
   // Initialize theme from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('griotbot-theme') || 'light';
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
@@ -34,27 +42,40 @@ export default function StandardLayout({
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('griotbot-theme', newTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  // Sidebar toggle - FIXED FUNCTION
+  // Sidebar toggle function
   const toggleSidebar = () => {
-    console.log('🔥 STANDARD LAYOUT: Toggle sidebar from', sidebarVisible, 'to', !sidebarVisible);
     setSidebarVisible(!sidebarVisible);
   };
 
-  // New chat handler
+  // New chat handler with Next.js router
   const handleNewChat = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('griotbot-history');
+      localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
       if (currentPath !== '/') {
-        window.location.href = '/';
+        router.push('/');
       } else {
-        // Trigger new chat reset on index page
-        window.location.reload();
+        // For index page, reload to reset chat state
+        router.reload();
       }
     }
+  };
+
+  // Logo error handler
+  const handleLogoError = () => {
+    setLogoError(true);
+  };
+
+  // Dynamic margin for main content
+  const mainContentStyle = {
+    flex: 1,
+    marginTop: 'var(--topmenu-height)',
+    marginBottom: pageType === 'index' ? 'var(--footer-height-index)' : 'var(--footer-height-standard)',
+    overflowY: 'auto',
+    padding: '1rem'
   };
 
   return (
@@ -101,6 +122,7 @@ export default function StandardLayout({
             --body-font: 'Montserrat', sans-serif;
             --heading-font: 'Lora', serif;
             --quote-font: 'Lora', serif;
+            --footer-background-standard: rgb(239, 230, 223);
           }
           
           [data-theme="dark"] {
@@ -123,6 +145,7 @@ export default function StandardLayout({
             --input-text: #f0ece4;
             --shadow-color: rgba(0, 0, 0, 0.3);
             --card-bg: #352e29;
+            --footer-background-standard: #3a302a;
           }
 
           /* Global Styles */
@@ -200,29 +223,27 @@ export default function StandardLayout({
             display: flex;
             align-items: center;
             justify-content: center;
+            text-decoration: none;
           }
           
           .menu-button:hover {
             background-color: rgba(255, 255, 255, 0.1);
           }
           
-          .menu-button.rotated {
-            transform: rotate(90deg);
+          .menu-button:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
           }
           
-          .main-content {
-            flex: 1;
-            margin-top: var(--topmenu-height);
-            margin-bottom: ${pageType === 'index' ? 'var(--footer-height-index)' : 'var(--footer-height-standard)'};
-            overflow-y: auto;
-            padding: 1rem;
+          .menu-button.rotated {
+            transform: rotate(90deg);
           }
         `}} />
       </Head>
 
       <div className="layout-container">
         {/* Top Menu - Always 72px tall */}
-        <header className="top-menu">
+        <header className="top-menu" role="banner">
           {/* Left Side - Menu Icon */}
           <div className="menu-left">
             <button 
@@ -230,35 +251,35 @@ export default function StandardLayout({
               onClick={toggleSidebar}
               aria-label="Toggle sidebar"
               aria-expanded={sidebarVisible}
+              aria-controls="sidebar"
             >
               <Menu size={24} />
             </button>
           </div>
 
           {/* Center - Logo */}
-          <a href="/" className="menu-center">
-            <img 
-              src="/images/GriotBot logo horiz wht.svg"
-              alt="GriotBot"
-              style={{ 
-                height: '32px',
-                width: 'auto'
-              }}
-              onError={(e) => {
-                // Fallback to text+emoji if logo file not found
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
-            />
-            <div style={{ 
-              display: 'none',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}>
-              <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
-              <span>GriotBot</span>
-            </div>
-          </a>
+          <Link href="/" className="menu-center">
+            {!logoError ? (
+              <img 
+                src="/images/GriotBot logo horiz wht.svg"
+                alt="GriotBot"
+                style={{ 
+                  height: '32px',
+                  width: 'auto'
+                }}
+                onError={handleLogoError}
+              />
+            ) : (
+              <div style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
+                <span>GriotBot</span>
+              </div>
+            )}
+          </Link>
 
           {/* Right Side - Action Icons */}
           <div className="menu-right">
@@ -271,14 +292,9 @@ export default function StandardLayout({
               <MessageCirclePlus size={20} />
             </button>
             
-            <button 
-              className="menu-button"
-              onClick={() => window.location.href = '/comingsoon'}
-              aria-label="Account"
-              title="Account"
-            >
+            <Link href="/comingsoon" className="menu-button" title="Account">
               <User size={20} />
-            </button>
+            </Link>
             
             <button 
               className="menu-button"
@@ -291,16 +307,20 @@ export default function StandardLayout({
           </div>
         </header>
 
-        {/* ✅ FIXED ENHANCED SIDEBAR - CORRECT PROP NAMES */}
+        {/* Enhanced Sidebar */}
         <EnhancedSidebar 
-          isVisible={sidebarVisible}       // ← FIXED: was "visible"
-          onToggle={toggleSidebar}         // ← FIXED: was "onClose" 
-          currentPage={currentPath}        // ← FIXED: was "currentPath"
+          isVisible={sidebarVisible}
+          onToggle={toggleSidebar}
+          currentPage={currentPath}
           onNewChat={handleNewChat}
         />
 
         {/* Main Content Area */}
-        <main className="main-content">
+        <main 
+          className="main-content"
+          style={mainContentStyle}
+          role="main"
+        >
           {children}
         </main>
 
