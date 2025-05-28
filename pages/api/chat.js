@@ -1,15 +1,21 @@
-// File: /pages/api/chat.js - Instruct Model Version
+// File: /pages/api/chat.js
 import { NextResponse } from 'next/server';
 
+/**
+ * GriotBot Chat API handler with optimized system prompt
+ * Connects to OpenRouter for culturally grounded AI responses
+ */
 export const config = {
-  runtime: 'edge',
+  runtime: 'edge', // Use Edge runtime for better performance
 };
 
-const MODEL = 'openai/gpt-3.5-turbo-instruct';
-const MAX_PROMPT_LENGTH = 5000;
+// OpenRouter model configuration  
+const MODEL = 'openai/gpt-3.5-turbo';
+const MAX_PROMPT_LENGTH = 5000; // Character limit for prompts
 
 export default async function handler(req) {
   try {
+    // Only accept POST requests
     if (req.method !== 'POST') {
       return new NextResponse(
         JSON.stringify({ error: 'Method not allowed' }),
@@ -17,6 +23,7 @@ export default async function handler(req) {
       );
     }
 
+    // Parse the request body
     const body = await req.json();
     const { prompt, storytellerMode = false } = body;
 
@@ -27,6 +34,7 @@ export default async function handler(req) {
       );
     }
 
+    // Check prompt length limit
     if (prompt.length > MAX_PROMPT_LENGTH) {
       return new NextResponse(
         JSON.stringify({ error: `Prompt exceeds maximum length of ${MAX_PROMPT_LENGTH} characters` }),
@@ -34,6 +42,7 @@ export default async function handler(req) {
       );
     }
 
+    // Get API key from environment variables
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       return new NextResponse(
@@ -42,14 +51,14 @@ export default async function handler(req) {
       );
     }
 
-    // Create system instruction and format for completions API
+    // Create optimized system instruction
     const systemInstruction = createSystemInstruction(storytellerMode);
-    const formattedPrompt = `${systemInstruction}\n\nUser: ${prompt}\n\nGriotBot:`;
 
+    // Log request details for monitoring
     console.log(`📡 GriotBot Request → model: ${MODEL}, promptLength: ${prompt.length}, storyteller: ${storytellerMode}`);
 
-    // Use completions endpoint for instruct model
-    const openRouterResponse = await fetch('https://openrouter.ai/api/v1/completions', {
+    // Prepare the request to OpenRouter
+    const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -59,15 +68,19 @@ export default async function handler(req) {
       },
       body: JSON.stringify({
         model: MODEL,
-        prompt: formattedPrompt,
-        temperature: storytellerMode ? 0.8 : 0.7,
-        max_tokens: storytellerMode ? 800 : 600,
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: prompt }
+        ],
+        temperature: storytellerMode ? 0.8 : 0.7, // Higher creativity for storytelling
+        max_tokens: storytellerMode ? 800 : 600, // More tokens for storytelling
+        // Anti-hallucination parameters
         frequency_penalty: 0.1,
         presence_penalty: 0.1,
-        stop: ["\nUser:", "\nGriotBot:", "\n\n"]
       })
     });
 
+    // Check for successful response
     if (!openRouterResponse.ok) {
       const errorData = await openRouterResponse.json().catch(() => ({}));
       console.error('OpenRouter API error:', errorData);
@@ -84,8 +97,9 @@ export default async function handler(req) {
       );
     }
 
+    // Format and return the response
     const data = await openRouterResponse.json();
-    const messageContent = data.choices?.[0]?.text?.trim();
+    const messageContent = data.choices?.[0]?.message?.content;
 
     if (!messageContent) {
       console.warn('No message content in OpenRouter response:', data);
@@ -95,9 +109,9 @@ export default async function handler(req) {
       );
     }
 
+    // Log successful response
     console.log(`✅ GriotBot Response → length: ${messageContent.length} chars`);
 
-    // Format response to match expected structure
     return new NextResponse(
       JSON.stringify({
         choices: [
@@ -120,9 +134,15 @@ export default async function handler(req) {
   }
 }
 
+/**
+ * Creates the optimized system instruction for GriotBot
+ * @param {boolean} storytellerMode - Whether to enable storyteller mode
+ * @returns {string} Complete system instruction
+ */
 function createSystemInstruction(storytellerMode) {
   const currentDate = new Date().toDateString();
   
+  // Base optimized GriotBot system prompt
   const basePrompt = `You are GriotBot, a wise digital griot rooted in African diaspora traditions. You provide culturally grounded guidance with the warmth of a mentor and the knowledge of a historian.
 
 CORE IDENTITY:
@@ -150,6 +170,7 @@ Respond with the dignity and wisdom befitting the griot tradition—you are a ke
 
 Current date: ${currentDate}`;
 
+  // Add storyteller mode enhancement if activated
   if (storytellerMode) {
     return basePrompt + `
 
@@ -158,4 +179,52 @@ Frame your response as a narrative drawing from African diaspora oral traditions
   }
 
   return basePrompt;
+}
+
+/**
+ * Enhanced anti-hallucination pattern detection
+ * Identifies high-risk queries that require extra caution
+ * @param {string} prompt - User's question
+ * @returns {object} Risk assessment and suggested parameters
+ */
+function assessHistoricalRisk(prompt) {
+  const highRiskPatterns = [
+    /what.*said.*exactly/i,
+    /quote.*from/i,
+    /when.*born.*died/i,
+    /\d{4}.*happened/i,
+    /how many.*died/i,
+    /precise.*date/i
+  ];
+  
+  const mediumRiskPatterns = [
+    /when.*founded/i,
+    /who.*first/i,
+    /what year/i,
+    /how long/i,
+    /statistics.*about/i
+  ];
+
+  const isHighRisk = highRiskPatterns.some(pattern => pattern.test(prompt));
+  const isMediumRisk = mediumRiskPatterns.some(pattern => pattern.test(prompt));
+
+  if (isHighRisk) {
+    return {
+      riskLevel: 'high',
+      temperature: 0.3,
+      additionalInstruction: 'Be especially careful about exact quotes, specific dates, and precise statistics. Use qualifying language when appropriate.'
+    };
+  } else if (isMediumRisk) {
+    return {
+      riskLevel: 'medium', 
+      temperature: 0.5,
+      additionalInstruction: 'Provide factual information with appropriate context and acknowledge any uncertainty.'
+    };
+  }
+
+  return {
+    riskLevel: 'low',
+    temperature: 0.7,
+    additionalInstruction: null
+  };
 }
