@@ -65,17 +65,12 @@ export default function EnhancedChatContainer({
     }
   };
 
+  // REMOVED: Empty state content - just return empty container
   if (!messages || messages.length === 0) {
     return (
       <>
         <div className="chat-container empty">
-          <div className="empty-state">
-            <div className="empty-icon">💭</div>
-            <h3 className="empty-title">Ready to share wisdom</h3>
-            <p className="empty-subtitle">
-              Ask GriotBot about Black history, culture, or personal guidance
-            </p>
-          </div>
+          {/* Empty - no content displayed when no messages */}
         </div>
         
         <style jsx>{`
@@ -87,35 +82,6 @@ export default function EnhancedChatContainer({
             max-width: 700px;
             margin: 0 auto;
             padding: 1rem;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            min-height: 400px;
-          }
-          
-          .empty-state {
-            max-width: 400px;
-          }
-          
-          .empty-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.6;
-          }
-          
-          .empty-title {
-            color: var(--text-color, #33302e);
-            font-family: var(--heading-font, 'Lora', serif);
-            font-size: 1.5rem;
-            margin: 0 0 0.5rem 0;
-          }
-          
-          .empty-subtitle {
-            color: var(--text-color, #33302e);
-            opacity: 0.7;
-            font-size: 1rem;
-            margin: 0;
-            line-height: 1.6;
           }
         `}</style>
       </>
@@ -143,7 +109,15 @@ export default function EnhancedChatContainer({
             <div className="loading-message">
               <div className="loading-header">
                 <div className="bot-avatar">
-                  <span className="bot-icon">🌿</span>
+                  <img 
+                    src="/images/logo-light.svg" 
+                    alt="GriotBot"
+                    className="bot-logo"
+                    onError={(e) => {
+                      // Fallback to PNG if SVG fails
+                      e.target.src = "/images/logo-light.png";
+                    }}
+                  />
                 </div>
                 <div className="bot-identity">
                   <span className="bot-name">GriotBot</span>
@@ -208,11 +182,14 @@ export default function EnhancedChatContainer({
           justify-content: center;
           box-shadow: 0 2px 8px rgba(215, 119, 44, 0.3);
           animation: avatarPulse 2s infinite ease-in-out;
+          padding: 8px;
         }
         
-        .bot-icon {
-          font-size: 1.25rem;
-          filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+        .bot-logo {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: brightness(0) invert(1);
         }
         
         .bot-identity {
