@@ -36,7 +36,7 @@ export default function EnhancedSidebar({
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'rgba(0, 0, 0, 0.1)', // ← REDUCED: from 0.5 to 0.1 (10%)
             zIndex: 999
           }}
           onClick={onToggle}
@@ -232,7 +232,7 @@ export default function EnhancedSidebar({
             }}
             >
               <Users size={18} />
-              Historical Figures
+              History
             </a>
           </Link>
           
@@ -252,7 +252,7 @@ export default function EnhancedSidebar({
             }}
             >
               <BookOpen size={18} />
-              Cultural Stories
+              Culture
             </a>
           </Link>
           
@@ -272,7 +272,7 @@ export default function EnhancedSidebar({
             }}
             >
               <MapPin size={18} />
-              Diaspora Community
+              Community
             </a>
           </Link>
         </div>
@@ -308,7 +308,7 @@ export default function EnhancedSidebar({
             }}
             >
               <Info size={18} />
-              About GriotBot
+              About
             </a>
           </Link>
           
@@ -329,7 +329,7 @@ export default function EnhancedSidebar({
             }}
             >
               <MessageSquare size={18} />
-              Share Feedback
+              Feedback
             </a>
           </Link>
         </div>
