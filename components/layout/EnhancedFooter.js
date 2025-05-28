@@ -1,6 +1,9 @@
 // File: components/layout/EnhancedFooter.js
 import { useState, useEffect } from 'react';
 
+// Constants for better maintainability
+const PROVERB_ROTATION_INTERVAL_MS = 30000; // 30 seconds
+
 export default function EnhancedFooter({ 
   showProverbRotation = true, 
   customProverb = null,
@@ -43,7 +46,7 @@ export default function EnhancedFooter({
     }
   }, [customProverb, showProverbRotation]);
 
-  // Optional: Auto-rotate proverbs every 30 seconds
+  // Auto-rotate proverbs
   useEffect(() => {
     if (showProverbRotation && !customProverb) {
       const interval = setInterval(() => {
@@ -52,7 +55,7 @@ export default function EnhancedFooter({
           setCurrentProverb(ENHANCED_PROVERBS[nextIndex]);
           return nextIndex;
         });
-      }, 30000); // 30 seconds
+      }, PROVERB_ROTATION_INTERVAL_MS);
 
       return () => clearInterval(interval);
     }
@@ -61,6 +64,8 @@ export default function EnhancedFooter({
   return (
     <footer 
       className={className}
+      role="contentinfo"
+      aria-label="Page footer with proverb and contact information"
       style={{
         position: 'relative',
         width: '100%',
@@ -76,32 +81,38 @@ export default function EnhancedFooter({
         boxSizing: 'border-box'
       }}
     >
-      {/* Enhanced Proverb Section with Animation */}
-      <div style={{
-        fontSize: '1.1rem',
-        fontStyle: 'italic',
-        color: 'var(--wisdom-color)',
-        textAlign: 'center',
-        fontFamily: 'var(--quote-font)',
-        opacity: 0.9,
-        lineHeight: '1.5',
-        maxWidth: '85%',
-        margin: '0 auto',
-        transition: 'opacity 0.3s ease-in-out',
-        position: 'relative'
-      }}>
+      {/* Enhanced Proverb Section */}
+      <div 
+        style={{
+          fontSize: '1.1rem',
+          fontStyle: 'italic',
+          color: 'var(--wisdom-color)',
+          textAlign: 'center',
+          fontFamily: 'var(--quote-font)',
+          opacity: 0.9,
+          lineHeight: '1.5',
+          maxWidth: '85%',
+          margin: '0 auto',
+          position: 'relative'
+        }}
+        aria-live="polite"
+        aria-label="Cultural proverb"
+      >
         {currentProverb}
         
-        {/* Optional proverb counter for enhanced version */}
+        {/* Optional proverb counter */}
         {showProverbRotation && !customProverb && (
-          <div style={{
-            position: 'absolute',
-            top: '-20px',
-            right: '0',
-            fontSize: '0.7rem',
-            opacity: 0.4,
-            color: 'var(--text-color)'
-          }}>
+          <div 
+            style={{
+              position: 'absolute',
+              top: '-20px',
+              right: '0',
+              fontSize: '0.7rem',
+              opacity: 0.4,
+              color: 'var(--text-color)'
+            }}
+            aria-hidden="true"
+          >
             {proverbIndex + 1}/{ENHANCED_PROVERBS.length}
           </div>
         )}
@@ -115,11 +126,14 @@ export default function EnhancedFooter({
         gap: '0.5rem'
       }}>
         {/* Social Media Links */}
-        <div style={{
-          display: 'flex',
-          gap: '1rem',
-          marginBottom: '0.25rem'
-        }}>
+        <nav 
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            marginBottom: '0.25rem'
+          }}
+          aria-label="Social media links"
+        >
           <a 
             href="mailto:chat@griotbot.com" 
             style={{
@@ -127,10 +141,15 @@ export default function EnhancedFooter({
               textDecoration: 'none',
               fontSize: '0.85rem',
               opacity: 0.8,
-              transition: 'opacity 0.2s'
+              transition: 'opacity 0.2s',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px'
             }}
-            onMouseOver={(e) => e.target.style.opacity = '1'}
-            onMouseOut={(e) => e.target.style.opacity = '0.8'}
+            aria-label="Send email to GriotBot"
+            onMouseEnter={(e) => e.target.style.opacity = '1'}
+            onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+            onFocus={(e) => e.target.style.opacity = '1'}
+            onBlur={(e) => e.target.style.opacity = '0.8'}
           >
             Email
           </a>
@@ -143,10 +162,15 @@ export default function EnhancedFooter({
               textDecoration: 'none',
               fontSize: '0.85rem',
               opacity: 0.8,
-              transition: 'opacity 0.2s'
+              transition: 'opacity 0.2s',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px'
             }}
-            onMouseOver={(e) => e.target.style.opacity = '1'}
-            onMouseOut={(e) => e.target.style.opacity = '0.8'}
+            aria-label="Follow GriotBot on Instagram (opens in new tab)"
+            onMouseEnter={(e) => e.target.style.opacity = '1'}
+            onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+            onFocus={(e) => e.target.style.opacity = '1'}
+            onBlur={(e) => e.target.style.opacity = '0.8'}
           >
             Instagram
           </a>
@@ -159,14 +183,19 @@ export default function EnhancedFooter({
               textDecoration: 'none',
               fontSize: '0.85rem',
               opacity: 0.8,
-              transition: 'opacity 0.2s'
+              transition: 'opacity 0.2s',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px'
             }}
-            onMouseOver={(e) => e.target.style.opacity = '1'}
-            onMouseOut={(e) => e.target.style.opacity = '0.8'}
+            aria-label="Follow GriotBot on Twitter (opens in new tab)"
+            onMouseEnter={(e) => e.target.style.opacity = '1'}
+            onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+            onFocus={(e) => e.target.style.opacity = '1'}
+            onBlur={(e) => e.target.style.opacity = '0.8'}
           >
             Twitter
           </a>
-        </div>
+        </nav>
 
         {/* Copyright */}
         <div style={{
