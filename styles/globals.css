@@ -1,32 +1,280 @@
 /* styles/globals.css */
 
-:root {
-  --brand-background: #FBF9F4; /* Light beige for page background */
-  --brand-surface: #FFFFFF;    /* White for cards, etc. */
-  --brand-header: #F5F0E8;     /* Light beige for header */
-  --brand-footer-bg: #EDE6DA;  /* Beige for footer area background */
-  --brand-primary: #8C5A4F;   /* Reddish-brown/terracotta for buttons, accents */
-  --brand-secondary: #C0A08D; /* Lighter earthy tone */
-  --brand-text-main: #3D3530;  /* Dark brown for main text */
-  --brand-text-muted: #73655D; /* Muted brown for secondary text */
-  --brand-border: #D9C9B8;    /* Light brown for borders */
-
-  /* Define your chosen font */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  /* Add other fonts if needed, e.g., --font-display */
-}
-
-/* Apply base styles to the body */
-body {
-  background-color: var(--brand-background);
-  color: var(--brand-text-main);
-  font-family: var(--font-sans);
-  /* Any other global resets or base styles you have */
-}
-
 /* Ensure you import your web font if it's not a system font */
 /* If you chose 'Inter' from Google Fonts, you'd typically have an @import at the very top of this file,
    OR link it in your pages/_document.js <Head> */
 /* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); */
 
-/* You might have other global styles here already. Integrate with them. */
+/* CSS Custom Properties - Design System Variables */
+:root {
+  /* Color Palette - Earthy, warm tones inspired by African textiles */
+  --brand-background: #FBF9F4; /* Light beige for page background */
+  --brand-surface: #FFFFFF;    /* White for cards, modals, etc. */
+  --brand-header: #F5F0E8;     /* Light beige for header background */
+  --brand-footer-bg: #EDE6DA;  /* Beige for footer area background */
+  --brand-primary: #8C5A4F;    /* Reddish-brown/terracotta for buttons, accents */
+  --brand-secondary: #C0A08D;  /* Lighter earthy tone for secondary elements */
+  --brand-text-main: #3D3530;  /* Dark brown for main text */
+  --brand-text-muted: #73655D; /* Muted brown for secondary text */
+  --brand-border: #D9C9B8;     /* Light brown for borders */
+  
+  /* Semantic Color Variables */
+  --color-success: #4CAF50;    /* Green for success states */
+  --color-warning: #FF9800;    /* Orange for warning states */
+  --color-error: #F44336;      /* Red for error states */
+  --color-info: #2196F3;       /* Blue for informational states */
+  
+  /* Typography System */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: 'Georgia', 'Times New Roman', Times, serif; /* For headings or special text */
+  
+  /* Font Weight Scale */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Font Size Scale */
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem;  /* 36px */
+  
+  /* Spacing System - Consistent spacing scale */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
+  --spacing-3xl: 4rem;     /* 64px */
+  
+  /* Border Radius Scale */
+  --border-radius-sm: 0.25rem;  /* 4px */
+  --border-radius-md: 0.5rem;   /* 8px */
+  --border-radius-lg: 0.75rem;  /* 12px */
+  --border-radius-xl: 1rem;     /* 16px */
+  --border-radius-full: 9999px; /* Fully rounded */
+  
+  /* Shadow System */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Z-Index Scale */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+  
+  /* Layout Variables */
+  --max-width-xs: 20rem;    /* 320px */
+  --max-width-sm: 24rem;    /* 384px */
+  --max-width-md: 28rem;    /* 448px */
+  --max-width-lg: 32rem;    /* 512px */
+  --max-width-xl: 36rem;    /* 576px */
+  --max-width-2xl: 42rem;   /* 672px */
+  --max-width-4xl: 56rem;   /* 896px */
+  --max-width-full: 100%;
+}
+
+/* Modern CSS Reset and Base Styles */
+html {
+  box-sizing: border-box; /* Makes layout math more intuitive */
+  -webkit-font-smoothing: antialiased; /* Improves font rendering on WebKit */
+  -moz-osx-font-smoothing: grayscale;  /* Improves font rendering on Firefox */
+  text-size-adjust: 100%; /* Prevent font scaling in landscape while allowing user zoom */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit; /* Apply box-sizing to all elements */
+}
+
+/* Remove default margins from common block elements */
+h1, h2, h3, h4, h5, h6, 
+p, ul, ol, li, 
+figure, figcaption, blockquote, 
+dl, dd {
+  margin: 0;
+}
+
+/* Apply base styles to the body */
+body {
+  margin: 0; /* Remove default browser margin */
+  background-color: var(--brand-background);
+  color: var(--brand-text-main);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.6; /* Improved readability */
+  font-weight: var(--font-weight-normal);
+}
+
+/* Typography Base Styles */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  color: var(--brand-text-main);
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+h5 { font-size: var(--font-size-base); }
+h6 { font-size: var(--font-size-sm); }
+
+/* Link Styles */
+a {
+  color: var(--brand-primary);
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover,
+a:focus {
+  color: var(--brand-secondary);
+  text-decoration: underline;
+}
+
+/* Focus Styles for Accessibility */
+:focus {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* Remove focus outline for mouse users but keep for keyboard users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button Reset */
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Form Elements Base Styles */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* List Styles */
+ul, ol {
+  padding-left: var(--spacing-lg);
+}
+
+/* Image Responsiveness */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Utility Classes - Common patterns */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Loading/Spinner Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Slide-in Animation */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; /* Slightly smaller base font on mobile */
+  }
+  
+  h1 { font-size: var(--font-size-2xl); }
+  h2 { font-size: var(--font-size-xl); }
+  h3 { font-size: var(--font-size-lg); }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --brand-text-main: #000000;
+    --brand-background: #FFFFFF;
+    --brand-primary: #0000FF;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
