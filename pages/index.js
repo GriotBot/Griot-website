@@ -1,9 +1,50 @@
-// File: pages/index.js - Updated with Clean Footer (No Border Line)
+// File: pages/index.js - Updated with Clean Footer (No Border Line) - IMPROVED VERSION
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
 import EnhancedChatContainer from '../components/chat/EnhancedChatContainer';
 import ChatFooter from '../components/layout/ChatFooter';
+
+// Constants moved outside component to prevent re-declaration on every render
+const PROVERBS = [
+  "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
+  "Until the lion learns to write, every story will glorify the hunter. — African Proverb", 
+  "We are the drums, we are the dance. — Afro-Caribbean Proverb",
+  "A tree cannot stand without its roots. — Jamaican Proverb",
+  "Unity is strength, division is weakness. — Swahili Proverb",
+  "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
+  "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
+  "However long the night, the dawn will break. — African Proverb",
+  "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
+  "It takes a village to raise a child. — African Proverb"
+];
+
+const SUGGESTION_CARDS = [
+  {
+    category: "Storytelling",
+    title: "Tell me a diaspora story about resilience",
+    prompt: "Tell me a story about resilience from the African diaspora"
+  },
+  {
+    category: "Wisdom", 
+    title: "African wisdom on community building",
+    prompt: "Share some wisdom about community building from African traditions"
+  },
+  {
+    category: "Personal Growth",
+    title: "Connect with my cultural heritage", 
+    prompt: "How can I connect more with my cultural heritage?"
+  },
+  {
+    category: "History",
+    title: "The historical significance of Juneteenth",
+    prompt: "Explain the historical significance of Juneteenth"
+  }
+];
+
+// Configuration constants
+const MAX_HISTORY_LENGTH = 50; // Maximum number of messages to store in localStorage
+const CHAT_HISTORY_KEY = 'griotbot-history';
 
 export default function Home() {
   // State management
@@ -11,44 +52,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentProverb, setCurrentProverb] = useState('');
-
-  // African proverbs for rotation
-  const PROVERBS = [
-    "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-    "Until the lion learns to write, every story will glorify the hunter. — African Proverb", 
-    "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-    "A tree cannot stand without its roots. — Jamaican Proverb",
-    "Unity is strength, division is weakness. — Swahili Proverb",
-    "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
-    "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
-    "However long the night, the dawn will break. — African Proverb",
-    "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
-    "It takes a village to raise a child. — African Proverb"
-  ];
-
-  // Welcome screen suggestion cards
-  const SUGGESTION_CARDS = [
-    {
-      category: "Storytelling",
-      title: "Tell me a diaspora story about resilience",
-      prompt: "Tell me a story about resilience from the African diaspora"
-    },
-    {
-      category: "Wisdom", 
-      title: "African wisdom on community building",
-      prompt: "Share some wisdom about community building from African traditions"
-    },
-    {
-      category: "Personal Growth",
-      title: "Connect with my cultural heritage", 
-      prompt: "How can I connect more with my cultural heritage?"
-    },
-    {
-      category: "History",
-      title: "The historical significance of Juneteenth",
-      prompt: "Explain the historical significance of Juneteenth"
-    }
-  ];
 
   // Initialize component
   useEffect(() => {
@@ -63,15 +66,15 @@ export default function Home() {
   // Load chat history from localStorage
   const loadChatHistory = useCallback(() => {
     try {
-      const savedHistory = localStorage.getItem('griotbot-history');
+      const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
       if (savedHistory) {
         const parsedHistory = JSON.parse(savedHistory);
-        if (parsedHistory.length > 0) {
+        if (Array.isArray(parsedHistory) && parsedHistory.length > 0) {
           // Convert old format to new format if needed
           const formattedMessages = parsedHistory.map((msg, index) => ({
             id: msg.id || `msg-${Date.now()}-${index}`,
             role: msg.role === 'user' ? 'user' : 'assistant',
-            content: msg.content,
+            content: msg.content || '',
             timestamp: msg.timestamp || msg.time || new Date().toISOString()
           }));
           
@@ -81,23 +84,23 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
-      localStorage.removeItem('griotbot-history');
+      localStorage.removeItem(CHAT_HISTORY_KEY);
     }
   }, []);
 
   // Save chat history to localStorage
   const saveChatHistory = useCallback((messagesToSave) => {
     try {
-      // Keep only the last 50 messages to prevent localStorage bloat
-      const recentMessages = messagesToSave.slice(-50);
-      localStorage.setItem('griotbot-history', JSON.stringify(recentMessages));
+      // Keep only the most recent messages to prevent localStorage bloat
+      const recentMessages = messagesToSave.slice(-MAX_HISTORY_LENGTH);
+      localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(recentMessages));
     } catch (error) {
       console.error('Error saving chat history:', error);
     }
   }, []);
 
-  // Handle sending messages
-  const handleSendMessage = async (messageText, storytellerMode = false) => {
+  // Handle sending messages with proper dependencies
+  const handleSendMessage = useCallback(async (messageText, storytellerMode = false) => {
     if (!messageText.trim() || isLoading) return;
 
     // Hide welcome screen
@@ -142,7 +145,12 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorMessage = response.status === 429 
+          ? 'Too many requests. Please wait a moment and try again.'
+          : response.status === 500 
+          ? 'Service temporarily unavailable. Please try again.'
+          : `Unable to process your request (Error ${response.status}).`;
+        throw new Error(errorMessage);
       }
 
       // Check if response is streaming or JSON
@@ -197,13 +205,17 @@ export default function Home() {
     } catch (error) {
       console.error('Error sending message:', error);
       
-      // Show error message
+      // Show user-friendly error message
+      const errorMessage = error.message.includes('fetch') 
+        ? 'Unable to connect. Please check your internet connection and try again.'
+        : error.message || 'Something went wrong. Please try again.';
+      
       setMessages(prevMessages => 
         prevMessages.map(msg => 
           msg.id === botMessageId 
             ? { 
                 ...msg, 
-                content: `I'm sorry, I encountered an error: ${error.message}. Please try again.`, 
+                content: `I'm sorry, ${errorMessage}`, 
                 isStreaming: false 
               }
             : msg
@@ -212,26 +224,26 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [messages, isLoading, saveChatHistory]);
 
   // Handle suggestion card clicks
-  const handleSuggestionClick = (prompt) => {
+  const handleSuggestionClick = useCallback((prompt) => {
     handleSendMessage(prompt);
-  };
+  }, [handleSendMessage]);
 
-  // Handle new chat
-  const handleNewChat = () => {
+  // Handle new chat with proper dependencies
+  const handleNewChat = useCallback(() => {
     setMessages([]);
     setShowWelcome(true);
-    localStorage.removeItem('griotbot-history');
+    localStorage.removeItem(CHAT_HISTORY_KEY);
     
     // Set new random proverb
     const randomIndex = Math.floor(Math.random() * PROVERBS.length);
     setCurrentProverb(PROVERBS[randomIndex]);
-  };
+  }, []);
 
-  // Handle message regeneration
-  const handleRegenerateMessage = async (messageId) => {
+  // Handle message regeneration with proper dependencies
+  const handleRegenerateMessage = useCallback(async (messageId) => {
     const messageIndex = messages.findIndex(msg => msg.id === messageId);
     if (messageIndex === -1 || messageIndex === 0) return;
 
@@ -245,10 +257,10 @@ export default function Home() {
     
     // Regenerate response
     await handleSendMessage(userMessage.content, false);
-  };
+  }, [messages, handleSendMessage]);
 
   // Handle message feedback
-  const handleMessageFeedback = (messageId, feedbackType) => {
+  const handleMessageFeedback = useCallback((messageId, feedbackType) => {
     console.log(`Feedback for message ${messageId}: ${feedbackType}`);
     
     // Optional: Send to analytics API in the future
@@ -257,10 +269,15 @@ export default function Home() {
     fetch('/api/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messageId, feedbackType, timestamp: new Date().toISOString() })
+      body: JSON.stringify({ 
+        messageId, 
+        feedbackType, 
+        timestamp: new Date().toISOString(),
+        sessionId: sessionStorage.getItem('session-id') // If you implement sessions
+      })
     });
     */
-  };
+  }, []);
 
   return (
     <>
@@ -268,6 +285,10 @@ export default function Home() {
         <title>GriotBot - Your Digital Griot</title>
         <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="keywords" content="griot, African culture, AI assistant, cultural wisdom, storytelling" />
+        <meta property="og:title" content="GriotBot - Your Digital Griot" />
+        <meta property="og:description" content="AI-powered digital griot providing culturally grounded wisdom and knowledge" />
+        <meta property="og:type" content="website" />
       </Head>
 
       <StandardLayout
@@ -277,28 +298,37 @@ export default function Home() {
       >
         <div className="main-content">
           {showWelcome && (
-            <div className="welcome-container">
-              <h1 className="welcome-title">Welcome to GriotBot</h1>
+            <div className="welcome-container" role="main" aria-labelledby="welcome-title">
+              <h1 id="welcome-title" className="welcome-title">Welcome to GriotBot</h1>
               <p className="welcome-subtitle">
                 Your AI companion for culturally rich conversations and wisdom
               </p>
               
-              <div className="quote-container">
-                A people without the knowledge of their past history,<br/>
-                origin and culture is like a tree without roots.
-                <span className="quote-attribution">— Marcus Mosiah Garvey</span>
-              </div>
+              <blockquote className="quote-container" cite="Marcus Garvey">
+                <p>
+                  A people without the knowledge of their past history,<br/>
+                  origin and culture is like a tree without roots.
+                </p>
+                <cite className="quote-attribution">— Marcus Mosiah Garvey</cite>
+              </blockquote>
               
-              <div className="suggestion-cards">
+              <div 
+                className="suggestion-cards"
+                role="region"
+                aria-label="Conversation starters"
+              >
                 {SUGGESTION_CARDS.map((card, index) => (
-                  <div 
-                    key={index}
+                  <button 
+                    key={`suggestion-${index}`}
                     className="suggestion-card"
                     onClick={() => handleSuggestionClick(card.prompt)}
+                    aria-label={`Start conversation about: ${card.title}`}
                   >
-                    <div className="suggestion-category">{card.category}</div>
+                    <div className="suggestion-category" aria-hidden="true">
+                      {card.category}
+                    </div>
                     <h3 className="suggestion-title">{card.title}</h3>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -364,13 +394,19 @@ export default function Home() {
           margin-bottom: 2.5rem;
           max-width: 600px;
           padding: 0 1rem;
+          border: none;
+          background: transparent;
+        }
+
+        .quote-container p {
+          margin: 0 0 1rem 0;
         }
 
         .quote-attribution {
           display: block;
           font-weight: 500;
-          margin-top: 1rem;
           font-size: 1rem;
+          opacity: 0.9;
         }
 
         .suggestion-cards {
@@ -389,11 +425,21 @@ export default function Home() {
           cursor: pointer;
           transition: all 0.3s ease;
           border: 1px solid var(--input-border, rgba(75, 46, 42, 0.2));
+          text-align: left;
+          width: 100%;
+          font-family: inherit;
         }
 
-        .suggestion-card:hover {
+        .suggestion-card:hover,
+        .suggestion-card:focus {
           transform: translateY(-4px);
           box-shadow: 0 8px 30px var(--shadow-color, rgba(75, 46, 42, 0.2));
+          outline: 2px solid var(--accent-color, #d7722c);
+          outline-offset: 2px;
+        }
+
+        .suggestion-card:focus {
+          outline-style: solid;
         }
 
         .suggestion-category {
