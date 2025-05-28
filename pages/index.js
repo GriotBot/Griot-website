@@ -128,7 +128,7 @@ export default function Home() {
 
     setMessages(prev => [...prev, initialBotMessage]);
 
-    try {
+    try {  
       // Make API call
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -147,11 +147,11 @@ export default function Home() {
 
       // Check if response is streaming or JSON
       const contentType = response.headers.get('content-type');
+      let accumulatedContent = '';
       
       if (contentType && contentType.includes('text/plain')) {
         // Handle streaming response
         const reader = response.body.getReader();
-        let accumulatedContent = '';
 
         try {
           while (true) {
@@ -176,11 +176,9 @@ export default function Home() {
       } else {
         // Handle JSON response (fallback)
         const data = await response.json();
-        const botResponse = data.choices?.[0]?.message?.content || 
+        accumulatedContent = data.choices?.[0]?.message?.content || 
                           data.choices?.[0]?.text || 
                           'I apologize, but I seem to be having trouble processing your request.';
-        
-        accumulatedContent = botResponse;
       }
 
       // Finalize the bot message
@@ -203,7 +201,11 @@ export default function Home() {
       setMessages(prevMessages => 
         prevMessages.map(msg => 
           msg.id === botMessageId 
-            ? { ...msg, content: `I'm sorry, I encountered an error: ${error.message}. Please try again.`, isStreaming: false }
+            ? { 
+                ...msg, 
+                content: `I'm sorry, I encountered an error: ${error.message}. Please try again.`, 
+                isStreaming: false 
+              }
             : msg
         )
       );
@@ -228,7 +230,7 @@ export default function Home() {
     setCurrentProverb(PROVERBS[randomIndex]);
   };
 
-  // Handle message regeneration
+  // NEW: Handle message regeneration
   const handleRegenerateMessage = async (messageId) => {
     const messageIndex = messages.findIndex(msg => msg.id === messageId);
     if (messageIndex === -1 || messageIndex === 0) return;
@@ -245,10 +247,19 @@ export default function Home() {
     await handleSendMessage(userMessage.content, false);
   };
 
-  // Handle message feedback
+  // NEW: Handle message feedback
   const handleMessageFeedback = (messageId, feedbackType) => {
     console.log(`Feedback for message ${messageId}: ${feedbackType}`);
-    // In a real app, you'd send this to analytics or a feedback API
+    
+    // Optional: Send to analytics API in the future
+    // You could add an API call here to track user feedback
+    /*
+    fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId, feedbackType, timestamp: new Date().toISOString() })
+    });
+    */
   };
 
   return (
@@ -294,6 +305,7 @@ export default function Home() {
             </div>
           )}
 
+          {/* ENHANCED: Replace your current chat display with this */}
           <EnhancedChatContainer
             messages={messages}
             isLoading={isLoading}
