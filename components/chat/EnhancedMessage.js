@@ -40,7 +40,7 @@ export default function EnhancedMessage({ message, onCopy, onRegenerate, onFeedb
     // Detect and enhance proverbs (text in quotes)
     parsed = parsed.replace(
       /"([^"]+)"/g, 
-      '<div class="message-proverb">"$1"</div>'
+      '<div class="message-proverb">$1</div>'
     );
     
     // Detect lists (lines starting with - or *)
@@ -151,7 +151,15 @@ export default function EnhancedMessage({ message, onCopy, onRegenerate, onFeedb
       <div className="message bot-message">
         <div className="message-header">
           <div className="bot-avatar">
-            <span className="bot-icon">🌿</span>
+            <img 
+              src="/images/logo-light.svg" 
+              alt="GriotBot"
+              className="bot-logo"
+              onError={(e) => {
+                // Fallback to PNG if SVG fails
+                e.target.src = "/images/logo-light.png";
+              }}
+            />
           </div>
           <div className="bot-identity">
             <span className="bot-name">GriotBot</span>
@@ -242,6 +250,7 @@ export default function EnhancedMessage({ message, onCopy, onRegenerate, onFeedb
           justify-content: center;
           box-shadow: 0 2px 8px rgba(215, 119, 44, 0.3);
           position: relative;
+          padding: 8px;
         }
         
         .bot-avatar::before {
@@ -253,9 +262,11 @@ export default function EnhancedMessage({ message, onCopy, onRegenerate, onFeedb
           z-index: -1;
         }
         
-        .bot-icon {
-          font-size: 1.25rem;
-          filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+        .bot-logo {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: brightness(0) invert(1);
         }
         
         .bot-identity {
