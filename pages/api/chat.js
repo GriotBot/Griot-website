@@ -1,67 +1,108 @@
-// File: /pages/api/chat.js
+// File: /pages/api/chat.js - Fixed version for Claude Haiku
 import { NextResponse } from 'next/server';
 
 /**
  * GriotBot Chat API handler with optimized system prompt
- * Connects to OpenRouter for culturally grounded AI responses
+ * Fixed for anthropic/claude-3-haiku:beta model
  */
 export const config = {
-  runtime: 'edge', // Use Edge runtime for better performance
+  runtime: 'edge',
 };
 
-// OpenRouter model configuration  
-const MODEL = 'openai/gpt-3.5-turbo';
-const MAX_PROMPT_LENGTH = 5000; // Character limit for prompts
+// Use your existing working model
+const MODEL = 'anthropic/claude-3-haiku:beta';
+const MAX_PROMPT_LENGTH = 5000;
 
 export default async function handler(req) {
-  try {
-    // Only accept POST requests
-    if (req.method !== 'POST') {
-      return new NextResponse(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { status: 405, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+  // CORS headers
+  const allowedOrigin = process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL || '*'
+    : '*';
 
-    // Parse the request body
+  const corsHeaders = {
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'OPTIONS,POST',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return new NextResponse(null, { status: 200, headers: corsHeaders });
+  }
+
+  // Only allow POST method
+  if (req.method !== 'POST') {
+    return new NextResponse(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        status: 405, 
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        } 
+      }
+    );
+  }
+
+  try {
+    // Parse request body
     const body = await req.json();
     const { prompt, storytellerMode = false } = body;
 
-    if (!prompt || typeof prompt !== 'string') {
+    // Validate input
+    if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       return new NextResponse(
-        JSON.stringify({ error: 'Prompt is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Prompt is required and must be a non-empty string' }),
+        { 
+          status: 400, 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
       );
     }
 
-    // Check prompt length limit
     if (prompt.length > MAX_PROMPT_LENGTH) {
       return new NextResponse(
         JSON.stringify({ error: `Prompt exceeds maximum length of ${MAX_PROMPT_LENGTH} characters` }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 400, 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
       );
     }
 
-    // Get API key from environment variables
+    // Get API key
     const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
+    if (!apiKey || !apiKey.trim()) {
+      console.error('Missing or empty OPENROUTER_API_KEY');
       return new NextResponse(
         JSON.stringify({ error: 'API key not configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 500, 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
       );
     }
 
     // Create optimized system instruction
     const systemInstruction = createSystemInstruction(storytellerMode);
 
-    // Log request details for monitoring
     console.log(`📡 GriotBot Request → model: ${MODEL}, promptLength: ${prompt.length}, storyteller: ${storytellerMode}`);
 
-    // Prepare the request to OpenRouter
+    // Make API call to OpenRouter
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${apiKey.trim()}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000',
         'X-Title': 'GriotBot'
@@ -70,79 +111,121 @@ export default async function handler(req) {
         model: MODEL,
         messages: [
           { role: 'system', content: systemInstruction },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt.trim() }
         ],
-        temperature: storytellerMode ? 0.8 : 0.7, // Higher creativity for storytelling
-        max_tokens: storytellerMode ? 800 : 600, // More tokens for storytelling
-        // Anti-hallucination parameters
+        temperature: storytellerMode ? 0.8 : 0.7,
+        max_tokens: storytellerMode ? 800 : 600,
         frequency_penalty: 0.1,
-        presence_penalty: 0.1,
+        presence_penalty: 0.1
       })
     });
 
-    // Check for successful response
+    // Check if OpenRouter response is ok
     if (!openRouterResponse.ok) {
-      const errorData = await openRouterResponse.json().catch(() => ({}));
-      console.error('OpenRouter API error:', errorData);
+      const errorText = await openRouterResponse.text();
+      console.error('OpenRouter API error:', {
+        status: openRouterResponse.status,
+        statusText: openRouterResponse.statusText,
+        body: errorText
+      });
       
       const errorMessage = openRouterResponse.status === 429 
         ? 'Rate limit exceeded. Please try again later.'
         : openRouterResponse.status === 401
         ? 'Authentication failed'
-        : `OpenRouter error: ${openRouterResponse.status}`;
+        : openRouterResponse.status === 402
+        ? 'Insufficient credits'
+        : `API error: ${openRouterResponse.status}`;
         
       return new NextResponse(
         JSON.stringify({ error: errorMessage }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 502, 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
       );
     }
 
-    // Format and return the response
+    // Parse OpenRouter response
     const data = await openRouterResponse.json();
-    const messageContent = data.choices?.[0]?.message?.content;
+    console.log('OpenRouter raw response:', JSON.stringify(data, null, 2));
 
-    if (!messageContent) {
-      console.warn('No message content in OpenRouter response:', data);
+    // Extract message content - handle multiple possible response formats
+    let messageContent = null;
+    
+    if (data.choices && data.choices.length > 0) {
+      const choice = data.choices[0];
+      
+      // Try different possible response structures
+      messageContent = choice.message?.content || 
+                      choice.text || 
+                      choice.delta?.content ||
+                      null;
+    }
+
+    if (!messageContent || messageContent.trim().length === 0) {
+      console.error('No valid message content found in response:', data);
       return new NextResponse(
         JSON.stringify({ error: 'No response content received from AI service' }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } }
+        { 
+          status: 502, 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          } 
+        }
       );
     }
 
-    // Log successful response
     console.log(`✅ GriotBot Response → length: ${messageContent.length} chars`);
 
+    // Return successful response in expected format
     return new NextResponse(
       JSON.stringify({
         choices: [
           {
             message: {
-              content: messageContent
+              content: messageContent.trim()
             }
           }
         ]
       }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+      { 
+        status: 200, 
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        } 
+      }
     );
 
   } catch (error) {
     console.error('Error in GriotBot chat API:', error);
     return new NextResponse(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      }),
+      { 
+        status: 500, 
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        } 
+      }
     );
   }
 }
 
 /**
  * Creates the optimized system instruction for GriotBot
- * @param {boolean} storytellerMode - Whether to enable storyteller mode
- * @returns {string} Complete system instruction
  */
 function createSystemInstruction(storytellerMode) {
   const currentDate = new Date().toDateString();
   
-  // Base optimized GriotBot system prompt
   const basePrompt = `You are GriotBot, a wise digital griot rooted in African diaspora traditions. You provide culturally grounded guidance with the warmth of a mentor and the knowledge of a historian.
 
 CORE IDENTITY:
@@ -170,7 +253,6 @@ Respond with the dignity and wisdom befitting the griot tradition—you are a ke
 
 Current date: ${currentDate}`;
 
-  // Add storyteller mode enhancement if activated
   if (storytellerMode) {
     return basePrompt + `
 
@@ -179,52 +261,4 @@ Frame your response as a narrative drawing from African diaspora oral traditions
   }
 
   return basePrompt;
-}
-
-/**
- * Enhanced anti-hallucination pattern detection
- * Identifies high-risk queries that require extra caution
- * @param {string} prompt - User's question
- * @returns {object} Risk assessment and suggested parameters
- */
-function assessHistoricalRisk(prompt) {
-  const highRiskPatterns = [
-    /what.*said.*exactly/i,
-    /quote.*from/i,
-    /when.*born.*died/i,
-    /\d{4}.*happened/i,
-    /how many.*died/i,
-    /precise.*date/i
-  ];
-  
-  const mediumRiskPatterns = [
-    /when.*founded/i,
-    /who.*first/i,
-    /what year/i,
-    /how long/i,
-    /statistics.*about/i
-  ];
-
-  const isHighRisk = highRiskPatterns.some(pattern => pattern.test(prompt));
-  const isMediumRisk = mediumRiskPatterns.some(pattern => pattern.test(prompt));
-
-  if (isHighRisk) {
-    return {
-      riskLevel: 'high',
-      temperature: 0.3,
-      additionalInstruction: 'Be especially careful about exact quotes, specific dates, and precise statistics. Use qualifying language when appropriate.'
-    };
-  } else if (isMediumRisk) {
-    return {
-      riskLevel: 'medium', 
-      temperature: 0.5,
-      additionalInstruction: 'Provide factual information with appropriate context and acknowledge any uncertainty.'
-    };
-  }
-
-  return {
-    riskLevel: 'low',
-    temperature: 0.7,
-    additionalInstruction: null
-  };
 }
