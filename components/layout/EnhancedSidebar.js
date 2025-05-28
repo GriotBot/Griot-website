@@ -1,6 +1,4 @@
-// File: components/layout/EnhancedSidebar.js - HARDCODED CSS VERSION
-// This eliminates CSS variable issues
-
+// File: components/layout/EnhancedSidebar.js - POLISHED FINAL VERSION
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { 
@@ -27,9 +25,6 @@ export default function EnhancedSidebar({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isVisible, onToggle]);
 
-  // Debug: Log when component renders
-  console.log('🔥 EnhancedSidebar render - isVisible:', isVisible);
-
   return (
     <>
       {/* Overlay */}
@@ -48,62 +43,50 @@ export default function EnhancedSidebar({
         />
       )}
 
-      {/* Sidebar - HARDCODED STYLES */}
+      {/* Sidebar - POLISHED VERSION */}
       <nav 
         style={{
           position: 'fixed',
-          top: 0,
+          top: '72px', // ← FIXED: Start 72px from top (below header)
           left: 0,
-          height: '100%',
+          height: 'calc(100% - 72px)', // ← FIXED: Height minus header
           width: '189px',
-          background: 'rgba(75, 46, 42, 0.97)', // Hardcoded instead of CSS var
-          color: '#f8f5f0', // Hardcoded instead of CSS var
+          background: 'rgba(75, 46, 42, 0.97)', // Hardcoded brown background
+          color: '#f8f5f0', // Hardcoded light text
           padding: '1rem',
           transform: isVisible ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.3s ease-in-out',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          boxShadow: '4px 0 20px rgba(75, 46, 42, 0.3)', // Hardcoded shadow
-          zIndex: 1000, // Higher than overlay
+          boxShadow: '4px 0 20px rgba(75, 46, 42, 0.3)',
+          zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
-          fontSize: '0.85rem',
-          boxSizing: 'border-box',
-          // DEBUG: Add bright border to see if sidebar is there
-          border: '3px solid red' // REMOVE THIS AFTER TESTING
+          fontSize: '1.06rem', // ← BIGGER: 25% increase from 0.85rem
+          boxSizing: 'border-box'
+          // ← REMOVED: Red debug border
         }}
         aria-hidden={!isVisible}
         aria-label="Main navigation"
       >
-        {/* Header with Close Button */}
+        {/* Header with Close Button - SIMPLIFIED */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end', // ← CHANGED: Only close button on right
           paddingBottom: '0.75rem',
           borderBottom: '1px solid rgba(255,255,255,0.2)',
           marginBottom: '0.5rem'
         }}>
-          <h2 style={{
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            fontFamily: 'Lora, serif', // Hardcoded font
-            fontSize: '1rem',
-            color: '#f8f5f0' // Hardcoded color
-          }}>
-            <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🌿</span>
-            GriotBot
-          </h2>
+          {/* ← REMOVED: Leaf emoji and GriotBot text */}
           
           <button
             onClick={onToggle}
             style={{
               background: 'none',
               border: 'none',
-              color: '#f8f5f0', // Hardcoded color
+              color: '#f8f5f0',
               cursor: 'pointer',
               padding: '0.3rem',
               borderRadius: '4px',
@@ -113,7 +96,7 @@ export default function EnhancedSidebar({
             }}
             aria-label="Close sidebar"
           >
-            <X size={16} />
+            <X size={20} /> {/* ← BIGGER: 25% increase from 16px */}
           </button>
         </div>
 
@@ -122,22 +105,22 @@ export default function EnhancedSidebar({
           <a
             onClick={onToggle}
             style={{
-              background: '#d7722c', // Hardcoded accent color
+              background: '#d7722c', // Orange accent color
               color: 'white',
-              padding: '0.6rem 0.8rem',
+              padding: '0.75rem 1rem', // ← BIGGER: 25% increase in padding
               borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.4rem',
-              fontSize: '0.8rem',
+              gap: '0.5rem', // ← BIGGER: 25% increase from 0.4rem
+              fontSize: '1rem', // ← BIGGER: 25% increase from 0.8rem
               fontWeight: '500',
               textDecoration: 'none',
               transition: 'background-color 0.2s',
               marginBottom: '0.5rem'
             }}
           >
-            <Home size={14} />
+            <Home size={18} /> {/* ← BIGGER: 25% increase from 14px */}
             Return to Chat
           </a>
         </Link>
@@ -145,13 +128,13 @@ export default function EnhancedSidebar({
         {/* Conversations Section */}
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{
-            fontSize: '0.75rem',
+            fontSize: '0.94rem', // ← BIGGER: 25% increase from 0.75rem
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            marginBottom: '0.4rem',
+            marginBottom: '0.5rem', // ← BIGGER: 25% increase from 0.4rem
             opacity: '0.8',
             fontWeight: '600',
-            color: '#f8f5f0' // Hardcoded color
+            color: '#f8f5f0'
           }}>
             Conversations
           </h3>
@@ -162,23 +145,25 @@ export default function EnhancedSidebar({
               onToggle();
             }}
             style={{
-              color: '#f8f5f0', // Hardcoded color
+              color: '#f8f5f0',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              padding: '0.4rem 0.6rem',
+              padding: '0.5rem 0.75rem', // ← BIGGER: 25% increase from 0.4rem 0.6rem
               borderRadius: '4px',
               transition: 'background-color 0.2s',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem',
+              gap: '0.5rem', // ← BIGGER: 25% increase from 0.4rem
               width: '100%',
               textAlign: 'left',
-              marginBottom: '0.3rem',
-              fontSize: '0.8rem'
+              marginBottom: '0.375rem', // ← BIGGER: 25% increase from 0.3rem
+              fontSize: '1rem' // ← BIGGER: 25% increase from 0.8rem
             }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
           >
-            <MessageCircle size={14} />
+            <MessageCircle size={18} /> {/* ← BIGGER: 25% increase from 14px */}
             New Chat
           </button>
           
@@ -186,18 +171,20 @@ export default function EnhancedSidebar({
             <a
               onClick={onToggle}
               style={{
-                color: '#f8f5f0', // Hardcoded color
+                color: '#f8f5f0',
                 textDecoration: 'none',
-                padding: '0.4rem 0.6rem',
+                padding: '0.5rem 0.75rem', // ← BIGGER: 25% increase
                 borderRadius: '4px',
                 transition: 'background-color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
-                fontSize: '0.8rem'
+                gap: '0.5rem', // ← BIGGER: 25% increase
+                fontSize: '1rem' // ← BIGGER: 25% increase
               }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
             >
-              <Archive size={14} />
+              <Archive size={18} /> {/* ← BIGGER: 25% increase */}
               Saved Chats
             </a>
           </Link>
@@ -206,46 +193,55 @@ export default function EnhancedSidebar({
         {/* Explore Section */}
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{
-            fontSize: '0.75rem',
+            fontSize: '0.94rem', // ← BIGGER: 25% increase
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            marginBottom: '0.4rem',
+            marginBottom: '0.5rem', // ← BIGGER: 25% increase
             opacity: '0.8',
             fontWeight: '600',
-            color: '#f8f5f0' // Hardcoded color
+            color: '#f8f5f0'
           }}>
             Explore
           </h3>
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              marginBottom: '0.3rem', fontSize: '0.8rem'
-            }}>
-              <Users size={14} />
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.5rem 0.75rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              marginBottom: '0.375rem', fontSize: '1rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <Users size={18} />
               Historical Figures
             </a>
           </Link>
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              marginBottom: '0.3rem', fontSize: '0.8rem'
-            }}>
-              <BookOpen size={14} />
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.5rem 0.75rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              marginBottom: '0.375rem', fontSize: '1rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <BookOpen size={18} />
               Cultural Stories
             </a>
           </Link>
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              fontSize: '0.8rem'
-            }}>
-              <MapPin size={14} />
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.5rem 0.75rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              fontSize: '1rem'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <MapPin size={18} />
               Diaspora Community
             </a>
           </Link>
@@ -254,37 +250,43 @@ export default function EnhancedSidebar({
         {/* About Section */}
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{
-            fontSize: '0.75rem',
+            fontSize: '0.94rem', // ← BIGGER: 25% increase
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            marginBottom: '0.4rem',
+            marginBottom: '0.5rem', // ← BIGGER: 25% increase
             opacity: '0.8',
             fontWeight: '600',
-            color: '#f8f5f0' // Hardcoded color
+            color: '#f8f5f0'
           }}>
             About
           </h3>
           
           <Link href="/about">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              marginBottom: '0.3rem', fontSize: '0.8rem',
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.5rem 0.75rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              marginBottom: '0.375rem', fontSize: '1rem',
               background: currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent'
-            }}>
-              <Info size={14} />
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent'}
+            >
+              <Info size={18} />
               About GriotBot
             </a>
           </Link>
           
           <Link href="/feedback">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              fontSize: '0.8rem',
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.5rem 0.75rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.5rem',
+              fontSize: '1rem',
               background: currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent'
-            }}>
-              <MessageSquare size={14} />
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent'}
+            >
+              <MessageSquare size={18} />
               Share Feedback
             </a>
           </Link>
@@ -293,13 +295,13 @@ export default function EnhancedSidebar({
         {/* Footer */}
         <div style={{
           marginTop: 'auto',
-          fontSize: '0.7rem',
+          fontSize: '0.875rem', // ← BIGGER: 25% increase from 0.7rem
           opacity: '0.7',
           textAlign: 'center',
           fontStyle: 'italic',
-          fontFamily: 'Lora, serif', // Hardcoded font
+          fontFamily: 'Lora, serif',
           lineHeight: '1.3',
-          color: '#f8f5f0' // Hardcoded color
+          color: '#f8f5f0'
         }}>
           "Preserving our stories,<br/>empowering our future."
         </div>
