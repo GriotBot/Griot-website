@@ -2,13 +2,12 @@
 import { useState, useEffect } from 'react';
 import { ArrowUpCircle } from 'react-feather';
 
-export default function ChatFooter({ onSendMessage, disabled = false }) {
+export default function ChatFooter({ onSendMessage, disabled }) {
   const [message, setMessage] = useState('');
-  const [storytellerMode, setStorytellerMode] = useState(false);
+  const [storyMode, setStoryMode] = useState(false);
   const [currentProverb, setCurrentProverb] = useState('');
-  const [inputHeight, setInputHeight] = useState(55); // Track input height for footer expansion
 
-  // Proverbs array
+  // African proverbs for rotation
   const PROVERBS = [
     "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
     "Until the lion learns to write, every story will glorify the hunter. — African Proverb", 
@@ -17,279 +16,328 @@ export default function ChatFooter({ onSendMessage, disabled = false }) {
     "Unity is strength, division is weakness. — Swahili Proverb",
     "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
     "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
-    "A bird will always use another bird's feathers to feather its nest. — Ashanti Proverb",
-    "You must act as if it is impossible to fail. — Yoruba Wisdom",
-    "The child who is not embraced by the village will burn it down to feel its warmth. — West African Proverb",
     "However long the night, the dawn will break. — African Proverb",
     "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
-    "It takes a village to raise a child. — African Proverb",
-    "The fool speaks, the wise listen. — Ethiopian Proverb",
-    "When the music changes, so does the dance. — Haitian Proverb"
+    "It takes a village to raise a child. — African Proverb"
   ];
 
-  // Initialize proverb and storyteller mode
+  // Set random proverb on mount
   useEffect(() => {
-    // Set random proverb
     const randomIndex = Math.floor(Math.random() * PROVERBS.length);
     setCurrentProverb(PROVERBS[randomIndex]);
-
-    // Load storyteller mode from localStorage
-    if (typeof window !== 'undefined') {
-      const savedMode = localStorage.getItem('griotbot-storyteller-mode');
-      setStorytellerMode(savedMode === 'true');
+    
+    // Load storyteller mode preference
+    const savedStoryMode = localStorage.getItem('griotbot-storyteller-mode');
+    if (savedStoryMode !== null) {
+      setStoryMode(JSON.parse(savedStoryMode));
     }
   }, []);
 
-  // Handle form submission
+  // Save storyteller mode preference
+  useEffect(() => {
+    localStorage.setItem('griotbot-storyteller-mode', JSON.stringify(storyMode));
+  }, [storyMode]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!message.trim() || disabled) return;
-    
-    if (onSendMessage) {
-      onSendMessage(message.trim(), storytellerMode);
+    if (message.trim() && !disabled && onSendMessage) {
+      onSendMessage(message.trim(), storyMode);
+      setMessage('');
     }
-    
-    setMessage('');
-    setInputHeight(55); // Reset to single line height
-    
-    // Also reset the textarea height in the DOM
-    const textarea = e.target.querySelector('textarea');
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const adjustHeight = () => {
+    const textarea = document.getElementById('chat-input');
     if (textarea) {
-      textarea.style.height = '55px';
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
     }
   };
 
-  // Handle storyteller mode toggle
-  const handleStorytellerToggle = () => {
-    const newMode = !storytellerMode;
-    setStorytellerMode(newMode);
-    
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('griotbot-storyteller-mode', newMode.toString());
-    }
-  };
-
-  // Auto-expand textarea and adjust footer height
   const handleInputChange = (e) => {
     setMessage(e.target.value);
-    
-    // Reset height to recalculate
-    e.target.style.height = '55px'; // Always reset to single line first
-    
-    // Calculate new height based on scroll height
-    const scrollHeight = e.target.scrollHeight;
-    const maxHeight = 77; // Further reduced to show exactly 3 lines (was 85px)
-    const minHeight = 55;  // 1 line min
-    
-    // Only expand if content requires it
-    const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
-    
-    e.target.style.height = newHeight + 'px';
-    setInputHeight(newHeight);
+    adjustHeight();
   };
 
   return (
-    <footer style={{
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: `${Math.max(189, 189 + (inputHeight - 55))}px`, // Proper footer expansion calculation
-      background: 'rgb(239, 230, 223)', // Updated RGB color behind all elements
-      borderTop: '1px solid var(--input-border)',
-      padding: '1rem',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-end', // Push content to bottom, expand upward
-      gap: '0.5rem',
-      zIndex: 50,
-      transition: 'height 0.2s ease'
-    }}>
-      {/* Chat Input Form */}
-      <form onSubmit={handleSubmit} style={{ 
-        display: 'flex', 
-        gap: '0.5rem', 
-        alignItems: 'flex-end',
-        maxWidth: '55%', // Additional 15% reduction (from 70% to 55%)
-        margin: '0 auto',
-        width: '100%'
-      }}>
-        <div style={{ 
-          flex: 1, 
-          position: 'relative',
-          display: 'flex',
-          boxShadow: '0 2px 4px var(--shadow-color)',
-          borderRadius: '12px',
-          backgroundColor: 'var(--input-bg)',
-          border: '1px solid var(--input-border)',
-          overflow: 'hidden',
-          height: `${inputHeight}px`, // Set explicit height based on input
-          alignItems: 'stretch' // Make button stretch to match input height
-        }}>
-          <textarea
-            value={message}
-            onChange={handleInputChange}
-            placeholder="Ask GriotBot about Black history, culture, or personal advice..."
-            disabled={disabled}
-            rows={1} // Start with exactly 1 row
-            style={{
-              flex: 1,
-              padding: '16px 1rem', // Adjusted padding for better 1-line alignment
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              minHeight: '55px',
-              maxHeight: '77px', // Reduced to exactly 3 lines (was 85px)
-              backgroundColor: 'transparent',
-              color: 'var(--input-text)',
-              fontFamily: 'var(--body-font)',
-              fontSize: '1rem',
-              lineHeight: '1.375', // Better line height for single line
-              overflow: 'hidden' // Hide scrollbar during expansion
-            }}
-            onFocus={(e) => {
-              e.target.parentElement.style.borderColor = 'var(--accent-color)';
-              e.target.parentElement.style.boxShadow = '0 0 0 1px var(--accent-color)';
-            }}
-            onBlur={(e) => {
-              e.target.parentElement.style.borderColor = 'var(--input-border)';
-              e.target.parentElement.style.boxShadow = '0 2px 4px var(--shadow-color)';
-            }}
-          />
-          
-          <button
-            type="submit"
-            disabled={disabled || !message.trim()}
-            style={{
-              width: '55px',
-              height: '100%', // Fill the container height (which is set to inputHeight)
-              background: disabled || !message.trim() ? '#ccc' : 'var(--accent-color)',
-              color: 'white',
-              border: 'none',
-              cursor: disabled || !message.trim() ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background-color 0.3s, transform 0.2s',
-              borderRadius: '0 11px 11px 0', // Slightly smaller radius to fit perfectly
-              margin: '0', // Remove any default margins
-              padding: '0' // Remove any default padding
-            }}
-            onMouseEnter={(e) => {
-              if (!disabled && message.trim()) {
-                e.target.style.backgroundColor = 'var(--accent-hover)';
-                e.target.style.transform = 'translateY(-1px)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!disabled && message.trim()) {
-                e.target.style.backgroundColor = 'var(--accent-color)';
-                e.target.style.transform = 'translateY(0)';
-              }
-            }}
-          >
-            {disabled ? (
-              <div style={{
-                width: '20px',
-                height: '20px',
-                border: '2px solid #fff',
-                borderTop: '2px solid transparent',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }} />
-            ) : (
-              <ArrowUpCircle size={24} />
-            )}
-          </button>
-        </div>
-      </form>
+    <>
+      {/* PROVERB SECTION - No border above */}
+      <div className="proverb-section">
+        <div className="proverb-text">{currentProverb}</div>
+      </div>
 
-      {/* Form Actions - Aligned with text field edges */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        fontSize: '0.8rem',
-        color: 'var(--text-color)',
-        opacity: 0.7,
-        maxWidth: '55%', // Match the form width
-        margin: '0 auto',
-        width: '100%'
-      }}>
-        <span>Free users: 30 messages per day</span>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-            <span style={{ marginRight: '0.5rem' }}>Storyteller Mode</span>
-            <div style={{
-              position: 'relative',
-              width: '36px',
-              height: '20px',
-              backgroundColor: storytellerMode ? 'var(--accent-color)' : 'rgba(0,0,0,0.25)',
-              borderRadius: '20px',
-              transition: 'background-color 0.3s',
-              cursor: 'pointer'
-            }}
-            onClick={handleStorytellerToggle}
+      {/* FORM SECTION - No border above */}
+      <div className="form-section">
+        <form onSubmit={handleSubmit} className="chat-form">
+          <div className="input-wrapper">
+            <textarea
+              id="chat-input"
+              value={message}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask GriotBot about Black history, culture, or personal advice..."
+              disabled={disabled}
+              rows={1}
+              className="chat-input"
+            />
+            <button
+              type="submit"
+              disabled={disabled || !message.trim()}
+              className="send-button"
             >
-              <div style={{
-                position: 'absolute',
-                top: '2px',
-                left: storytellerMode ? '18px' : '2px',
-                width: '16px',
-                height: '16px',
-                backgroundColor: 'white',
-                borderRadius: '50%',
-                transition: 'left 0.3s',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-              }} />
+              <ArrowUpCircle size={24} />
+            </button>
+          </div>
+
+          <div className="form-actions">
+            <div className="form-info">
+              Free users: 30 messages per day
             </div>
-          </label>
-        </div>
+            
+            <div className="storyteller-toggle">
+              <label className="toggle-label">
+                Storyteller Mode
+                <div className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={storyMode}
+                    onChange={(e) => setStoryMode(e.target.checked)}
+                    className="toggle-input"
+                  />
+                  <span className="toggle-slider"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </form>
       </div>
 
-      {/* Proverb */}
-      <div style={{
-        fontSize: '0.9rem',
-        fontStyle: 'italic',
-        color: 'var(--wisdom-color)',
-        textAlign: 'center',
-        fontFamily: 'var(--quote-font)',
-        opacity: 0.8,
-        marginTop: 'auto'
-      }}>
-        {currentProverb}
-      </div>
-
-      {/* Copyright */}
-      <div style={{
-        fontSize: '0.8rem',
-        color: 'var(--text-color)',
-        opacity: 0.6,
-        textAlign: 'center'
-      }}>
+      {/* COPYRIGHT SECTION */}
+      <div className="copyright-section">
         © 2025 GriotBot. All rights reserved.
       </div>
 
-      {/* Spinning keyframes and responsive styles */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+      <style jsx>{`
+        /* PROVERB SECTION - No border */
+        .proverb-section {
+          width: 100%;
+          text-align: center;
+          padding: 1rem;
+          background: var(--bg-color, #f8f5f0);
         }
-        
+
+        .proverb-text {
+          font-size: 0.9rem;
+          font-style: italic;
+          color: var(--wisdom-color, #6b4226);
+          font-family: var(--quote-font, 'Lora', serif);
+          opacity: 0.8;
+          line-height: 1.4;
+        }
+
+        /* FORM SECTION - No border */
+        .form-section {
+          width: 100%;
+          background: var(--bg-color, #f8f5f0);
+          padding: 0 1rem 1rem 1rem;
+        }
+
+        .chat-form {
+          width: 100%;
+          max-width: 700px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .input-wrapper {
+          display: flex;
+          background: var(--input-bg, #ffffff);
+          border-radius: 12px;
+          box-shadow: 0 4px 12px var(--shadow-color, rgba(75, 46, 42, 0.15));
+          overflow: hidden;
+        }
+
+        .chat-input {
+          flex: 1;
+          padding: 0.9rem 1rem;
+          border: none;
+          outline: none;
+          resize: none;
+          min-height: 55px;
+          max-height: 120px;
+          font-family: var(--body-font, 'Montserrat', sans-serif);
+          font-size: 1rem;
+          line-height: 1.5;
+          background: transparent;
+          color: var(--input-text, #33302e);
+        }
+
+        .chat-input::placeholder {
+          color: var(--text-color, #33302e);
+          opacity: 0.5;
+        }
+
+        .chat-input:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .send-button {
+          width: 55px;
+          background: var(--accent-color, #d7722c);
+          color: white;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.2s;
+        }
+
+        .send-button:hover:not(:disabled) {
+          background: var(--accent-hover, #c86520);
+        }
+
+        .send-button:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        /* FORM ACTIONS - Better spacing and positioning */
+        .form-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 0.75rem;
+          padding: 0 0.25rem;
+          font-size: 0.8rem;
+        }
+
+        .form-info {
+          color: var(--text-color, #33302e);
+          opacity: 0.7;
+        }
+
+        /* STORYTELLER TOGGLE - Fixed positioning */
+        .storyteller-toggle {
+          display: flex;
+          align-items: center;
+          margin-left: auto;
+          padding-left: 1rem;
+        }
+
+        .toggle-label {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          color: var(--text-color, #33302e);
+          font-size: 0.8rem;
+          gap: 0.5rem;
+        }
+
+        .toggle-switch {
+          position: relative;
+          width: 36px;
+          height: 20px;
+          flex-shrink: 0;
+        }
+
+        .toggle-input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+          position: absolute;
+        }
+
+        .toggle-slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.25);
+          transition: 0.3s;
+          border-radius: 20px;
+        }
+
+        .toggle-slider:before {
+          position: absolute;
+          content: "";
+          height: 16px;
+          width: 16px;
+          left: 2px;
+          bottom: 2px;
+          background-color: white;
+          transition: 0.3s;
+          border-radius: 50%;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-input:checked + .toggle-slider {
+          background-color: var(--accent-color, #d7722c);
+        }
+
+        .toggle-input:checked + .toggle-slider:before {
+          transform: translateX(16px);
+        }
+
+        /* COPYRIGHT SECTION */
+        .copyright-section {
+          width: 100%;
+          text-align: center;
+          font-size: 0.8rem;
+          color: var(--text-color, #33302e);
+          opacity: 0.6;
+          padding: 0.5rem;
+          background: var(--bg-color, #f8f5f0);
+        }
+
+        /* MOBILE RESPONSIVE */
         @media (max-width: 768px) {
-          form[style*="maxWidth: '55%'"], div[style*="maxWidth: '55%'"] {
-            max-width: 75% !important;
+          .form-section {
+            padding: 0 0.75rem 0.75rem 0.75rem;
+          }
+
+          .form-actions {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+          }
+
+          .storyteller-toggle {
+            margin-left: 0;
+            padding-left: 0;
+          }
+
+          .proverb-text {
+            font-size: 0.8rem;
           }
         }
-        
+
         @media (max-width: 480px) {
-          form[style*="maxWidth: '55%'"], div[style*="maxWidth: '55%'"] {
-            max-width: 85% !important;
+          .chat-input {
+            padding: 0.75rem;
+            font-size: 0.9rem;
+          }
+
+          .send-button {
+            width: 45px;
+          }
+
+          .proverb-text {
+            font-size: 0.75rem;
           }
         }
-      `}} />
-    </footer>
+      `}</style>
+    </>
   );
 }
