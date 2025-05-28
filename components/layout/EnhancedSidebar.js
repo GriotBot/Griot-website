@@ -1,5 +1,5 @@
-// File: components/layout/EnhancedSidebar.js - DIRECT FIX
-// Just replace your current EnhancedSidebar.js with this exact code
+// File: components/layout/EnhancedSidebar.js - HARDCODED CSS VERSION
+// This eliminates CSS variable issues
 
 import { useEffect } from 'react';
 import Link from 'next/link';
@@ -27,6 +27,9 @@ export default function EnhancedSidebar({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isVisible, onToggle]);
 
+  // Debug: Log when component renders
+  console.log('🔥 EnhancedSidebar render - isVisible:', isVisible);
+
   return (
     <>
       {/* Overlay */}
@@ -45,7 +48,7 @@ export default function EnhancedSidebar({
         />
       )}
 
-      {/* Sidebar - FIXED TRANSFORM */}
+      {/* Sidebar - HARDCODED STYLES */}
       <nav 
         style={{
           position: 'fixed',
@@ -53,20 +56,22 @@ export default function EnhancedSidebar({
           left: 0,
           height: '100%',
           width: '189px',
-          background: 'var(--sidebar-bg)',
-          color: 'var(--sidebar-text)',
+          background: 'rgba(75, 46, 42, 0.97)', // Hardcoded instead of CSS var
+          color: '#f8f5f0', // Hardcoded instead of CSS var
           padding: '1rem',
-          transform: isVisible ? 'translateX(0)' : 'translateX(-100%)', // ← SIMPLE LOGIC
+          transform: isVisible ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.3s ease-in-out',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          boxShadow: '4px 0 20px var(--shadow-color)',
-          zIndex: 1000,
+          boxShadow: '4px 0 20px rgba(75, 46, 42, 0.3)', // Hardcoded shadow
+          zIndex: 1000, // Higher than overlay
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
           fontSize: '0.85rem',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          // DEBUG: Add bright border to see if sidebar is there
+          border: '3px solid red' // REMOVE THIS AFTER TESTING
         }}
         aria-hidden={!isVisible}
         aria-label="Main navigation"
@@ -85,8 +90,9 @@ export default function EnhancedSidebar({
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',
-            fontFamily: 'var(--heading-font)',
-            fontSize: '1rem'
+            fontFamily: 'Lora, serif', // Hardcoded font
+            fontSize: '1rem',
+            color: '#f8f5f0' // Hardcoded color
           }}>
             <span style={{ fontSize: '1.2rem' }} aria-hidden="true">🌿</span>
             GriotBot
@@ -97,7 +103,7 @@ export default function EnhancedSidebar({
             style={{
               background: 'none',
               border: 'none',
-              color: 'var(--sidebar-text)',
+              color: '#f8f5f0', // Hardcoded color
               cursor: 'pointer',
               padding: '0.3rem',
               borderRadius: '4px',
@@ -114,9 +120,9 @@ export default function EnhancedSidebar({
         {/* Return to Chat Button */}
         <Link href="/">
           <a
-            onClick={onToggle} // Close sidebar when clicked
+            onClick={onToggle}
             style={{
-              background: 'var(--accent-color)',
+              background: '#d7722c', // Hardcoded accent color
               color: 'white',
               padding: '0.6rem 0.8rem',
               borderRadius: '6px',
@@ -144,7 +150,8 @@ export default function EnhancedSidebar({
             letterSpacing: '1px',
             marginBottom: '0.4rem',
             opacity: '0.8',
-            fontWeight: '600'
+            fontWeight: '600',
+            color: '#f8f5f0' // Hardcoded color
           }}>
             Conversations
           </h3>
@@ -155,7 +162,7 @@ export default function EnhancedSidebar({
               onToggle();
             }}
             style={{
-              color: 'var(--sidebar-text)',
+              color: '#f8f5f0', // Hardcoded color
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -179,7 +186,7 @@ export default function EnhancedSidebar({
             <a
               onClick={onToggle}
               style={{
-                color: 'var(--sidebar-text)',
+                color: '#f8f5f0', // Hardcoded color
                 textDecoration: 'none',
                 padding: '0.4rem 0.6rem',
                 borderRadius: '4px',
@@ -204,14 +211,15 @@ export default function EnhancedSidebar({
             letterSpacing: '1px',
             marginBottom: '0.4rem',
             opacity: '0.8',
-            fontWeight: '600'
+            fontWeight: '600',
+            color: '#f8f5f0' // Hardcoded color
           }}>
             Explore
           </h3>
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: 'var(--sidebar-text)', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
               borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
               marginBottom: '0.3rem', fontSize: '0.8rem'
             }}>
@@ -222,7 +230,7 @@ export default function EnhancedSidebar({
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: 'var(--sidebar-text)', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
               borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
               marginBottom: '0.3rem', fontSize: '0.8rem'
             }}>
@@ -233,7 +241,7 @@ export default function EnhancedSidebar({
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: 'var(--sidebar-text)', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
               borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
               fontSize: '0.8rem'
             }}>
@@ -251,14 +259,15 @@ export default function EnhancedSidebar({
             letterSpacing: '1px',
             marginBottom: '0.4rem',
             opacity: '0.8',
-            fontWeight: '600'
+            fontWeight: '600',
+            color: '#f8f5f0' // Hardcoded color
           }}>
             About
           </h3>
           
           <Link href="/about">
             <a onClick={onToggle} style={{
-              color: 'var(--sidebar-text)', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
               borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
               marginBottom: '0.3rem', fontSize: '0.8rem',
               background: currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent'
@@ -270,7 +279,7 @@ export default function EnhancedSidebar({
           
           <Link href="/feedback">
             <a onClick={onToggle} style={{
-              color: 'var(--sidebar-text)', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
               borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
               fontSize: '0.8rem',
               background: currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent'
@@ -288,8 +297,9 @@ export default function EnhancedSidebar({
           opacity: '0.7',
           textAlign: 'center',
           fontStyle: 'italic',
-          fontFamily: 'var(--quote-font)',
-          lineHeight: '1.3'
+          fontFamily: 'Lora, serif', // Hardcoded font
+          lineHeight: '1.3',
+          color: '#f8f5f0' // Hardcoded color
         }}>
           "Preserving our stories,<br/>empowering our future."
         </div>
