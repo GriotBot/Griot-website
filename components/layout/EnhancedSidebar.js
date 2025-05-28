@@ -63,22 +63,48 @@ export default function EnhancedSidebar({
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
-          fontSize: '0.85rem', // ← REDUCED: 20% smaller from 1.06rem
+          fontSize: '0.94rem', // ← INCREASED: from 0.85rem to 0.94rem
           boxSizing: 'border-box'
           // ← REMOVED: Red debug border
         }}
         aria-hidden={!isVisible}
         aria-label="Main navigation"
       >
-        {/* Header with Close Button - SIMPLIFIED */}
+        {/* Header with X button next to Return to Chat */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
-          paddingBottom: '0.75rem',
-          borderBottom: '1px solid rgba(255,255,255,0.2)'
-          // ← REMOVED: marginBottom to eliminate space above Return to Chat
+          justifyContent: 'space-between',
+          marginBottom: '1rem', // Appropriate spacing instead of header line
+          marginTop: '0.5rem' // Small top margin for breathing room
         }}>
+          {/* Return to Chat Button */}
+          <Link href="/">
+            <a
+              onClick={onToggle}
+              style={{
+                background: '#d7722c',
+                color: 'white',
+                padding: '0.6rem 0.8rem',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                fontSize: '0.9rem', // ← INCREASED: 0.8rem → 0.9rem
+                fontWeight: '500',
+                textDecoration: 'none',
+                transition: 'background-color 0.2s',
+                flex: 1, // Takes most of the space
+                marginRight: '0.5rem' // Small gap between button and X
+              }}
+            >
+              <Home size={18} />
+              Return to Chat
+            </a>
+          </Link>
+
+          {/* X Close Button - Now next to Return to Chat */}
           <button
             onClick={onToggle}
             style={{
@@ -94,42 +120,17 @@ export default function EnhancedSidebar({
             }}
             aria-label="Close sidebar"
           >
-            <X size={18} /> {/* ← KEPT: 18px as requested */}
+            <X size={18} />
           </button>
         </div>
-
-        {/* Return to Chat Button */}
-        <Link href="/">
-          <a
-            onClick={onToggle}
-            style={{
-              background: '#d7722c',
-              color: 'white',
-              padding: '0.6rem 0.8rem', // ← REDUCED: 20% smaller
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.4rem', // ← REDUCED: 20% smaller
-              fontSize: '0.8rem', // ← REDUCED: 20% smaller
-              fontWeight: '500',
-              textDecoration: 'none', // ← ENSURED: No underline
-              transition: 'background-color 0.2s',
-              marginBottom: '0.5rem'
-            }}
-          >
-            <Home size={18} /> {/* ← KEPT: 18px as requested */}
-            Return to Chat
-          </a>
-        </Link>
         
         {/* Conversations Section */}
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{
-            fontSize: '0.75rem', // ← REDUCED: 20% smaller from 0.94rem
+            fontSize: '0.75rem',
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            marginBottom: '0.4rem', // ← REDUCED: 20% smaller
+            marginBottom: '0.4rem',
             opacity: '0.8',
             fontWeight: '600',
             color: '#f8f5f0'
@@ -147,22 +148,28 @@ export default function EnhancedSidebar({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              padding: '0.4rem 0.6rem', // ← REDUCED: 20% smaller
+              padding: '0.4rem 0.6rem',
               borderRadius: '4px',
               transition: 'background-color 0.2s',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem', // ← REDUCED: 20% smaller
+              gap: '0.4rem',
               width: '100%',
               textAlign: 'left',
-              marginBottom: '0.3rem', // ← REDUCED: 20% smaller
-              fontSize: '0.8rem', // ← REDUCED: 20% smaller
-              textDecoration: 'none' // ← ENSURED: No underline
+              marginBottom: '0.3rem',
+              fontSize: '1rem', // ← INCREASED: from 0.8rem to 1rem
+              textDecoration: 'none'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+            }}
           >
-            <MessageCircle size={18} /> {/* ← KEPT: 18px as requested */}
+            <MessageCircle size={18} />
             New Chat
           </button>
           
@@ -171,19 +178,25 @@ export default function EnhancedSidebar({
               onClick={onToggle}
               style={{
                 color: '#f8f5f0',
-                textDecoration: 'none', // ← ENSURED: No underline
-                padding: '0.4rem 0.6rem', // ← REDUCED: 20% smaller
+                textDecoration: 'none',
+                padding: '0.4rem 0.6rem',
                 borderRadius: '4px',
                 transition: 'background-color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem', // ← REDUCED: 20% smaller
-                fontSize: '0.8rem' // ← REDUCED: 20% smaller
+                gap: '0.4rem',
+                fontSize: '1rem' // ← INCREASED: from 0.8rem to 1rem
               }}
-              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+              }}
             >
-              <Archive size={18} /> {/* ← KEPT: 18px as requested */}
+              <Archive size={18} />
               Saved Chats
             </a>
           </Link>
@@ -192,10 +205,10 @@ export default function EnhancedSidebar({
         {/* Explore Section */}
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{
-            fontSize: '0.75rem', // ← REDUCED: 20% smaller
+            fontSize: '0.75rem',
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            marginBottom: '0.4rem', // ← REDUCED: 20% smaller
+            marginBottom: '0.4rem',
             opacity: '0.8',
             fontWeight: '600',
             color: '#f8f5f0'
@@ -205,42 +218,60 @@ export default function EnhancedSidebar({
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem', // ← REDUCED: 20% smaller
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem', // ← REDUCED: 20% smaller
-              marginBottom: '0.3rem', fontSize: '0.8rem' // ← REDUCED: 20% smaller
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              marginBottom: '0.3rem', fontSize: '1rem' // ← INCREASED: from 0.8rem to 1rem
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+            }}
             >
-              <Users size={18} /> {/* ← KEPT: 18px as requested */}
+              <Users size={18} />
               Historical Figures
             </a>
           </Link>
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem', // ← REDUCED: 20% smaller
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem', // ← REDUCED: 20% smaller
-              marginBottom: '0.3rem', fontSize: '0.8rem' // ← REDUCED: 20% smaller
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              marginBottom: '0.3rem', fontSize: '1rem' // ← INCREASED: from 0.8rem to 1rem
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+            }}
             >
-              <BookOpen size={18} /> {/* ← KEPT: 18px as requested */}
+              <BookOpen size={18} />
               Cultural Stories
             </a>
           </Link>
           
           <Link href="/comingsoon">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem', // ← REDUCED: 20% smaller
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem', // ← REDUCED: 20% smaller
-              fontSize: '0.8rem' // ← REDUCED: 20% smaller
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              fontSize: '1rem' // ← INCREASED: from 0.8rem to 1rem
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+            }}
             >
-              <MapPin size={18} /> {/* ← KEPT: 18px as requested */}
+              <MapPin size={18} />
               Diaspora Community
             </a>
           </Link>
@@ -249,10 +280,10 @@ export default function EnhancedSidebar({
         {/* About Section */}
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{
-            fontSize: '0.75rem', // ← REDUCED: 20% smaller
+            fontSize: '0.75rem',
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            marginBottom: '0.4rem', // ← REDUCED: 20% smaller
+            marginBottom: '0.4rem',
             opacity: '0.8',
             fontWeight: '600',
             color: '#f8f5f0'
@@ -262,30 +293,42 @@ export default function EnhancedSidebar({
           
           <Link href="/about">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem', // ← REDUCED: 20% smaller
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem', // ← REDUCED: 20% smaller
-              marginBottom: '0.3rem', fontSize: '0.8rem', // ← REDUCED: 20% smaller
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              marginBottom: '0.3rem', fontSize: '1rem', // ← INCREASED: from 0.8rem to 1rem
               background: currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent'}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+            }}
             >
-              <Info size={18} /> {/* ← KEPT: 18px as requested */}
+              <Info size={18} />
               About GriotBot
             </a>
           </Link>
           
           <Link href="/feedback">
             <a onClick={onToggle} style={{
-              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem', // ← REDUCED: 20% smaller
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem', // ← REDUCED: 20% smaller
-              fontSize: '0.8rem', // ← REDUCED: 20% smaller
+              color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
+              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
+              fontSize: '1rem', // ← INCREASED: from 0.8rem to 1rem
               background: currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-            onMouseOut={(e) => e.target.style.backgroundColor = currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent'}
+            onMouseOver={(e) => {
+              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+            }}
+            onMouseOut={(e) => {
+              e.target.style.backgroundColor = currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent';
+              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+            }}
             >
-              <MessageSquare size={18} /> {/* ← KEPT: 18px as requested */}
+              <MessageSquare size={18} />
               Share Feedback
             </a>
           </Link>
@@ -294,7 +337,7 @@ export default function EnhancedSidebar({
         {/* Footer */}
         <div style={{
           marginTop: 'auto',
-          fontSize: '0.7rem', // ← REDUCED: 20% smaller from 0.875rem
+          fontSize: '0.875rem', // ← INCREASED: from 0.7rem to 0.875rem
           opacity: '0.7',
           textAlign: 'center',
           fontStyle: 'italic',
