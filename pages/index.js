@@ -19,28 +19,6 @@ const PROVERBS = [
   "It takes a village to raise a child. â€” African Proverb"
 ];
 
-const SUGGESTION_CARDS = [
-  {
-    category: "Storytelling",
-    title: "Tell me a diaspora story about resilience",
-    prompt: "Tell me a story about resilience from the African diaspora"
-  },
-  {
-    category: "Wisdom", 
-    title: "African wisdom on community building",
-    prompt: "Share some wisdom about community building from African traditions"
-  },
-  {
-    category: "Personal Growth",
-    title: "Connect with my cultural heritage", 
-    prompt: "How can I connect more with my cultural heritage?"
-  },
-  {
-    category: "History",
-    title: "The historical significance of Juneteenth",
-    prompt: "Explain the historical significance of Juneteenth"
-  }
-];
 
 // Configuration constants
 const MAX_HISTORY_LENGTH = 50; // Maximum number of messages to store in localStorage
