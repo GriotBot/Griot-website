@@ -409,45 +409,23 @@ export default function Home() {
           opacity: 0.9;
         }
 
-        /* UPDATED: Horizontal scrolling suggestion cards */
+        /* UPDATED: All boxes visible horizontally */
         .suggestion-cards {
           display: flex;
-          gap: 1rem;
+          gap: 0.75rem;
           width: 100%;
           max-width: 700px;
-          overflow-x: auto;
-          overflow-y: hidden;
+          overflow: visible;
           padding: 0.5rem 0;
-          scrollbar-width: thin;
-          scrollbar-color: var(--accent-color, #d7722c) transparent;
         }
 
-        /* Webkit scrollbar styling for horizontal scroll */
-        .suggestion-cards::-webkit-scrollbar {
-          height: 6px;
-        }
-
-        .suggestion-cards::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.1);
-          border-radius: 3px;
-        }
-
-        .suggestion-cards::-webkit-scrollbar-thumb {
-          background: var(--accent-color, #d7722c);
-          border-radius: 3px;
-        }
-
-        .suggestion-cards::-webkit-scrollbar-thumb:hover {
-          background: var(--accent-hover, #c86520);
-        }
-
-        /* UPDATED: 45px high horizontal cards */
+        /* UPDATED: 45px high horizontal cards - all visible */
         .suggestion-card {
           background: var(--card-bg, #ffffff);
           height: 45px;
-          min-width: 280px;
-          max-width: 350px;
-          padding: 0 1rem;
+          flex: 1; /* Equal width distribution */
+          min-width: 0; /* Allow shrinking */
+          padding: 0 0.75rem;
           border-radius: 22.5px; /* Half of height for rounded ends */
           box-shadow: 0 2px 8px var(--shadow-color, rgba(75, 46, 42, 0.15));
           cursor: pointer;
@@ -457,25 +435,24 @@ export default function Home() {
           display: flex;
           align-items: center;
           justify-content: flex-start;
-          gap: 0.75rem;
-          flex-shrink: 0; /* Prevent cards from shrinking */
+          gap: 0.5rem;
         }
 
         .suggestion-card:hover,
         .suggestion-card:focus {
           transform: translateY(-2px);
           box-shadow: 0 4px 12px var(--shadow-color, rgba(75, 46, 42, 0.2));
+          /* Removed red outline */
+        }
+
+        .suggestion-card:focus {
           outline: 2px solid var(--accent-color, #d7722c);
           outline-offset: 2px;
         }
 
-        .suggestion-card:focus {
-          outline-style: solid;
-        }
-
-        /* UPDATED: Horizontal layout for category and title */
+        /* UPDATED: Horizontal layout for category and title - compact */
         .suggestion-category {
-          font-size: 0.7rem;
+          font-size: 0.65rem;
           text-transform: uppercase;
           letter-spacing: 0.5px;
           color: var(--accent-color, #d7722c);
@@ -486,7 +463,7 @@ export default function Home() {
 
         .suggestion-title {
           font-family: var(--heading-font, 'Lora', serif);
-          font-size: 0.9rem;
+          font-size: 0.8rem;
           font-weight: 600;
           color: var(--text-color, #33302e);
           margin: 0;
@@ -540,19 +517,18 @@ export default function Home() {
             padding: 0 0.5rem;
           }
 
-          /* Mobile: Smaller cards for better fit */
+          /* Mobile: Maintain horizontal layout with smaller text */
           .suggestion-card {
-            min-width: 240px;
-            max-width: 280px;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            padding: 0 0.6rem;
           }
 
           .suggestion-category {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
           }
 
           .suggestion-title {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
           }
         }
 
@@ -565,19 +541,18 @@ export default function Home() {
             font-size: 1rem;
           }
 
-          /* Extra small mobile: Even smaller cards */
+          /* Extra small mobile: Very compact text */
           .suggestion-card {
-            min-width: 200px;
-            max-width: 240px;
-            padding: 0 0.75rem;
+            gap: 0.3rem;
+            padding: 0 0.5rem;
           }
 
           .suggestion-category {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
           }
 
           .suggestion-title {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
           }
         }
       `}</style>
