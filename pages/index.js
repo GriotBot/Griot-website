@@ -1,4 +1,4 @@
-// File: pages/index.js - Updated with Clean Footer (No Border Line) - IMPROVED VERSION
+// File: pages/index.js - Updated with Horizontal 45px Suggestion Cards
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -409,31 +409,62 @@ export default function Home() {
           opacity: 0.9;
         }
 
+        /* UPDATED: Horizontal scrolling suggestion cards */
         .suggestion-cards {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
+          display: flex;
+          gap: 1rem;
           width: 100%;
           max-width: 700px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding: 0.5rem 0;
+          scrollbar-width: thin;
+          scrollbar-color: var(--accent-color, #d7722c) transparent;
         }
 
+        /* Webkit scrollbar styling for horizontal scroll */
+        .suggestion-cards::-webkit-scrollbar {
+          height: 6px;
+        }
+
+        .suggestion-cards::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 3px;
+        }
+
+        .suggestion-cards::-webkit-scrollbar-thumb {
+          background: var(--accent-color, #d7722c);
+          border-radius: 3px;
+        }
+
+        .suggestion-cards::-webkit-scrollbar-thumb:hover {
+          background: var(--accent-hover, #c86520);
+        }
+
+        /* UPDATED: 45px high horizontal cards */
         .suggestion-card {
           background: var(--card-bg, #ffffff);
-          padding: 1.5rem;
-          border-radius: 16px;
-          box-shadow: 0 4px 20px var(--shadow-color, rgba(75, 46, 42, 0.15));
+          height: 45px;
+          min-width: 280px;
+          max-width: 350px;
+          padding: 0 1rem;
+          border-radius: 22.5px; /* Half of height for rounded ends */
+          box-shadow: 0 2px 8px var(--shadow-color, rgba(75, 46, 42, 0.15));
           cursor: pointer;
           transition: all 0.3s ease;
           border: 1px solid var(--input-border, rgba(75, 46, 42, 0.2));
-          text-align: left;
-          width: 100%;
           font-family: inherit;
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 0.75rem;
+          flex-shrink: 0; /* Prevent cards from shrinking */
         }
 
         .suggestion-card:hover,
         .suggestion-card:focus {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 30px var(--shadow-color, rgba(75, 46, 42, 0.2));
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px var(--shadow-color, rgba(75, 46, 42, 0.2));
           outline: 2px solid var(--accent-color, #d7722c);
           outline-offset: 2px;
         }
@@ -442,22 +473,28 @@ export default function Home() {
           outline-style: solid;
         }
 
+        /* UPDATED: Horizontal layout for category and title */
         .suggestion-category {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
           text-transform: uppercase;
-          letter-spacing: 1px;
+          letter-spacing: 0.5px;
           color: var(--accent-color, #d7722c);
           font-weight: 600;
-          margin-bottom: 0.75rem;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .suggestion-title {
           font-family: var(--heading-font, 'Lora', serif);
-          font-size: 1.1rem;
+          font-size: 0.9rem;
           font-weight: 600;
           color: var(--text-color, #33302e);
           margin: 0;
-          line-height: 1.4;
+          line-height: 1.2;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex: 1;
         }
 
         /* FIXED: Remove border-top from form container and adjust spacing */
@@ -503,13 +540,19 @@ export default function Home() {
             padding: 0 0.5rem;
           }
 
-          .suggestion-cards {
-            grid-template-columns: 1fr;
-            gap: 1rem;
+          /* Mobile: Smaller cards for better fit */
+          .suggestion-card {
+            min-width: 240px;
+            max-width: 280px;
+            gap: 0.5rem;
           }
 
-          .suggestion-card {
-            padding: 1.25rem;
+          .suggestion-category {
+            font-size: 0.65rem;
+          }
+
+          .suggestion-title {
+            font-size: 0.85rem;
           }
         }
 
@@ -520,6 +563,21 @@ export default function Home() {
 
           .quote-container {
             font-size: 1rem;
+          }
+
+          /* Extra small mobile: Even smaller cards */
+          .suggestion-card {
+            min-width: 200px;
+            max-width: 240px;
+            padding: 0 0.75rem;
+          }
+
+          .suggestion-category {
+            font-size: 0.6rem;
+          }
+
+          .suggestion-title {
+            font-size: 0.8rem;
           }
         }
       `}</style>
