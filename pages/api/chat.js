@@ -1,528 +1,245 @@
-// File: pages/index.js - Updated with Clean Footer (No Border Line) - IMPROVED VERSION
-import { useState, useEffect, useCallback } from 'react';
-import Head from 'next/head';
-import StandardLayout from '../components/layout/StandardLayout';
-import EnhancedChatContainer from '../components/chat/EnhancedChatContainer';
-import ChatFooter from '../components/layout/ChatFooter';
+// File: /api/chat.js
+// GriotBot API handler with GPT-3.5-turbo-instruct (Completions API)
+// This replaces the previous Chat Completions implementation
 
-// Constants moved outside component to prevent re-declaration on every render
-const PROVERBS = [
-  "Wisdom is like a baobab tree; no one individual can embrace it. â€” African Proverb",
-  "Until the lion learns to write, every story will glorify the hunter. â€” African Proverb", 
-  "We are the drums, we are the dance. â€” Afro-Caribbean Proverb",
-  "A tree cannot stand without its roots. â€” Jamaican Proverb",
-  "Unity is strength, division is weakness. â€” Swahili Proverb",
-  "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. â€” West African Proverb",
-  "Truth is like a drum, it can be heard from afar. â€” Kenyan Proverb",
-  "However long the night, the dawn will break. â€” African Proverb",
-  "If you want to go fast, go alone. If you want to go far, go together. â€” African Proverb",
-  "It takes a village to raise a child. â€” African Proverb"
-];
+import { NextResponse } from 'next/server';
 
-const SUGGESTION_CARDS = [
-  {
-    category: "Storytelling",
-    title: "Tell me a diaspora story about resilience",
-    prompt: "Tell me a story about resilience from the African diaspora"
-  },
-  {
-    category: "Wisdom", 
-    title: "African wisdom on community building",
-    prompt: "Share some wisdom about community building from African traditions"
-  },
-  {
-    category: "Personal Growth",
-    title: "Connect with my cultural heritage", 
-    prompt: "How can I connect more with my cultural heritage?"
-  },
-  {
-    category: "History",
-    title: "The historical significance of Juneteenth",
-    prompt: "Explain the historical significance of Juneteenth"
-  }
-];
+export const config = {
+  runtime: 'edge',
+};
 
-// Configuration constants
-const MAX_HISTORY_LENGTH = 50; // Maximum number of messages to store in localStorage
-const CHAT_HISTORY_KEY = 'griotbot-history';
+// CRITICAL: GPT-3.5-turbo-instruct uses COMPLETIONS API, not Chat API
+const MODEL = 'openai/gpt-3.5-turbo-instruct';
+const COMPLETIONS_ENDPOINT = 'https://openrouter.ai/api/v1/completions'; // NOT /chat/completions
 
-export default function Home() {
-  // State management
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [currentProverb, setCurrentProverb] = useState('');
-
-  // Initialize component
-  useEffect(() => {
-    // Set random proverb
-    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
-    setCurrentProverb(PROVERBS[randomIndex]);
-    
-    // Load chat history from localStorage
-    loadChatHistory();
-  }, []);
-
-  // Load chat history from localStorage
-  const loadChatHistory = useCallback(() => {
-    try {
-      const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
-      if (savedHistory) {
-        const parsedHistory = JSON.parse(savedHistory);
-        if (Array.isArray(parsedHistory) && parsedHistory.length > 0) {
-          // Convert old format to new format if needed
-          const formattedMessages = parsedHistory.map((msg, index) => ({
-            id: msg.id || `msg-${Date.now()}-${index}`,
-            role: msg.role === 'user' ? 'user' : 'assistant',
-            content: msg.content || '',
-            timestamp: msg.timestamp || msg.time || new Date().toISOString()
-          }));
-          
-          setMessages(formattedMessages);
-          setShowWelcome(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading chat history:', error);
-      localStorage.removeItem(CHAT_HISTORY_KEY);
-    }
-  }, []);
-
-  // Save chat history to localStorage
-  const saveChatHistory = useCallback((messagesToSave) => {
-    try {
-      // Keep only the most recent messages to prevent localStorage bloat
-      const recentMessages = messagesToSave.slice(-MAX_HISTORY_LENGTH);
-      localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(recentMessages));
-    } catch (error) {
-      console.error('Error saving chat history:', error);
-    }
-  }, []);
-
-  // Handle sending messages with proper dependencies
-  const handleSendMessage = useCallback(async (messageText, storytellerMode = false) => {
-    if (!messageText.trim() || isLoading) return;
-
-    // Hide welcome screen
-    setShowWelcome(false);
-    setIsLoading(true);
-
-    // Create user message
-    const userMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: messageText.trim(),
-      timestamp: new Date().toISOString()
-    };
-
-    // Add user message to state
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-
-    // Create initial bot message (for streaming)
-    const botMessageId = `bot-${Date.now()}`;
-    const initialBotMessage = {
-      id: botMessageId,
-      role: 'assistant',
-      content: '',
-      timestamp: new Date().toISOString(),
-      isStreaming: true
-    };
-
-    setMessages(prev => [...prev, initialBotMessage]);
-
-    try {  
-      // Make API call
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: messageText.trim(),
-          storytellerMode: storytellerMode
-        })
-      });
-
-      if (!response.ok) {
-        const errorMessage = response.status === 429 
-          ? 'Too many requests. Please wait a moment and try again.'
-          : response.status === 500 
-          ? 'Service temporarily unavailable. Please try again.'
-          : `Unable to process your request (Error ${response.status}).`;
-        throw new Error(errorMessage);
-      }
-
-      // Check if response is streaming or JSON
-      const contentType = response.headers.get('content-type');
-      let accumulatedContent = '';
-      
-      if (contentType && contentType.includes('text/plain')) {
-        // Handle streaming response
-        const reader = response.body.getReader();
-
-        try {
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            const chunk = new TextDecoder().decode(value);
-            accumulatedContent += chunk;
-
-            // Update the streaming message
-            setMessages(prevMessages => 
-              prevMessages.map(msg => 
-                msg.id === botMessageId 
-                  ? { ...msg, content: accumulatedContent }
-                  : msg
-              )
-            );
-          }
-        } finally {
-          reader.releaseLock();
-        }
-      } else {
-        // Handle JSON response (fallback)
-        const data = await response.json();
-        accumulatedContent = data.choices?.[0]?.message?.content || 
-                          data.choices?.[0]?.text || 
-                          'I apologize, but I seem to be having trouble processing your request.';
-      }
-
-      // Finalize the bot message
-      const finalBotMessage = {
-        id: botMessageId,
-        role: 'assistant', 
-        content: accumulatedContent,
-        timestamp: new Date().toISOString(),
-        isStreaming: false
-      };
-
-      const finalMessages = [...updatedMessages, finalBotMessage];
-      setMessages(finalMessages);
-      saveChatHistory(finalMessages);
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-      
-      // Show user-friendly error message
-      const errorMessage = error.message.includes('fetch') 
-        ? 'Unable to connect. Please check your internet connection and try again.'
-        : error.message || 'Something went wrong. Please try again.';
-      
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.id === botMessageId 
-            ? { 
-                ...msg, 
-                content: `I'm sorry, ${errorMessage}`, 
-                isStreaming: false 
-              }
-            : msg
-        )
+export default async function handler(req) {
+  try {
+    if (req.method !== 'POST') {
+      return new NextResponse(
+        JSON.stringify({ error: 'Method not allowed' }),
+        { status: 405, headers: { 'Content-Type': 'application/json' } }
       );
-    } finally {
-      setIsLoading(false);
     }
-  }, [messages, isLoading, saveChatHistory]);
 
-  // Handle suggestion card clicks
-  const handleSuggestionClick = useCallback((prompt) => {
-    handleSendMessage(prompt);
-  }, [handleSendMessage]);
+    const body = await req.json();
+    const { prompt, storytellerMode = false } = body;
 
-  // Handle new chat with proper dependencies
-  const handleNewChat = useCallback(() => {
-    setMessages([]);
-    setShowWelcome(true);
-    localStorage.removeItem(CHAT_HISTORY_KEY);
+    if (!prompt || typeof prompt !== 'string') {
+      return new NextResponse(
+        JSON.stringify({ error: 'Prompt is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      return new NextResponse(
+        JSON.stringify({ error: 'API key not configured' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Anti-hallucination pattern detection
+    const isFactualQuery = detectFactualQuery(prompt);
+    const riskLevel = assessHallucinationRisk(prompt);
     
-    // Set new random proverb
-    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
-    setCurrentProverb(PROVERBS[randomIndex]);
-  }, []);
-
-  // Handle message regeneration with proper dependencies
-  const handleRegenerateMessage = useCallback(async (messageId) => {
-    const messageIndex = messages.findIndex(msg => msg.id === messageId);
-    if (messageIndex === -1 || messageIndex === 0) return;
-
-    // Find the user message that prompted this response
-    const userMessage = messages[messageIndex - 1];
-    if (!userMessage || userMessage.role !== 'user') return;
-
-    // Remove the bot message and regenerate
-    const messagesBeforeBot = messages.slice(0, messageIndex);
-    setMessages(messagesBeforeBot);
+    // Create completion prompt (NOT chat messages)
+    const completionPrompt = createCompletionPrompt(prompt, storytellerMode, isFactualQuery);
     
-    // Regenerate response
-    await handleSendMessage(userMessage.content, false);
-  }, [messages, handleSendMessage]);
-
-  // Handle message feedback
-  const handleMessageFeedback = useCallback((messageId, feedbackType) => {
-    console.log(`Feedback for message ${messageId}: ${feedbackType}`);
+    // Dynamic temperature based on query type
+    const temperature = getTemperature(storytellerMode, isFactualQuery, riskLevel);
     
-    // Optional: Send to analytics API in the future
-    // You could add an API call here to track user feedback
-    /*
-    fetch('/api/feedback', {
+    // Prepare request for COMPLETIONS endpoint
+    const requestBody = {
+      model: MODEL,
+      prompt: completionPrompt, // Single string, not messages array
+      temperature: temperature,
+      max_tokens: storytellerMode ? 600 : 400,
+      stop: ["User Question:", "\n\nUser:", "\n\nHuman:"], // Prevent runaway generation
+      // OpenRouter headers for tracking
+      top_p: 0.9,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1
+    };
+
+    console.log(`ðŸŒ¿ GriotBot Request - Model: ${MODEL}, Temp: ${temperature}, Factual: ${isFactualQuery}, Risk: ${riskLevel}`);
+    
+    // Call OpenRouter Completions API (NOT Chat API)
+    const openRouterResponse = await fetch(COMPLETIONS_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        messageId, 
-        feedbackType, 
-        timestamp: new Date().toISOString(),
-        sessionId: sessionStorage.getItem('session-id') // If you implement sessions
-      })
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000',
+        'X-Title': 'GriotBot'
+      },
+      body: JSON.stringify(requestBody)
     });
-    */
-  }, []);
 
-  return (
-    <>
-      <Head>
-        <title>GriotBot - Your Digital Griot</title>
-        <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="keywords" content="griot, African culture, AI assistant, cultural wisdom, storytelling" />
-        <meta property="og:title" content="GriotBot - Your Digital Griot" />
-        <meta property="og:description" content="AI-powered digital griot providing culturally grounded wisdom and knowledge" />
-        <meta property="og:type" content="website" />
-      </Head>
+    if (!openRouterResponse.ok) {
+      const errorData = await openRouterResponse.json().catch(() => ({}));
+      console.error('OpenRouter API error:', errorData);
+      return new NextResponse(
+        JSON.stringify({ error: 'Failed to get response from AI service' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
-      <StandardLayout
-        showWelcome={showWelcome}
-        currentProverb={currentProverb}
-        onNewChat={handleNewChat}
-      >
-        <div className="main-content">
-          {showWelcome && (
-            <div className="welcome-container" role="main" aria-labelledby="welcome-title">
-              <h1 id="welcome-title" className="welcome-title">Welcome to GriotBot</h1>
-              <p className="welcome-subtitle">
-                Your AI companion for culturally rich conversations and wisdom
-              </p>
-              
-              <blockquote className="quote-container" cite="Marcus Garvey">
-                <p>
-                  A people without the knowledge of their past history,<br/>
-                  origin and culture is like a tree without roots.
-                </p>
-                <cite className="quote-attribution">â€” Marcus Mosiah Garvey</cite>
-              </blockquote>
-              
-              <div 
-                className="suggestion-cards"
-                role="region"
-                aria-label="Conversation starters"
-              >
-                {SUGGESTION_CARDS.map((card, index) => (
-                  <button 
-                    key={`suggestion-${index}`}
-                    className="suggestion-card"
-                    onClick={() => handleSuggestionClick(card.prompt)}
-                    aria-label={`Start conversation about: ${card.title}`}
-                  >
-                    <div className="suggestion-category" aria-hidden="true">
-                      {card.category}
-                    </div>
-                    <h3 className="suggestion-title">{card.title}</h3>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+    const data = await openRouterResponse.json();
+    
+    // CRITICAL: Extract from .text, not .message.content
+    const botResponse = data.choices?.[0]?.text?.trim() || 
+                       'I apologize, but I seem to be having trouble processing your request.';
 
-          <EnhancedChatContainer
-            messages={messages}
-            isLoading={isLoading}
-            onRegenerateMessage={handleRegenerateMessage}
-            onMessageFeedback={handleMessageFeedback}
-          />
-        </div>
+    // Apply anti-hallucination post-processing if needed
+    const finalResponse = isFactualQuery ? 
+      addUncertaintyPhrases(botResponse, riskLevel) : 
+      botResponse;
 
-        <ChatFooter 
-          onSendMessage={handleSendMessage}
-          disabled={isLoading}
-        />
-      </StandardLayout>
+    // Log usage for cost monitoring
+    console.log(`ðŸ’° Tokens - Prompt: ${data.usage?.prompt_tokens || 'unknown'}, Completion: ${data.usage?.completion_tokens || 'unknown'}, Total: ${data.usage?.total_tokens || 'unknown'}`);
 
-      <style jsx>{`
-        .main-content {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-        }
-
-        .welcome-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-          max-width: 700px;
-          margin: 2rem auto;
-          padding: 1rem;
-        }
-
-        .welcome-title {
-          font-family: var(--heading-font, 'Lora', serif);
-          font-size: 2.5rem;
-          font-weight: 600;
-          color: var(--text-color, #33302e);
-          margin: 0 0 1rem 0;
-        }
-
-        .welcome-subtitle {
-          font-size: 1.1rem;
-          color: var(--text-color, #33302e);
-          opacity: 0.8;
-          margin-bottom: 2rem;
-          line-height: 1.6;
-        }
-
-        .quote-container {
-          font-size: 1.2rem;
-          font-style: italic;
-          color: var(--wisdom-color, #6b4226);
-          text-align: center;
-          font-family: var(--quote-font, 'Lora', serif);
-          line-height: 1.7;
-          margin-bottom: 2.5rem;
-          max-width: 600px;
-          padding: 0 1rem;
-          border: none;
-          background: transparent;
-        }
-
-        .quote-container p {
-          margin: 0 0 1rem 0;
-        }
-
-        .quote-attribution {
-          display: block;
-          font-weight: 500;
-          font-size: 1rem;
-          opacity: 0.9;
-        }
-
-        .suggestion-cards {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
-          width: 100%;
-          max-width: 700px;
-        }
-
-        .suggestion-card {
-          background: var(--card-bg, #ffffff);
-          padding: 1.5rem;
-          border-radius: 16px;
-          box-shadow: 0 4px 20px var(--shadow-color, rgba(75, 46, 42, 0.15));
-          cursor: pointer;
-          transition: all 0.3s ease;
-          border: 1px solid var(--input-border, rgba(75, 46, 42, 0.2));
-          text-align: left;
-          width: 100%;
-          font-family: inherit;
-        }
-
-        .suggestion-card:hover,
-        .suggestion-card:focus {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 30px var(--shadow-color, rgba(75, 46, 42, 0.2));
-          outline: 2px solid var(--accent-color, #d7722c);
-          outline-offset: 2px;
-        }
-
-        .suggestion-card:focus {
-          outline-style: solid;
-        }
-
-        .suggestion-category {
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          color: var(--accent-color, #d7722c);
-          font-weight: 600;
-          margin-bottom: 0.75rem;
-        }
-
-        .suggestion-title {
-          font-family: var(--heading-font, 'Lora', serif);
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: var(--text-color, #33302e);
-          margin: 0;
-          line-height: 1.4;
-        }
-
-        /* FIXED: Remove border-top from form container and adjust spacing */
-        :global(#form-container) {
-          border-top: none !important;
-          padding-top: 0.5rem !important;
-          padding-bottom: 1rem !important;
-        }
-
-        /* FIXED: Ensure storyteller mode toggle is properly positioned */
-        :global(.form-actions) {
-          margin-top: 0.75rem !important;
-          padding: 0 0.25rem !important;
-        }
-
-        /* FIXED: Ensure toggle switch is fully visible */
-        :global(.storyteller-mode) {
-          margin-right: 0.5rem !important;
-        }
-
-        :global(.toggle-switch) {
-          margin-left: 0.5rem !important;
-          position: relative !important;
-          z-index: 10 !important;
-        }
-
-        @media (max-width: 768px) {
-          .welcome-container {
-            margin: 1rem auto;
-            padding: 0.75rem;
+    // Return in format expected by frontend
+    return new NextResponse(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: finalResponse
+            }
           }
+        ]
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
 
-          .welcome-title {
-            font-size: 2rem;
-          }
+  } catch (error) {
+    console.error('Error in chat API:', error);
+    return new NextResponse(
+      JSON.stringify({ error: 'Internal server error' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+}
 
-          .welcome-subtitle {
-            font-size: 1rem;
-          }
+/**
+ * Creates a completion prompt string (replaces chat messages)
+ * This is the critical change for instruct model
+ */
+function createCompletionPrompt(userPrompt, storytellerMode, isFactual) {
+  const baseInstruction = `You are GriotBot, an AI assistant inspired by the West African griot tradition of storytelling, history-keeping, and guidance. Your purpose is to provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
 
-          .quote-container {
-            font-size: 1.1rem;
-            padding: 0 0.5rem;
-          }
+CORE PRINCIPLES:
+- Provide responses that incorporate Black historical context, cultural wisdom, and empowerment
+- Be warm, respectful, and speak with the wisdom of an elder or mentor
+- Address questions with cultural nuance and understanding of the Black experience
+- Include relevant proverbs, historical anecdotes, or references to notable Black figures when appropriate
+- Be mindful of the diversity within the African diaspora
+- Avoid stereotypes while acknowledging shared cultural experiences
+- Be emotionally intelligent about topics like racism, discrimination, and cultural identity
+- Offer guidance that is empowering and uplifting
 
-          .suggestion-cards {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-          }
+${isFactual ? 'IMPORTANT: If unsure about historical facts, dates, or quotes, express appropriate uncertainty rather than guessing.' : ''}`;
 
-          .suggestion-card {
-            padding: 1.25rem;
-          }
-        }
+  const storytellerAddition = storytellerMode ? `
 
-        @media (max-width: 480px) {
-          .welcome-title {
-            font-size: 1.75rem;
-          }
+STORYTELLER MODE ACTIVATED:
+Frame your response as a story, narrative, or extended metaphor drawing from African, Caribbean, or Black American oral traditions. Use vivid imagery and the rhythmic quality of oral storytelling. Conclude with reflective wisdom that connects to the user's question.` : '';
 
-          .quote-container {
-            font-size: 1rem;
-          }
-        }
-      `}</style>
-    </>
+  const instruction = baseInstruction + storytellerAddition;
+
+  // Format as single prompt string for completions API
+  return `${instruction}
+
+User: ${userPrompt}
+
+GriotBot:`;
+}
+
+/**
+ * Anti-hallucination pattern detection
+ */
+function detectFactualQuery(prompt) {
+  const factualPatterns = [
+    /when (was|did|were)/i,
+    /what year/i,
+    /who (said|wrote|founded)/i,
+    /how many/i,
+    /what date/i,
+    /born in/i,
+    /died in/i,
+    /founded in/i,
+    /happened in \d{4}/i,
+    /quote.*said/i,
+    /exactly.*words/i
+  ];
+  
+  return factualPatterns.some(pattern => pattern.test(prompt));
+}
+
+/**
+ * Assess hallucination risk level
+ */
+function assessHallucinationRisk(prompt) {
+  const highRiskPatterns = [
+    /exactly.*said/i,
+    /word for word/i,
+    /precise.*quote/i,
+    /specific.*date/i,
+    /\d{4}.*\d{4}/i, // Multiple years
+    /statistics/i,
+    /percentage/i,
+    /how much.*cost/i
+  ];
+  
+  const mediumRiskPatterns = [
+    /when.*born/i,
+    /when.*died/i,
+    /founded.*\d{4}/i,
+    /happened.*\d{4}/i,
+    /quote/i,
+    /said that/i
+  ];
+  
+  if (highRiskPatterns.some(pattern => pattern.test(prompt))) return 'high';
+  if (mediumRiskPatterns.some(pattern => pattern.test(prompt))) return 'medium';
+  return 'low';
+}
+
+/**
+ * Dynamic temperature based on query type
+ */
+function getTemperature(storytellerMode, isFactual, riskLevel) {
+  if (riskLevel === 'high') return 0.3; // Very conservative for facts
+  if (isFactual) return 0.4; // Conservative for factual content
+  if (storytellerMode) return 0.8; // Creative for stories
+  return 0.7; // Standard for general queries
+}
+
+/**
+ * Add uncertainty phrases for factual queries when appropriate
+ */
+function addUncertaintyPhrases(response, riskLevel) {
+  if (riskLevel === 'low') return response;
+  
+  // Add uncertainty phrases for medium/high risk responses
+  const uncertaintyPhrases = [
+    'From historical records,',
+    'According to documented sources,',
+    'Historical accounts suggest',
+    'It\'s widely documented that',
+    'Based on available historical information,'
+  ];
+  
+  // Simple implementation: prepend uncertainty phrase if response doesn't already have one
+  const hasUncertainty = uncertaintyPhrases.some(phrase => 
+    response.toLowerCase().includes(phrase.toLowerCase())
   );
+  
+  if (!hasUncertainty && riskLevel === 'high') {
+    const randomPhrase = uncertaintyPhrases[Math.floor(Math.random() * uncertaintyPhrases.length)];
+    return `${randomPhrase} ${response}`;
+  }
+  
+  return response;
 }
