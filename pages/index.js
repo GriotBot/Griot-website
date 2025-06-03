@@ -1,4 +1,4 @@
-// File: pages/index.js - Updated with Horizontal 45px Suggestion Cards (Clean Version)
+// File: pages/index.js - Updated with Clean Footer (No Border Line) - IMPROVED VERSION
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -7,16 +7,16 @@ import ChatFooter from '../components/layout/ChatFooter';
 
 // Constants moved outside component to prevent re-declaration on every render
 const PROVERBS = [
-  "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-  "Until the lion learns to write, every story will glorify the hunter. — African Proverb", 
-  "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-  "A tree cannot stand without its roots. — Jamaican Proverb",
-  "Unity is strength, division is weakness. — Swahili Proverb",
-  "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
-  "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
-  "However long the night, the dawn will break. — African Proverb",
-  "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
-  "It takes a village to raise a child. — African Proverb"
+  "Wisdom is like a baobab tree; no one individual can embrace it. â€” African Proverb",
+  "Until the lion learns to write, every story will glorify the hunter. â€” African Proverb", 
+  "We are the drums, we are the dance. â€” Afro-Caribbean Proverb",
+  "A tree cannot stand without its roots. â€” Jamaican Proverb",
+  "Unity is strength, division is weakness. â€” Swahili Proverb",
+  "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. â€” West African Proverb",
+  "Truth is like a drum, it can be heard from afar. â€” Kenyan Proverb",
+  "However long the night, the dawn will break. â€” African Proverb",
+  "If you want to go fast, go alone. If you want to go far, go together. â€” African Proverb",
+  "It takes a village to raise a child. â€” African Proverb"
 ];
 
 const SUGGESTION_CARDS = [
@@ -309,7 +309,7 @@ export default function Home() {
                   A people without the knowledge of their past history,<br/>
                   origin and culture is like a tree without roots.
                 </p>
-                <cite className="quote-attribution">— Marcus Mosiah Garvey</cite>
+                <cite className="quote-attribution">â€” Marcus Mosiah Garvey</cite>
               </blockquote>
               
               <div 
@@ -409,67 +409,55 @@ export default function Home() {
           opacity: 0.9;
         }
 
-        /* UPDATED: Horizontal layout for suggestion cards */
         .suggestion-cards {
-          display: flex;
-          gap: 0.75rem;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1.5rem;
           width: 100%;
           max-width: 700px;
-          overflow: visible;
-          padding: 0.5rem 0;
         }
 
         .suggestion-card {
           background: var(--card-bg, #ffffff);
-          height: 45px;
-          flex: 1;
-          min-width: 0;
-          padding: 0 0.75rem;
-          border-radius: 22.5px;
+          padding: 1.5rem;
+          border-radius: 16px;
           box-shadow: 0 4px 20px var(--shadow-color, rgba(75, 46, 42, 0.15));
           cursor: pointer;
           transition: all 0.3s ease;
           border: 1px solid var(--input-border, rgba(75, 46, 42, 0.2));
+          text-align: left;
+          width: 100%;
           font-family: inherit;
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          gap: 0.5rem;
         }
 
         .suggestion-card:hover,
         .suggestion-card:focus {
-          transform: translateY(-2px);
+          transform: translateY(-4px);
           box-shadow: 0 8px 30px var(--shadow-color, rgba(75, 46, 42, 0.2));
+          outline: 2px solid var(--accent-color, #d7722c);
+          outline-offset: 2px;
         }
 
         .suggestion-card:focus {
-          outline: 2px solid var(--accent-color, #d7722c);
-          outline-offset: 2px;
           outline-style: solid;
         }
 
         .suggestion-category {
-          font-size: 0.65rem;
+          font-size: 0.75rem;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 1px;
           color: var(--accent-color, #d7722c);
           font-weight: 600;
-          white-space: nowrap;
-          flex-shrink: 0;
+          margin-bottom: 0.75rem;
         }
 
         .suggestion-title {
           font-family: var(--heading-font, 'Lora', serif);
-          font-size: 0.8rem;
+          font-size: 1.1rem;
           font-weight: 600;
           color: var(--text-color, #33302e);
           margin: 0;
-          line-height: 1.2;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          flex: 1;
+          line-height: 1.4;
         }
 
         /* FIXED: Remove border-top from form container and adjust spacing */
@@ -515,17 +503,13 @@ export default function Home() {
             padding: 0 0.5rem;
           }
 
+          .suggestion-cards {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+
           .suggestion-card {
-            gap: 0.4rem;
-            padding: 0 0.6rem;
-          }
-
-          .suggestion-category {
-            font-size: 0.6rem;
-          }
-
-          .suggestion-title {
-            font-size: 0.75rem;
+            padding: 1.25rem;
           }
         }
 
@@ -536,19 +520,6 @@ export default function Home() {
 
           .quote-container {
             font-size: 1rem;
-          }
-
-          .suggestion-card {
-            gap: 0.3rem;
-            padding: 0 0.5rem;
-          }
-
-          .suggestion-category {
-            font-size: 0.55rem;
-          }
-
-          .suggestion-title {
-            font-size: 0.7rem;
           }
         }
       `}</style>
