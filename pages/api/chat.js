@@ -1,16 +1,14 @@
 // File: /api/chat.js
-// GriotBot API handler with GPT-3.5-turbo-instruct (Completions API)
-// This replaces the previous Chat Completions implementation
-
+// GriotBot API handler - FIXED VERSION
 import { NextResponse } from 'next/server';
 
 export const config = {
   runtime: 'edge',
 };
 
-// CRITICAL: GPT-3.5-turbo-instruct uses COMPLETIONS API, not Chat API
-const MODEL = 'openai/gpt-3.5-turbo-instruct';
-const COMPLETIONS_ENDPOINT = 'https://openrouter.ai/api/v1/completions'; // NOT /chat/completions
+// Use the correct model and endpoint
+const MODEL = 'openai/gpt-3.5-turbo'; // More reliable than instruct variant
+const CHAT_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 export default async function handler(req) {
   try {
@@ -43,29 +41,36 @@ export default async function handler(req) {
     const isFactualQuery = detectFactualQuery(prompt);
     const riskLevel = assessHallucinationRisk(prompt);
     
-    // Create completion prompt (NOT chat messages)
-    const completionPrompt = createCompletionPrompt(prompt, storytellerMode, isFactualQuery);
+    // Create system instruction
+    const systemInstruction = createSystemInstruction(storytellerMode, isFactualQuery);
     
     // Dynamic temperature based on query type
     const temperature = getTemperature(storytellerMode, isFactualQuery, riskLevel);
     
-    // Prepare request for COMPLETIONS endpoint
+    // Prepare request for CHAT COMPLETIONS endpoint (standard format)
     const requestBody = {
       model: MODEL,
-      prompt: completionPrompt, // Single string, not messages array
+      messages: [
+        {
+          role: 'system',
+          content: systemInstruction
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
       temperature: temperature,
       max_tokens: storytellerMode ? 600 : 400,
-      stop: ["User Question:", "\n\nUser:", "\n\nHuman:"], // Prevent runaway generation
-      // OpenRouter headers for tracking
       top_p: 0.9,
       frequency_penalty: 0.1,
       presence_penalty: 0.1
     };
 
-    console.log(`ðŸŒ¿ GriotBot Request - Model: ${MODEL}, Temp: ${temperature}, Factual: ${isFactualQuery}, Risk: ${riskLevel}`);
+    console.log(`🌿 GriotBot Request - Model: ${MODEL}, Temp: ${temperature}, Factual: ${isFactualQuery}, Risk: ${riskLevel}`);
     
-    // Call OpenRouter Completions API (NOT Chat API)
-    const openRouterResponse = await fetch(COMPLETIONS_ENDPOINT, {
+    // Call OpenRouter Chat Completions API
+    const openRouterResponse = await fetch(CHAT_ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -77,18 +82,36 @@ export default async function handler(req) {
     });
 
     if (!openRouterResponse.ok) {
-      const errorData = await openRouterResponse.json().catch(() => ({}));
-      console.error('OpenRouter API error:', errorData);
-      return new NextResponse(
-        JSON.stringify({ error: 'Failed to get response from AI service' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+      const errorText = await openRouterResponse.text();
+      console.error('OpenRouter API error:', {
+        status: openRouterResponse.status,
+        statusText: openRouterResponse.statusText,
+        body: errorText
+      });
+      
+      // Return more specific error messages
+      if (openRouterResponse.status === 401) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Invalid API key' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      } else if (openRouterResponse.status === 429) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      } else {
+        return new NextResponse(
+          JSON.stringify({ error: 'Service temporarily unavailable. Please try again.' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const data = await openRouterResponse.json();
     
-    // CRITICAL: Extract from .text, not .message.content
-    const botResponse = data.choices?.[0]?.text?.trim() || 
+    // Extract response content properly
+    const botResponse = data.choices?.[0]?.message?.content?.trim() || 
                        'I apologize, but I seem to be having trouble processing your request.';
 
     // Apply anti-hallucination post-processing if needed
@@ -97,7 +120,9 @@ export default async function handler(req) {
       botResponse;
 
     // Log usage for cost monitoring
-    console.log(`ðŸ’° Tokens - Prompt: ${data.usage?.prompt_tokens || 'unknown'}, Completion: ${data.usage?.completion_tokens || 'unknown'}, Total: ${data.usage?.total_tokens || 'unknown'}`);
+    if (data.usage) {
+      console.log(`💰 Tokens - Prompt: ${data.usage.prompt_tokens}, Completion: ${data.usage.completion_tokens}, Total: ${data.usage.total_tokens}`);
+    }
 
     // Return in format expected by frontend
     return new NextResponse(
@@ -123,10 +148,11 @@ export default async function handler(req) {
 }
 
 /**
- * Creates a completion prompt string (replaces chat messages)
- * This is the critical change for instruct model
+ * Creates system instruction for the AI
  */
-function createCompletionPrompt(userPrompt, storytellerMode, isFactual) {
+function createSystemInstruction(storytellerMode, isFactual) {
+  const currentDate = new Date().toDateString();
+  
   const baseInstruction = `You are GriotBot, an AI assistant inspired by the West African griot tradition of storytelling, history-keeping, and guidance. Your purpose is to provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
 
 CORE PRINCIPLES:
@@ -139,21 +165,18 @@ CORE PRINCIPLES:
 - Be emotionally intelligent about topics like racism, discrimination, and cultural identity
 - Offer guidance that is empowering and uplifting
 
+Current date: ${currentDate}
+
 ${isFactual ? 'IMPORTANT: If unsure about historical facts, dates, or quotes, express appropriate uncertainty rather than guessing.' : ''}`;
 
-  const storytellerAddition = storytellerMode ? `
+  if (storytellerMode) {
+    return baseInstruction + `
 
 STORYTELLER MODE ACTIVATED:
-Frame your response as a story, narrative, or extended metaphor drawing from African, Caribbean, or Black American oral traditions. Use vivid imagery and the rhythmic quality of oral storytelling. Conclude with reflective wisdom that connects to the user's question.` : '';
+Frame your response as a story, narrative, or extended metaphor drawing from African, Caribbean, or Black American oral traditions. Use vivid imagery and the rhythmic quality of oral storytelling. Conclude with reflective wisdom that connects to the user's question.`;
+  }
 
-  const instruction = baseInstruction + storytellerAddition;
-
-  // Format as single prompt string for completions API
-  return `${instruction}
-
-User: ${userPrompt}
-
-GriotBot:`;
+  return baseInstruction;
 }
 
 /**
