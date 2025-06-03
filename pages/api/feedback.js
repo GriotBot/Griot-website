@@ -1,6 +1,4 @@
-// File: /pages/api/feedback.js - Gmail SMTP Version (No DNS changes needed)
-
-import nodemailer from 'nodemailer';
+// File: /pages/api/feedback.js - Simple Version (No external dependencies)
 
 // Constants for validation
 const ALLOWED_FEEDBACK_TYPES = ['general', 'cultural-accuracy', 'bug', 'suggestion', 'compliment', 'other'];
@@ -10,22 +8,6 @@ const ALLOWED_RATINGS = ['1', '2', '3', '4', '5'];
 const ALLOWED_CULTURAL_RATINGS = ['excellent', 'good', 'fair', 'poor'];
 const ALLOWED_USAGE_FREQUENCY = ['daily', 'weekly', 'monthly', 'rarely'];
 const ALLOWED_RECOMMENDATIONS = ['definitely', 'probably', 'maybe', 'no'];
-
-// Create Gmail transporter
-const createGmailTransporter = () => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('Gmail credentials not configured');
-    return null;
-  }
-
-  return nodemailer.createTransporter({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER, // your Gmail address
-      pass: process.env.EMAIL_PASS  // your App Password
-    }
-  });
-};
 
 export default async function handler(req, res) {
   // CORS headers
@@ -114,33 +96,16 @@ export default async function handler(req, res) {
       }
     };
 
-    // Log comprehensive feedback
+    // Log comprehensive feedback for development/analytics
     logFeedbackData(feedbackData);
 
-    // Generate summary
+    // Generate summary for quick analysis
     const summary = generateFeedbackSummary(feedbackData);
     console.log('📊 Feedback Summary:', JSON.stringify(summary, null, 2));
 
-    // Send email notifications via Gmail
-    let emailResult = null;
-    const transporter = createGmailTransporter();
-    
-    if (transporter) {
-      try {
-        // Send feedback to team
-        emailResult = await sendFeedbackEmailViaGmail(transporter, feedbackData);
-        
-        // Send auto-reply to user if they provided email
-        if (feedbackData.contact.email && feedbackData.contact.email !== 'Not provided') {
-          await sendAutoReplyViaGmail(transporter, feedbackData);
-        }
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-        // Don't fail the whole request if email fails
-      }
-    } else {
-      console.warn('⚠️ Gmail credentials not configured - feedback logged but no email sent');
-    }
+    // NOTE: Email functionality removed to avoid dependencies
+    // You can manually check server logs for feedback submissions
+    console.log('📧 Email would be sent here (requires nodemailer installation)');
 
     return res.status(200).json({
       success: true,
@@ -150,7 +115,8 @@ export default async function handler(req, res) {
         feedbackType: feedbackData.ratings.feedbackType,
         hasFollowUpPermission: feedbackData.contact.allowFollow,
         summary: summary,
-        emailSent: !!emailResult
+        emailSent: false, // No email sent in this simplified version
+        note: 'Feedback has been logged to server console. Email functionality available with nodemailer.'
       }
     });
 
@@ -161,50 +127,6 @@ export default async function handler(req, res) {
       success: false,
       error: 'Unable to process feedback. Please try again or contact us directly at chat@griotbot.com'
     });
-  }
-}
-
-/**
- * Send feedback email to team via Gmail
- */
-async function sendFeedbackEmailViaGmail(transporter, feedbackData) {
-  try {
-    const emailContent = generateFeedbackEmailContent(feedbackData);
-    
-    const result = await transporter.sendMail({
-      from: `"GriotBot Feedback" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // Send to yourself
-      subject: generateEmailSubject(feedbackData),
-      html: emailContent.html,
-      text: emailContent.text
-    });
-
-    console.log('📧 Feedback email sent via Gmail:', result.messageId);
-    return result;
-  } catch (error) {
-    console.error('❌ Failed to send feedback email via Gmail:', error);
-    throw error;
-  }
-}
-
-/**
- * Send auto-reply via Gmail
- */
-async function sendAutoReplyViaGmail(transporter, feedbackData) {
-  try {
-    const result = await transporter.sendMail({
-      from: `"GriotBot Team" <${process.env.EMAIL_USER}>`,
-      to: feedbackData.contact.email,
-      subject: '🌿 Thank you for your GriotBot feedback!',
-      html: generateAutoReplyHTML(feedbackData),
-      text: generateAutoReplyText(feedbackData)
-    });
-
-    console.log('📧 Auto-reply sent via Gmail:', result.messageId);
-    return result;
-  } catch (error) {
-    console.error('❌ Failed to send auto-reply via Gmail:', error);
-    throw error;
   }
 }
 
@@ -261,11 +183,15 @@ function logFeedbackData(feedbackData) {
   console.log(`IP: ${feedbackData.technical.ipAddress}`);
   console.log(`User Agent: ${feedbackData.technical.userAgent.substring(0, 50)}...`);
   console.log('==========================================');
+  
+  // Format for easy copy-paste to email if needed
+  console.log('\n📧 EMAIL SUMMARY (Copy if needed):');
+  console.log(`Subject: 🌿 GriotBot Feedback: ${feedbackData.ratings.feedbackType} - ${feedbackData.ratings.userExperience ? feedbackData.ratings.userExperience + '/5' : 'Unrated'}`);
+  console.log(`From: ${feedbackData.contact.name} (${feedbackData.contact.email})`);
+  console.log(`Message: ${feedbackData.feedback.message || 'No detailed message'}`);
+  console.log(`Rating: ${feedbackData.ratings.userExperience || 'Not rated'}/5`);
+  console.log(`Follow-up OK: ${feedbackData.contact.allowFollow ? 'Yes' : 'No'}`);
 }
-
-// ... (include all the other helper functions from the previous version)
-// validateFeedbackData, generateFeedbackSummary, calculateFeedbackQuality, 
-// generateEmailSubject, generateFeedbackEmailContent, generateAutoReplyHTML, generateAutoReplyText
 
 /**
  * Validates feedback data comprehensively
@@ -276,6 +202,7 @@ function validateFeedbackData(data) {
     features, usageFrequency, recommendation, improvements, message
   } = data;
 
+  // Check if meaningful content is provided
   const hasContent = message.trim() || 
                     (features && features.length > 0) || 
                     (improvements && improvements.length > 0) ||
@@ -290,6 +217,7 @@ function validateFeedbackData(data) {
     };
   }
 
+  // Validate feedback type
   if (feedbackType && !ALLOWED_FEEDBACK_TYPES.includes(feedbackType)) {
     return {
       isValid: false,
@@ -297,6 +225,7 @@ function validateFeedbackData(data) {
     };
   }
 
+  // Validate email format if provided
   if (email && email.trim()) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
@@ -307,6 +236,7 @@ function validateFeedbackData(data) {
     }
   }
 
+  // Validate name length
   if (name && name.length > MAX_NAME_LENGTH) {
     return {
       isValid: false,
@@ -314,6 +244,7 @@ function validateFeedbackData(data) {
     };
   }
 
+  // Validate message length
   if (message && message.length > MAX_MESSAGE_LENGTH) {
     return {
       isValid: false,
@@ -321,6 +252,7 @@ function validateFeedbackData(data) {
     };
   }
 
+  // Validate rating values
   if (userExperience && !ALLOWED_RATINGS.includes(userExperience)) {
     return {
       isValid: false,
@@ -352,6 +284,9 @@ function validateFeedbackData(data) {
   return { isValid: true };
 }
 
+/**
+ * Generates a summary of feedback for quick analysis
+ */
 function generateFeedbackSummary(feedbackData) {
   const { contact, ratings, preferences, feedback } = feedbackData;
   
@@ -373,198 +308,31 @@ function generateFeedbackSummary(feedbackData) {
   };
 }
 
+/**
+ * Calculates a quality score for the feedback
+ */
 function calculateFeedbackQuality(feedbackData) {
   let score = 0;
   const { contact, ratings, preferences, feedback } = feedbackData;
   
+  // Contact information (10 points max)
   if (contact.email && contact.email !== 'Not provided') score += 5;
   if (contact.allowFollow) score += 5;
+  
+  // Ratings (30 points max)
   if (ratings.userExperience) score += 10;
   if (ratings.culturalAccuracy) score += 10;
   if (ratings.recommendation) score += 10;
+  
+  // Feature requests and improvements (20 points max)
   score += Math.min(preferences.desiredFeatures.length * 2, 10);
   score += Math.min(preferences.priorityImprovements.length * 2, 10);
   
+  // Detailed message (40 points max)
   if (feedback.message) {
     if (feedback.message.length > 50) score += 20;
     if (feedback.message.length > 200) score += 20;
   }
   
-  return Math.min(score, 100);
-}
-
-function generateEmailSubject(feedbackData) {
-  const { ratings } = feedbackData;
-  const rating = ratings.userExperience ? `${ratings.userExperience}/5 ⭐` : 'Unrated';
-  const type = ratings.feedbackType.replace('-', ' ').toUpperCase();
-  
-  return `🌿 New GriotBot Feedback: ${type} - ${rating}`;
-}
-
-function generateFeedbackEmailContent(feedbackData) {
-  const { contact, ratings, preferences, feedback, technical } = feedbackData;
-  
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>GriotBot Feedback</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .header { background: #c49a6c; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; }
-        .section { margin-bottom: 20px; }
-        .rating { background: #f8f5f0; padding: 10px; border-left: 4px solid #d7722c; }
-        .features { background: #e8f4f8; padding: 10px; border-radius: 5px; }
-        .message { background: #f9f9f9; padding: 15px; border-radius: 5px; font-style: italic; }
-        .footer { color: #666; font-size: 12px; margin-top: 30px; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>🌿 New GriotBot Feedback</h1>
-        <p>Received: ${new Date(feedbackData.timestamp).toLocaleString()}</p>
-      </div>
-      
-      <div class="content">
-        <div class="section">
-          <h2>Contact Information</h2>
-          <p><strong>Name:</strong> ${contact.name}</p>
-          <p><strong>Email:</strong> ${contact.email}</p>
-          <p><strong>Allow Follow-up:</strong> ${contact.allowFollow ? 'Yes' : 'No'}</p>
-        </div>
-        
-        <div class="section rating">
-          <h2>Ratings & Experience</h2>
-          <p><strong>Feedback Type:</strong> ${ratings.feedbackType}</p>
-          <p><strong>User Experience:</strong> ${ratings.userExperience ? `${ratings.userExperience}/5 stars` : 'Not rated'}</p>
-          <p><strong>Cultural Accuracy:</strong> ${ratings.culturalAccuracy || 'Not rated'}</p>
-          <p><strong>Usage Frequency:</strong> ${ratings.usageFrequency || 'Not specified'}</p>
-          <p><strong>Would Recommend:</strong> ${ratings.recommendation || 'Not specified'}</p>
-        </div>
-        
-        ${preferences.desiredFeatures.length > 0 ? `
-        <div class="section features">
-          <h2>Desired Features (${preferences.desiredFeatures.length})</h2>
-          <ul>
-            ${preferences.desiredFeatures.map(feature => `<li>${feature.replace(/_/g, ' ')}</li>`).join('')}
-          </ul>
-        </div>
-        ` : ''}
-        
-        ${preferences.priorityImprovements.length > 0 ? `
-        <div class="section features">
-          <h2>Priority Improvements (${preferences.priorityImprovements.length})</h2>
-          <ul>
-            ${preferences.priorityImprovements.map(improvement => `<li>${improvement.replace(/_/g, ' ')}</li>`).join('')}
-          </ul>
-        </div>
-        ` : ''}
-        
-        ${feedback.message ? `
-        <div class="section">
-          <h2>Detailed Message</h2>
-          <div class="message">
-            "${feedback.message}"
-          </div>
-        </div>
-        ` : ''}
-        
-        <div class="section footer">
-          <h3>Technical Details</h3>
-          <p><strong>Source:</strong> ${feedback.source}</p>
-          <p><strong>IP Address:</strong> ${technical.ipAddress}</p>
-          <p><strong>Quality Score:</strong> ${calculateFeedbackQuality(feedbackData)}/100</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-  
-  const text = `
-GriotBot Feedback Received
-==========================
-
-Contact: ${contact.name} (${contact.email})
-Type: ${ratings.feedbackType}
-Rating: ${ratings.userExperience ? `${ratings.userExperience}/5` : 'Not rated'}
-Cultural Accuracy: ${ratings.culturalAccuracy || 'Not rated'}
-
-${feedback.message ? `Message: "${feedback.message}"` : ''}
-
-${preferences.desiredFeatures.length > 0 ? `
-Features Requested: ${preferences.desiredFeatures.join(', ')}` : ''}
-
-Quality Score: ${calculateFeedbackQuality(feedbackData)}/100
-  `;
-  
-  return { html, text };
-}
-
-function generateAutoReplyHTML(feedbackData) {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Thank you for your feedback!</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .header { background: #c49a6c; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; max-width: 600px; margin: 0 auto; }
-        .highlight { background: #f8f5f0; padding: 15px; border-left: 4px solid #d7722c; margin: 20px 0; }
-        .footer { color: #666; font-size: 14px; margin-top: 30px; text-align: center; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>🌿 Thank You for Your Feedback!</h1>
-      </div>
-      
-      <div class="content">
-        <p>Dear ${feedbackData.contact.name},</p>
-        
-        <p>Thank you for taking the time to share your thoughts about GriotBot! Your feedback is invaluable in helping us build a better cultural AI experience.</p>
-        
-        <div class="highlight">
-          <h3>What happens next?</h3>
-          <ul>
-            <li>Your feedback has been received and logged</li>
-            <li>Our team will review your suggestions carefully</li>
-            ${feedbackData.contact.allowFollow ? '<li>We may reach out if we need clarification or have updates</li>' : ''}
-            <li>Keep an eye out for improvements based on community feedback</li>
-          </ul>
-        </div>
-        
-        <p>Continue exploring GriotBot and discovering the rich stories and wisdom of the African diaspora.</p>
-        
-        <p>As the African proverb says: <em>"If you want to go fast, go alone. If you want to go far, go together."</em></p>
-        
-        <p>With gratitude,<br>The GriotBot Team</p>
-      </div>
-    </body>
-    </html>
-  `;
-}
-
-function generateAutoReplyText(feedbackData) {
-  return `
-Dear ${feedbackData.contact.name},
-
-Thank you for your GriotBot feedback! Your input helps us build a better cultural AI experience.
-
-What happens next?
-- Your feedback has been logged
-- Our team will review your suggestions
-${feedbackData.contact.allowFollow ? '- We may reach out with updates' : ''}
-- Watch for improvements based on community feedback
-
-Continue exploring GriotBot and the rich wisdom of the African diaspora.
-
-"If you want to go fast, go alone. If you want to go far, go together." - African Proverb
-
-With gratitude,
-The GriotBot Team
-  `;
+  return Math.min(score, 100); // Cap at 100
 }
