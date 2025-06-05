@@ -1,53 +1,57 @@
-// File: /api/chat.js
-// GriotBot API handler - FIXED VERSION
-import { NextResponse } from 'next/server';
+// File: /pages/api/chat.js - DEBUG VERSION with detailed logging
 
 export const config = {
   runtime: 'edge',
 };
 
-// Use the correct model and endpoint
-const MODEL = 'openai/gpt-3.5-turbo'; // More reliable than instruct variant
+const MODEL = 'openai/gpt-3.5-turbo';
 const CHAT_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 export default async function handler(req) {
+  console.log('🔍 DEBUG: Chat API called');
+  
   try {
+    // Method check
     if (req.method !== 'POST') {
-      return new NextResponse(
+      console.log('❌ DEBUG: Wrong method:', req.method);
+      return new Response(
         JSON.stringify({ error: 'Method not allowed' }),
         { status: 405, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    // Parse body
     const body = await req.json();
     const { prompt, storytellerMode = false } = body;
+    console.log('📝 DEBUG: Parsed body:', { prompt: prompt?.substring(0, 50) + '...', storytellerMode });
 
+    // Validate prompt
     if (!prompt || typeof prompt !== 'string') {
-      return new NextResponse(
+      console.log('❌ DEBUG: Invalid prompt:', typeof prompt, prompt);
+      return new Response(
         JSON.stringify({ error: 'Prompt is required' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    // Check API key
     const apiKey = process.env.OPENROUTER_API_KEY;
+    console.log('🔑 DEBUG: API Key exists:', !!apiKey);
+    console.log('🔑 DEBUG: API Key starts with:', apiKey?.substring(0, 10) + '...');
+    
     if (!apiKey) {
-      return new NextResponse(
+      console.log('❌ DEBUG: No API key found');
+      return new Response(
         JSON.stringify({ error: 'API key not configured' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Anti-hallucination pattern detection
-    const isFactualQuery = detectFactualQuery(prompt);
-    const riskLevel = assessHallucinationRisk(prompt);
-    
     // Create system instruction
-    const systemInstruction = createSystemInstruction(storytellerMode, isFactualQuery);
-    
-    // Dynamic temperature based on query type
-    const temperature = getTemperature(storytellerMode, isFactualQuery, riskLevel);
-    
-    // Prepare request for CHAT COMPLETIONS endpoint (standard format)
+    const systemInstruction = createSystemInstruction(storytellerMode);
+    console.log('📋 DEBUG: System instruction length:', systemInstruction.length);
+
+    // Prepare request
     const requestBody = {
       model: MODEL,
       messages: [
@@ -60,88 +64,118 @@ export default async function handler(req) {
           content: prompt
         }
       ],
-      temperature: temperature,
+      temperature: storytellerMode ? 0.8 : 0.7,
       max_tokens: storytellerMode ? 600 : 400,
-      top_p: 0.9,
-      frequency_penalty: 0.1,
-      presence_penalty: 0.1
+      top_p: 0.9
     };
 
-    console.log(`🌿 GriotBot Request - Model: ${MODEL}, Temp: ${temperature}, Factual: ${isFactualQuery}, Risk: ${riskLevel}`);
-    
-    // Call OpenRouter Chat Completions API
+    console.log('📤 DEBUG: Request to OpenRouter:', {
+      model: requestBody.model,
+      messageCount: requestBody.messages.length,
+      temperature: requestBody.temperature,
+      max_tokens: requestBody.max_tokens
+    });
+
+    // Make OpenRouter request
     const openRouterResponse = await fetch(CHAT_ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000',
+        'HTTP-Referer': process.env.VERCEL_URL || process.env.FRONTEND_URL || 'https://griot-website.vercel.app',
         'X-Title': 'GriotBot'
       },
       body: JSON.stringify(requestBody)
     });
 
+    console.log('📥 DEBUG: OpenRouter response status:', openRouterResponse.status);
+    console.log('📥 DEBUG: OpenRouter response headers:', Object.fromEntries(openRouterResponse.headers));
+
+    // Check if response is ok
     if (!openRouterResponse.ok) {
       const errorText = await openRouterResponse.text();
-      console.error('OpenRouter API error:', {
+      console.error('❌ DEBUG: OpenRouter error details:', {
         status: openRouterResponse.status,
         statusText: openRouterResponse.statusText,
-        body: errorText
+        body: errorText,
+        headers: Object.fromEntries(openRouterResponse.headers)
       });
       
-      // Return more specific error messages
+      // Return specific error based on status
+      let errorMessage = 'Service temporarily unavailable. Please try again.';
+      
       if (openRouterResponse.status === 401) {
-        return new NextResponse(
-          JSON.stringify({ error: 'Invalid API key' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
+        errorMessage = 'Authentication failed - please check API configuration.';
+        console.error('🔑 DEBUG: Authentication failed - check API key');
       } else if (openRouterResponse.status === 429) {
-        return new NextResponse(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
-      } else {
-        return new NextResponse(
-          JSON.stringify({ error: 'Service temporarily unavailable. Please try again.' }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
+        errorMessage = 'Rate limit exceeded. Please try again in a moment.';
+        console.error('⏱️ DEBUG: Rate limited');
+      } else if (openRouterResponse.status === 400) {
+        errorMessage = 'Invalid request format.';
+        console.error('📝 DEBUG: Bad request - check request format');
+      } else if (openRouterResponse.status >= 500) {
+        errorMessage = 'OpenRouter server error. Please try again later.';
+        console.error('🖥️ DEBUG: Server error on OpenRouter side');
       }
+      
+      return new Response(
+        JSON.stringify({ error: errorMessage }),
+        { status: 502, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
+    // Parse response
     const data = await openRouterResponse.json();
-    
-    // Extract response content properly
+    console.log('✅ DEBUG: OpenRouter response parsed:', {
+      hasChoices: !!data.choices,
+      choicesLength: data.choices?.length,
+      hasUsage: !!data.usage,
+      firstChoiceHasMessage: !!data.choices?.[0]?.message,
+      contentLength: data.choices?.[0]?.message?.content?.length
+    });
+
+    // Extract response content
     const botResponse = data.choices?.[0]?.message?.content?.trim() || 
                        'I apologize, but I seem to be having trouble processing your request.';
 
-    // Apply anti-hallucination post-processing if needed
-    const finalResponse = isFactualQuery ? 
-      addUncertaintyPhrases(botResponse, riskLevel) : 
-      botResponse;
+    console.log('💬 DEBUG: Bot response length:', botResponse.length);
+    console.log('💬 DEBUG: Bot response preview:', botResponse.substring(0, 100) + '...');
 
-    // Log usage for cost monitoring
+    // Log usage for monitoring
     if (data.usage) {
-      console.log(`💰 Tokens - Prompt: ${data.usage.prompt_tokens}, Completion: ${data.usage.completion_tokens}, Total: ${data.usage.total_tokens}`);
+      console.log('💰 DEBUG: Token usage:', {
+        prompt: data.usage.prompt_tokens,
+        completion: data.usage.completion_tokens,
+        total: data.usage.total_tokens
+      });
     }
 
-    // Return in format expected by frontend
-    return new NextResponse(
-      JSON.stringify({
-        choices: [
-          {
-            message: {
-              content: finalResponse
-            }
+    // Return successful response
+    const response = {
+      choices: [
+        {
+          message: {
+            content: botResponse
           }
-        ]
-      }),
+        }
+      ]
+    };
+
+    console.log('✅ DEBUG: Returning successful response');
+    return new Response(
+      JSON.stringify(response),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in chat API:', error);
-    return new NextResponse(
-      JSON.stringify({ error: 'Internal server error' }),
+    console.error('💥 DEBUG: Unexpected error in chat API:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    return new Response(
+      JSON.stringify({ error: 'Internal server error - check logs for details' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -150,7 +184,7 @@ export default async function handler(req) {
 /**
  * Creates system instruction for the AI
  */
-function createSystemInstruction(storytellerMode, isFactual) {
+function createSystemInstruction(storytellerMode) {
   const currentDate = new Date().toDateString();
   
   const baseInstruction = `You are GriotBot, an AI assistant inspired by the West African griot tradition of storytelling, history-keeping, and guidance. Your purpose is to provide culturally rich, emotionally intelligent responses for people of African descent and those interested in Black culture.
@@ -165,9 +199,7 @@ CORE PRINCIPLES:
 - Be emotionally intelligent about topics like racism, discrimination, and cultural identity
 - Offer guidance that is empowering and uplifting
 
-Current date: ${currentDate}
-
-${isFactual ? 'IMPORTANT: If unsure about historical facts, dates, or quotes, express appropriate uncertainty rather than guessing.' : ''}`;
+Current date: ${currentDate}`;
 
   if (storytellerMode) {
     return baseInstruction + `
@@ -177,92 +209,4 @@ Frame your response as a story, narrative, or extended metaphor drawing from Afr
   }
 
   return baseInstruction;
-}
-
-/**
- * Anti-hallucination pattern detection
- */
-function detectFactualQuery(prompt) {
-  const factualPatterns = [
-    /when (was|did|were)/i,
-    /what year/i,
-    /who (said|wrote|founded)/i,
-    /how many/i,
-    /what date/i,
-    /born in/i,
-    /died in/i,
-    /founded in/i,
-    /happened in \d{4}/i,
-    /quote.*said/i,
-    /exactly.*words/i
-  ];
-  
-  return factualPatterns.some(pattern => pattern.test(prompt));
-}
-
-/**
- * Assess hallucination risk level
- */
-function assessHallucinationRisk(prompt) {
-  const highRiskPatterns = [
-    /exactly.*said/i,
-    /word for word/i,
-    /precise.*quote/i,
-    /specific.*date/i,
-    /\d{4}.*\d{4}/i, // Multiple years
-    /statistics/i,
-    /percentage/i,
-    /how much.*cost/i
-  ];
-  
-  const mediumRiskPatterns = [
-    /when.*born/i,
-    /when.*died/i,
-    /founded.*\d{4}/i,
-    /happened.*\d{4}/i,
-    /quote/i,
-    /said that/i
-  ];
-  
-  if (highRiskPatterns.some(pattern => pattern.test(prompt))) return 'high';
-  if (mediumRiskPatterns.some(pattern => pattern.test(prompt))) return 'medium';
-  return 'low';
-}
-
-/**
- * Dynamic temperature based on query type
- */
-function getTemperature(storytellerMode, isFactual, riskLevel) {
-  if (riskLevel === 'high') return 0.3; // Very conservative for facts
-  if (isFactual) return 0.4; // Conservative for factual content
-  if (storytellerMode) return 0.8; // Creative for stories
-  return 0.7; // Standard for general queries
-}
-
-/**
- * Add uncertainty phrases for factual queries when appropriate
- */
-function addUncertaintyPhrases(response, riskLevel) {
-  if (riskLevel === 'low') return response;
-  
-  // Add uncertainty phrases for medium/high risk responses
-  const uncertaintyPhrases = [
-    'From historical records,',
-    'According to documented sources,',
-    'Historical accounts suggest',
-    'It\'s widely documented that',
-    'Based on available historical information,'
-  ];
-  
-  // Simple implementation: prepend uncertainty phrase if response doesn't already have one
-  const hasUncertainty = uncertaintyPhrases.some(phrase => 
-    response.toLowerCase().includes(phrase.toLowerCase())
-  );
-  
-  if (!hasUncertainty && riskLevel === 'high') {
-    const randomPhrase = uncertaintyPhrases[Math.floor(Math.random() * uncertaintyPhrases.length)];
-    return `${randomPhrase} ${response}`;
-  }
-  
-  return response;
 }
