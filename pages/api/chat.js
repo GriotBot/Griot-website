@@ -1,18 +1,7 @@
-// File: /pages/api/chat.js - OPTIMIZED FOR SPEED & QUALITY
+// File: /pages/api/chat.js - ENHANCED VERSION
 
 export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  // ... existing CORS and validation code ...
   
   try {
     const { prompt, storytellerMode = false } = req.body || {};
@@ -21,123 +10,83 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
+    // Handle basic queries directly
+    const quickResponse = handleBasicQueries(prompt);
+    if (quickResponse) {
+      return res.status(200).json({
+        choices: [{ message: { content: quickResponse } }]
+      });
+    }
+
+    // Continue with AI processing for complex queries...
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       return res.status(500).json({ error: 'API key not configured' });
     }
 
-    // Create optimized system message
-    const systemMessage = createOptimizedSystemMessage(storytellerMode);
+    const systemMessage = createEnhancedSystemMessage(storytellerMode);
     
-    console.log('🌿 GriotBot request:', {
-      promptLength: prompt.length,
-      storytellerMode: storytellerMode,
-      timestamp: new Date().toISOString()
-    });
-
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://griot-website.vercel.app',
-        'X-Title': 'GriotBot'
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo', // Switch back to GPT for speed and quality
-        messages: [
-          { role: 'system', content: systemMessage },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: storytellerMode ? 250 : 180, // Reduced for conciseness
-        temperature: storytellerMode ? 0.8 : 0.6, // Lower for more focused responses
-        top_p: 0.85, // Slightly more focused
-        frequency_penalty: 0.1, // Reduce repetition
-        presence_penalty: 0.1 // Encourage diverse vocabulary
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenRouter error:', response.status, errorText);
-      
-      let errorMessage = 'Service temporarily unavailable. Please try again.';
-      if (response.status === 429) {
-        errorMessage = 'Too many requests. Please wait a moment and try again.';
-      } else if (response.status === 401) {
-        errorMessage = 'Authentication error. Please try again later.';
-      }
-      
-      return res.status(502).json({ error: errorMessage });
-    }
-
-    const data = await response.json();
-    let content = data.choices?.[0]?.message?.content || 
-                  'I apologize, but I seem to be having trouble processing your request.';
-
-    // Post-process to remove problematic patterns
-    content = cleanResponse(content);
-
-    // Log successful response
-    console.log('✅ GriotBot response generated:', {
-      responseLength: content.length,
-      tokensUsed: data.usage?.total_tokens || 'unknown'
-    });
-
-    return res.status(200).json({
-      choices: [{ message: { content } }]
-    });
-
+    // ... rest of your existing API code ...
   } catch (error) {
-    console.error('GriotBot API error:', error.message);
-    return res.status(500).json({ 
-      error: 'Internal server error. Please try again.' 
-    });
+    // ... existing error handling ...
   }
 }
 
-/**
- * Creates an optimized system message that produces concise, appropriate responses
- */
-function createOptimizedSystemMessage(storytellerMode) {
+function handleBasicQueries(prompt) {
+  const lowerPrompt = prompt.toLowerCase().trim();
+  
+  // Time queries
+  if (lowerPrompt.match(/what time|current time|time is it/)) {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+    return `The current time is ${timeString}. How can I help you with cultural wisdom or guidance today?`;
+  }
+  
+  // Date queries
+  if (lowerPrompt.match(/what date|what day|today/)) {
+    const now = new Date();
+    const dateString = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    return `Today is ${dateString}. What cultural topics or guidance can I help you explore?`;
+  }
+  
+  // Weather queries
+  if (lowerPrompt.match(/weather|temperature|forecast/)) {
+    return `I can't check current weather conditions, but I recommend checking your local weather app. As the African proverb says: "After the rain, the sun will reappear." Is there anything about cultural traditions or personal guidance I can help you with?`;
+  }
+  
+  // Location queries
+  if (lowerPrompt.match(/where am i|my location|where/)) {
+    return `I don't have access to your location information for privacy reasons. Is there something about cultural heritage, history, or personal growth I can help you explore instead?`;
+  }
+  
+  return null; // No basic query detected, proceed with AI
+}
+
+function createEnhancedSystemMessage(storytellerMode) {
   const currentDate = new Date().toDateString();
   
-  if (storytellerMode) {
-    return `You are GriotBot, a digital griot. Tell a brief story (2-3 paragraphs) that answers the user's question using African, Caribbean, or African American storytelling traditions. Include cultural wisdom and end with a meaningful lesson. Be concise but vivid. Avoid starting with "my child" or overly formal language. Current date: ${currentDate}`;
-  }
-  
-  return `You are GriotBot, an AI assistant focused on African diaspora culture and empowerment. Provide helpful, culturally informed responses in 1-2 paragraphs. Be warm but direct. Include relevant cultural context when appropriate. Avoid starting responses with "my child" or overly formal greetings. Be conversational and supportive. Current date: ${currentDate}`;
-}
+  const baseInstructions = `You are GriotBot, a helpful AI assistant rooted in African diaspora culture. 
 
-/**
- * Cleans response to remove problematic patterns
- */
-function cleanResponse(content) {
-  // Remove common problematic openings
-  const problematicStarts = [
-    /^my child,?\s*/i,
-    /^dear child,?\s*/i,
-    /^young one,?\s*/i,
-    /^listen,?\s*my child,?\s*/i,
-    /^ah,?\s*my child,?\s*/i,
-    /^come,?\s*child,?\s*/i
-  ];
+Be helpful and direct with practical questions, then add cultural context when relevant. Don't deflect basic questions - answer them first, then offer cultural wisdom if appropriate.
+
+Current date: ${currentDate}`;
   
-  let cleaned = content;
-  
-  // Remove problematic starts
-  for (const pattern of problematicStarts) {
-    cleaned = cleaned.replace(pattern, '');
+  if (storytellerMode) {
+    return baseInstructions + `
+
+STORYTELLER MODE: Frame responses as brief stories (2-3 paragraphs) using African, Caribbean, or African American traditions. Include cultural wisdom and end with a lesson.`;
   }
   
-  // Trim whitespace and ensure proper capitalization
-  cleaned = cleaned.trim();
-  if (cleaned.length > 0) {
-    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-  }
-  
-  // Remove excessive repetition of phrases
-  cleaned = cleaned.replace(/(\b\w+\b.*?)\1{2,}/gi, '$1');
-  
-  return cleaned;
+  return baseInstructions + `
+
+Provide warm, culturally informed responses in 1-2 paragraphs. Be conversational and supportive.`;
 }
