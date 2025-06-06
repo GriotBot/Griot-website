@@ -1,6 +1,4 @@
-// File: /components/layout/StandardLayout.js - IMPROVED VERSION
-// Fixes: Code duplication, inline styles, modern Link syntax
-
+// components/layout/StandardLayout.js
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -8,44 +6,45 @@ import { useRouter } from 'next/router';
 import { Menu, Home, User, Sun, Moon } from 'react-feather';
 import MessageCirclePlus from '../icons/MessageCirclePlus';
 import EnhancedSidebar from './EnhancedSidebar';
-import ChatFooter from './ChatFooter';
-
-// Import shared constants - eliminates code duplication
-import { PROVERBS, STORAGE_KEYS, THEMES, getRandomProverb } from '../../lib/constants';
+import { PROVERBS, THEME_STORAGE_KEY, CONTACT_INFO } from '../../lib/constants';
+import styles from '../../styles/Footer.module.css';
 
 export default function StandardLayout({ 
   children, 
-  pageType = 'standard',
+  pageType = 'standard', // 'index' or 'standard'
   title = 'GriotBot - Your Digital Griot',
   description = 'An AI-powered digital griot providing culturally rich responses',
   currentPath = '/',
+  // Chat-specific props for index page
   onSendMessage = null,
   chatDisabled = false
 }) {
   // State management
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [theme, setTheme] = useState(THEMES.LIGHT);
+  const [theme, setTheme] = useState('light');
   const [logoError, setLogoError] = useState(false);
   const [currentProverb, setCurrentProverb] = useState('');
   const router = useRouter();
 
-  // Initialize theme and proverb
+  // Initialize theme and proverb from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || THEMES.LIGHT;
+      // Load saved theme
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
       
-      // Use shared function for proverb selection
-      setCurrentProverb(getRandomProverb());
+      // Set random proverb
+      const randomIndex = Math.floor(Math.random() * PROVERBS.length);
+      setCurrentProverb(PROVERBS[randomIndex]);
     }
   }, []);
 
   // Theme toggle function
   const toggleTheme = () => {
-    const newTheme = theme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
+    const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
@@ -54,13 +53,14 @@ export default function StandardLayout({
     setSidebarVisible(!sidebarVisible);
   };
 
-  // New chat handler
+  // New chat handler with Next.js router
   const handleNewChat = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(STORAGE_KEYS.CHAT_HISTORY);
+      localStorage.removeItem('griotbot-history');
       if (currentPath !== '/') {
         router.push('/');
       } else {
+        // For index page, reload to reset chat state
         router.reload();
       }
     }
@@ -82,14 +82,15 @@ export default function StandardLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
         
-        {/* Enhanced CSS with Footer Classes */}
+        {/* CSS Variables */}
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
             /* Layout Variables */
             --topmenu-height: 72px;
             --sidebar-width: 189px;
             --footer-height-index: 189px;
-            --footer-height-standard: 95px;
+            --footer-height-standard: 120px;
+            --sidebar-right-width: 189px;
             
             /* Color Variables */
             --bg-color: #f8f5f0;
@@ -230,93 +231,13 @@ export default function StandardLayout({
           .menu-button.rotated {
             transform: rotate(90deg);
           }
-
-          /* IMPROVED: Footer Styles - No More Inline Styles */
-          .standard-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: var(--footer-height-standard);
-            background: var(--footer-background-standard);
-            border-top: 1px solid var(--input-border);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem;
-            z-index: 50;
-            box-sizing: border-box;
-          }
-
-          .footer-proverb {
-            font-size: 1.05rem;
-            font-style: italic;
-            color: var(--wisdom-color);
-            text-align: center;
-            font-family: var(--quote-font);
-            opacity: 0.8;
-            line-height: 1.4;
-            max-width: 90%;
-          }
-
-          .footer-legal {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            fontSize: 0.8rem;
-            color: var(--text-color);
-            opacity: 0.7;
-            text-align: center;
-            font-family: var(--body-font);
-            flex-wrap: wrap;
-          }
-
-          .footer-separator {
-            opacity: 0.5;
-          }
-
-          /* IMPROVED: CSS-Only Hover Effects */
-          .footer-link {
-            color: var(--text-color);
-            text-decoration: none;
-            opacity: 0.7;
-            transition: opacity 0.2s ease;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-          }
-
-          .footer-link:hover,
-          .footer-link:focus {
-            opacity: 1;
-            text-decoration: none;
-          }
-
-          .footer-link:focus {
-            outline: 2px solid var(--accent-color);
-            outline-offset: 2px;
-          }
-
-          /* Main Content Styling */
-          .main-content {
-            flex: 1;
-            margin-top: var(--topmenu-height);
-            margin-bottom: var(--footer-height-standard);
-            overflow-y: auto;
-            padding: 1rem;
-          }
-
-          .main-content.index-page {
-            margin-bottom: var(--footer-height-index);
-          }
         `}} />
       </Head>
 
       <div className="layout-container">
-        {/* Top Menu */}
+        {/* Top Menu - Always 72px tall */}
         <header className="top-menu" role="banner">
+          {/* Left Side - Menu Icon */}
           <div className="menu-left">
             <button 
               className={`menu-button ${sidebarVisible ? 'rotated' : ''}`}
@@ -329,23 +250,31 @@ export default function StandardLayout({
             </button>
           </div>
 
-          {/* Modern Link Syntax - No Nested <a> Tag */}
+          {/* Center - Logo */}
           <Link href="/" className="menu-center">
             {!logoError ? (
               <img 
                 src="/images/GriotBot logo horiz wht.svg"
                 alt="GriotBot"
-                style={{ height: '32px', width: 'auto' }}
+                style={{ 
+                  height: '32px',
+                  width: 'auto'
+                }}
                 onError={handleLogoError}
               />
             ) : (
-              <>
+              <div style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
                 <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
                 <span>GriotBot</span>
-              </>
+              </div>
             )}
           </Link>
 
+          {/* Right Side - Action Icons */}
           <div className="menu-right">
             <button 
               className="menu-button"
@@ -363,14 +292,15 @@ export default function StandardLayout({
             <button 
               className="menu-button"
               onClick={toggleTheme}
-              aria-label={theme === THEMES.DARK ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={theme === THEMES.DARK ? 'Light Mode' : 'Dark Mode'}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
             >
-              {theme === THEMES.DARK ? <Sun size={20} /> : <Moon size={20} />}
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
           </div>
         </header>
 
+        {/* Enhanced Sidebar */}
         <EnhancedSidebar 
           isVisible={sidebarVisible}
           onToggle={toggleSidebar}
@@ -378,38 +308,72 @@ export default function StandardLayout({
           onNewChat={handleNewChat}
         />
 
-        {/* Main Content - CSS Classes Instead of Inline Styles */}
+        {/* Main Content Area */}
         <main 
-          className={`main-content ${pageType === 'index' ? 'index-page' : ''}`}
+          className="main-content"
+          style={{
+            flex: 1,
+            marginTop: 'var(--topmenu-height)',
+            marginBottom: pageType === 'index' ? 'var(--footer-height-index)' : 'var(--footer-height-standard)',
+            overflowY: 'auto',
+            padding: '1rem'
+          }}
           role="main"
         >
           {children}
         </main>
 
-        {/* Footer - CSS Classes Instead of Inline Styles */}
-        {pageType === 'index' ? (
-          <ChatFooter 
-            onSendMessage={onSendMessage}
-            disabled={chatDisabled}
-          />
-        ) : (
-          <footer className="standard-footer" role="contentinfo" aria-label="Page footer with cultural proverb and legal information">
-            <div className="footer-proverb" aria-live="polite" aria-label="Cultural proverb">
+        {/* Footer - Only for standard pages (index handles its own) */}
+        {pageType === 'standard' && (
+          <footer 
+            className={styles.footer}
+            role="contentinfo"
+            aria-label="Page footer with cultural proverb and contact information"
+          >
+            {/* Enhanced Proverb Section */}
+            <div 
+              className={styles.proverbContainer}
+              aria-live="polite"
+              aria-label="Cultural proverb"
+            >
               {currentProverb}
             </div>
 
-            <div className="footer-legal" aria-label="Copyright and legal information">
-              <span>© {new Date().getFullYear()} GriotBot. All rights reserved.</span>
-              <span className="footer-separator">|</span>
-              
-              {/* Modern Link Syntax with CSS Classes */}
-              <Link href="/terms" className="footer-link" aria-label="View Terms and Conditions">
-                Terms
+            {/* Enhanced Social Links */}
+            <nav 
+              className={styles.socialLinks}
+              aria-label="Social media links"
+            >
+              <Link 
+                href={`mailto:${CONTACT_INFO.email}`}
+                className={styles.socialLink}
+                aria-label="Send email to GriotBot"
+              >
+                Email
               </Link>
-              
-              <Link href="/privacy" className="footer-link" aria-label="View Privacy and Security Policy">
-                Privacy
+              <Link 
+                href={CONTACT_INFO.instagram}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={styles.socialLink}
+                aria-label="Follow GriotBot on Instagram (opens in new tab)"
+              >
+                Instagram
               </Link>
+              <Link 
+                href={CONTACT_INFO.twitter}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={styles.socialLink}
+                aria-label="Follow GriotBot on Twitter (opens in new tab)"
+              >
+                Twitter
+              </Link>
+            </nav>
+
+            {/* Copyright */}
+            <div className={styles.copyright}>
+              © {new Date().getFullYear()} GriotBot. All rights reserved.
             </div>
           </footer>
         )}
