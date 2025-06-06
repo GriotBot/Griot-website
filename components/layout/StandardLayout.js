@@ -1,7 +1,5 @@
-// =====================================================================================
-// FIXED StandardLayout.js - Correcting Syntax Error
-// The issue is likely around lines 185-188 where a JSX element isn't properly closed
-// =====================================================================================
+// File: /components/layout/StandardLayout.js - IMPROVED VERSION
+// Fixes: Code duplication, inline styles, modern Link syntax
 
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
@@ -12,59 +10,42 @@ import MessageCirclePlus from '../icons/MessageCirclePlus';
 import EnhancedSidebar from './EnhancedSidebar';
 import ChatFooter from './ChatFooter';
 
-// Constants for localStorage keys
-const THEME_STORAGE_KEY = 'griotbot-theme';
-const CHAT_HISTORY_STORAGE_KEY = 'griotbot-history';
+// Import shared constants - eliminates code duplication
+import { PROVERBS, STORAGE_KEYS, THEMES, getRandomProverb } from '../../lib/constants';
 
 export default function StandardLayout({ 
   children, 
-  pageType = 'standard', // 'index' or 'standard'
+  pageType = 'standard',
   title = 'GriotBot - Your Digital Griot',
   description = 'An AI-powered digital griot providing culturally rich responses',
   currentPath = '/',
-  // Chat-specific props for index page
   onSendMessage = null,
   chatDisabled = false
 }) {
   // State management
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(THEMES.LIGHT);
   const [logoError, setLogoError] = useState(false);
   const [currentProverb, setCurrentProverb] = useState('');
   const router = useRouter();
 
-  // Proverbs array
-  const PROVERBS = [
-    "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-    "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-    "We are the drums, we are the dance. — Afro-Caribbean Proverb",
-    "A tree cannot stand without its roots. — Jamaican Proverb",
-    "Unity is strength, division is weakness. — Swahili Proverb",
-    "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. — West African Proverb",
-    "Truth is like a drum, it can be heard from afar. — Kenyan Proverb",
-    "However long the night, the dawn will break. — African Proverb",
-    "If you want to go fast, go alone. If you want to go far, go together. — African Proverb",
-    "It takes a village to raise a child. — African Proverb"
-  ];
-
   // Initialize theme and proverb
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || THEMES.LIGHT;
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
       
-      // Set random proverb
-      const randomIndex = Math.floor(Math.random() * PROVERBS.length);
-      setCurrentProverb(PROVERBS[randomIndex]);
+      // Use shared function for proverb selection
+      setCurrentProverb(getRandomProverb());
     }
   }, []);
 
   // Theme toggle function
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
+    const newTheme = theme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
     setTheme(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    localStorage.setItem(STORAGE_KEYS.THEME, newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
@@ -73,14 +54,13 @@ export default function StandardLayout({
     setSidebarVisible(!sidebarVisible);
   };
 
-  // New chat handler with Next.js router
+  // New chat handler
   const handleNewChat = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEYS.CHAT_HISTORY);
       if (currentPath !== '/') {
         router.push('/');
       } else {
-        // For index page, reload to reset chat state
         router.reload();
       }
     }
@@ -99,10 +79,10 @@ export default function StandardLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
         
-        {/* CSS Variables */}
+        {/* Enhanced CSS with Footer Classes */}
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
             /* Layout Variables */
@@ -110,7 +90,6 @@ export default function StandardLayout({
             --sidebar-width: 189px;
             --footer-height-index: 189px;
             --footer-height-standard: 95px;
-            --sidebar-right-width: 189px;
             
             /* Color Variables */
             --bg-color: #f8f5f0;
@@ -251,13 +230,93 @@ export default function StandardLayout({
           .menu-button.rotated {
             transform: rotate(90deg);
           }
+
+          /* IMPROVED: Footer Styles - No More Inline Styles */
+          .standard-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--footer-height-standard);
+            background: var(--footer-background-standard);
+            border-top: 1px solid var(--input-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            z-index: 50;
+            box-sizing: border-box;
+          }
+
+          .footer-proverb {
+            font-size: 1.05rem;
+            font-style: italic;
+            color: var(--wisdom-color);
+            text-align: center;
+            font-family: var(--quote-font);
+            opacity: 0.8;
+            line-height: 1.4;
+            max-width: 90%;
+          }
+
+          .footer-legal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            fontSize: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            text-align: center;
+            font-family: var(--body-font);
+            flex-wrap: wrap;
+          }
+
+          .footer-separator {
+            opacity: 0.5;
+          }
+
+          /* IMPROVED: CSS-Only Hover Effects */
+          .footer-link {
+            color: var(--text-color);
+            text-decoration: none;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+          }
+
+          .footer-link:hover,
+          .footer-link:focus {
+            opacity: 1;
+            text-decoration: none;
+          }
+
+          .footer-link:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+          }
+
+          /* Main Content Styling */
+          .main-content {
+            flex: 1;
+            margin-top: var(--topmenu-height);
+            margin-bottom: var(--footer-height-standard);
+            overflow-y: auto;
+            padding: 1rem;
+          }
+
+          .main-content.index-page {
+            margin-bottom: var(--footer-height-index);
+          }
         `}} />
       </Head>
 
       <div className="layout-container">
-        {/* Top Menu - Always 72px tall */}
+        {/* Top Menu */}
         <header className="top-menu" role="banner">
-          {/* Left Side - Menu Icon */}
           <div className="menu-left">
             <button 
               className={`menu-button ${sidebarVisible ? 'rotated' : ''}`}
@@ -270,31 +329,23 @@ export default function StandardLayout({
             </button>
           </div>
 
-          {/* Center - Logo */}
+          {/* Modern Link Syntax - No Nested <a> Tag */}
           <Link href="/" className="menu-center">
             {!logoError ? (
               <img 
                 src="/images/GriotBot logo horiz wht.svg"
                 alt="GriotBot"
-                style={{ 
-                  height: '32px',
-                  width: 'auto'
-                }}
+                style={{ height: '32px', width: 'auto' }}
                 onError={handleLogoError}
               />
             ) : (
-              <div style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
+              <>
                 <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
                 <span>GriotBot</span>
-              </div>
+              </>
             )}
           </Link>
 
-          {/* Right Side - Action Icons */}
           <div className="menu-right">
             <button 
               className="menu-button"
@@ -312,15 +363,14 @@ export default function StandardLayout({
             <button 
               className="menu-button"
               onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              aria-label={theme === THEMES.DARK ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={theme === THEMES.DARK ? 'Light Mode' : 'Dark Mode'}
             >
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+              {theme === THEMES.DARK ? <Sun size={20} /> : <Moon size={20} />}
             </button>
           </div>
         </header>
 
-        {/* Enhanced Sidebar */}
         <EnhancedSidebar 
           isVisible={sidebarVisible}
           onToggle={toggleSidebar}
@@ -328,129 +378,37 @@ export default function StandardLayout({
           onNewChat={handleNewChat}
         />
 
-        {/* Main Content Area */}
+        {/* Main Content - CSS Classes Instead of Inline Styles */}
         <main 
-          style={{
-            flex: 1,
-            marginTop: 'var(--topmenu-height)',
-            marginBottom: pageType === 'index' ? 'var(--footer-height-index)' : 'var(--footer-height-standard)',
-            overflowY: 'auto',
-            padding: '1rem'
-          }}
+          className={`main-content ${pageType === 'index' ? 'index-page' : ''}`}
           role="main"
         >
           {children}
         </main>
 
-        {/* Footer - Conditional based on page type */}
+        {/* Footer - CSS Classes Instead of Inline Styles */}
         {pageType === 'index' ? (
           <ChatFooter 
             onSendMessage={onSendMessage}
             disabled={chatDisabled}
           />
         ) : (
-          // FIXED: Standard Footer with Legal Links
-          <footer 
-            role="contentinfo"
-            aria-label="Page footer with cultural proverb and legal information"
-            style={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 'var(--footer-height-standard)',
-              background: 'var(--footer-background-standard)',
-              borderTop: '1px solid var(--input-border)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '1rem',
-              zIndex: 50,
-              boxSizing: 'border-box'
-            }}
-          >
-            {/* Proverb */}
-            <div 
-              style={{
-                fontSize: '1.05rem',
-                fontStyle: 'italic',
-                color: 'var(--wisdom-color)',
-                textAlign: 'center',
-                fontFamily: 'var(--quote-font)',
-                opacity: 0.8,
-                lineHeight: '1.4',
-                maxWidth: '90%'
-              }}
-              aria-live="polite"
-              aria-label="Cultural proverb"
-            >
+          <footer className="standard-footer" role="contentinfo" aria-label="Page footer with cultural proverb and legal information">
+            <div className="footer-proverb" aria-live="polite" aria-label="Cultural proverb">
               {currentProverb}
             </div>
 
-            {/* Copyright with Legal Links */}
-            <div 
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1rem',
-                fontSize: '0.8rem',
-                color: 'var(--text-color)',
-                opacity: 0.7,
-                textAlign: 'center',
-                fontFamily: 'var(--body-font)',
-                flexWrap: 'wrap'
-              }}
-              aria-label="Copyright and legal information"
-            >
-              {/* Copyright */}
+            <div className="footer-legal" aria-label="Copyright and legal information">
               <span>© {new Date().getFullYear()} GriotBot. All rights reserved.</span>
+              <span className="footer-separator">|</span>
               
-              {/* Separator */}
-              <span style={{ opacity: 0.5 }}>|</span>
-              
-              {/* Terms Link */}
-              <Link href="/terms">
-                <a 
-                  style={{
-                    color: 'var(--text-color)',
-                    textDecoration: 'none',
-                    opacity: 0.7,
-                    transition: 'opacity 0.2s ease',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px'
-                  }}
-                  onMouseEnter={(e) => e.target.style.opacity = '1'}
-                  onMouseLeave={(e) => e.target.style.opacity = '0.7'}
-                  onFocus={(e) => e.target.style.opacity = '1'}
-                  onBlur={(e) => e.target.style.opacity = '0.7'}
-                  aria-label="View Terms and Conditions"
-                >
-                  Terms
-                </a>
+              {/* Modern Link Syntax with CSS Classes */}
+              <Link href="/terms" className="footer-link" aria-label="View Terms and Conditions">
+                Terms
               </Link>
               
-              {/* Privacy Link */}
-              <Link href="/privacy">
-                <a 
-                  style={{
-                    color: 'var(--text-color)',
-                    textDecoration: 'none',
-                    opacity: 0.7,
-                    transition: 'opacity 0.2s ease',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px'
-                  }}
-                  onMouseEnter={(e) => e.target.style.opacity = '1'}
-                  onMouseLeave={(e) => e.target.style.opacity = '0.7'}
-                  onFocus={(e) => e.target.style.opacity = '1'}
-                  onBlur={(e) => e.target.style.opacity = '0.7'}
-                  aria-label="View Privacy and Security Policy"
-                >
-                  Privacy
-                </a>
+              <Link href="/privacy" className="footer-link" aria-label="View Privacy and Security Policy">
+                Privacy
               </Link>
             </div>
           </footer>
