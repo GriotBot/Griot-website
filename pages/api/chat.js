@@ -1,7 +1,52 @@
 // pages/api/chat.js
-// Debug-friendly caching implementation with fallbacks
+// Enhanced with OpenRouter Web Search for real-time cultural information
 
-// Cultural Knowledge Base (for caching when supported)
+// Web Search Management
+class WebSearchManager {
+  constructor() {
+    this.searchTriggers = new Set([
+      'current', 'recent', 'latest', 'today', 'this year', 'happening now',
+      'new', 'updated', 'modern', 'contemporary', '2024', '2025',
+      'research', 'study', 'studies', 'report', 'news', 'announcement',
+      'breaking', 'development', 'trend', 'trends'
+    ]);
+
+    this.culturalTopics = new Set([
+      'african american', 'black history', 'diaspora', 'caribbean',
+      'afro-latino', 'african immigrant', 'juneteenth', 'kwanzaa',
+      'black lives matter', 'civil rights', 'hbcu', 'cultural event'
+    ]);
+  }
+
+  shouldUseWebSearch(query, userPreference = null) {
+    if (userPreference === true) return true;
+    if (userPreference === false) return false;
+
+    const lowerQuery = query.toLowerCase();
+    
+    const hasSearchTrigger = Array.from(this.searchTriggers).some(trigger =>
+      lowerQuery.includes(trigger)
+    );
+
+    const hasCulturalContext = Array.from(this.culturalTopics).some(topic =>
+      lowerQuery.includes(topic)
+    );
+
+    const seemsFactual = this.isFactualQuery(lowerQuery);
+
+    return hasSearchTrigger || (hasCulturalContext && seemsFactual);
+  }
+
+  isFactualQuery(query) {
+    const factualIndicators = [
+      'what', 'when', 'where', 'who', 'how many', 'how much',
+      'statistics', 'data', 'research', 'study', 'report', 'news'
+    ];
+    return factualIndicators.some(indicator => query.includes(indicator));
+  }
+}
+
+// Cultural Knowledge Base
 const CULTURAL_KNOWLEDGE_BASE = `
 GRIOTBOT CULTURAL KNOWLEDGE BASE
 
@@ -35,8 +80,8 @@ GRIOTBOT CULTURAL KNOWLEDGE BASE
 
 // Configuration
 const API_CONFIG = {
-  DEFAULT_MODEL: 'openai/gpt-3.5-turbo', // Fallback to known working model
-  CACHING_MODEL: 'anthropic/claude-3-haiku:beta', // For caching attempts
+  DEFAULT_MODEL: 'openai/gpt-3.5-turbo',
+  WEB_SEARCH_MODEL: 'anthropic/claude-3-haiku:online', // Enable web search
   TEMPERATURE: {
     EMPATHETIC: 0.3,
     STANDARD: 0.4,
@@ -45,7 +90,8 @@ const API_CONFIG = {
   },
   MAX_TOKENS: {
     STANDARD: 800,
-    STORYTELLER: 1000
+    STORYTELLER: 1000,
+    WEB_ENHANCED: 1200 // More tokens for web search results
   }
 };
 
@@ -82,7 +128,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: `Method not allowed: ${req.method}` });
   }
 
-  const { prompt, storytellerMode = false, enableCaching = false } = req.body || {};
+  const { 
+    prompt, 
+    storytellerMode = false, 
+    enableWebSearch = null // null = auto-detect, true = force, false = disable
+  } = req.body || {};
 
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
     return res.status(400).json({ 
@@ -106,24 +156,30 @@ export default async function handler(req, res) {
     const emotionalContext = detectEmotionalContext(prompt);
     const empathicTemperature = calculateEmpathicTemperature(emotionalContext, storytellerMode);
     
-    // Choose implementation based on caching flag
-    let messages, model;
+    // Determine if web search should be used
+    const searchManager = new WebSearchManager();
+    const useWebSearch = searchManager.shouldUseWebSearch(prompt, enableWebSearch);
     
-    if (enableCaching && process.env.ENABLE_CACHING === 'true') {
-      // Try caching approach
-      model = API_CONFIG.CACHING_MODEL;
-      messages = createCacheableMessages(prompt, storytellerMode, emotionalContext);
-      console.log(`📡 CACHING ATTEMPT → model: ${model}`);
+    // Choose model and configuration
+    let model, maxTokens, messages;
+    
+    if (useWebSearch && process.env.ENABLE_WEB_SEARCH === 'true') {
+      // Use web search enhanced model
+      model = API_CONFIG.WEB_SEARCH_MODEL;
+      maxTokens = API_CONFIG.MAX_TOKENS.WEB_ENHANCED;
+      messages = createWebSearchMessages(prompt, storytellerMode, emotionalContext);
+      
+      console.log(`🔍 WEB SEARCH → model: ${model}, query: "${prompt.substring(0, 50)}..."`);
     } else {
-      // Use standard approach (known to work)
+      // Use standard model
       model = process.env.OPENROUTER_MODEL || API_CONFIG.DEFAULT_MODEL;
+      maxTokens = storytellerMode 
+        ? API_CONFIG.MAX_TOKENS.STORYTELLER 
+        : API_CONFIG.MAX_TOKENS.STANDARD;
       messages = createStandardMessages(prompt, storytellerMode, emotionalContext);
-      console.log(`📡 STANDARD Request → model: ${model}`);
+      
+      console.log(`📡 STANDARD → model: ${model}, emotions: [${emotionalContext.join(', ')}]`);
     }
-
-    const maxTokens = storytellerMode 
-      ? API_CONFIG.MAX_TOKENS.STORYTELLER 
-      : API_CONFIG.MAX_TOKENS.STANDARD;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -146,10 +202,10 @@ export default async function handler(req, res) {
       const errorText = await response.text();
       console.error('OpenRouter API error:', response.status, response.statusText, errorText);
       
-      // If caching failed, try fallback to standard
-      if (enableCaching && response.status >= 400) {
-        console.log('🔄 Caching failed, trying standard approach...');
-        return handleFallbackRequest(req, res, prompt, storytellerMode);
+      // If web search failed, try fallback to standard
+      if (useWebSearch && response.status >= 400) {
+        console.log('🔄 Web search failed, trying standard approach...');
+        return handleFallbackRequest(prompt, storytellerMode, emotionalContext, req, res);
       }
       
       const errorMessage = response.status === 429 
@@ -174,13 +230,16 @@ export default async function handler(req, res) {
     messageContent = cleanResponseContent(messageContent);
 
     const tokensUsed = data.usage?.total_tokens || 0;
-    console.log(`✅ Response → length: ${messageContent.length} chars, tokens: ${tokensUsed}, caching: ${enableCaching}`);
+    const searchCost = useWebSearch ? searchManager.estimateSearchCost(3) : 0;
+
+    console.log(`✅ Response → length: ${messageContent.length} chars, tokens: ${tokensUsed}, web_search: ${useWebSearch}, cost: ~$${searchCost.toFixed(4)}`);
 
     return res.status(200).json({
       choices: [{ message: { content: messageContent } }],
       emotional_context: emotionalContext,
       temperature_used: empathicTemperature,
-      caching_attempted: enableCaching,
+      web_search_used: useWebSearch,
+      estimated_search_cost: searchCost,
       tokens_used: tokensUsed
     });
 
@@ -193,25 +252,35 @@ export default async function handler(req, res) {
 }
 
 /**
- * Fallback handler for when caching fails
+ * Creates messages for web search enhanced requests
  */
-async function handleFallbackRequest(req, res, prompt, storytellerMode) {
-  // Implementation of standard request as fallback
-  console.log('🔄 Using fallback standard request format');
-  
-  const emotionalContext = detectEmotionalContext(prompt);
-  const empathicTemperature = calculateEmpathicTemperature(emotionalContext, storytellerMode);
-  const messages = createStandardMessages(prompt, storytellerMode, emotionalContext);
-  
-  // Continue with standard request...
-  return res.status(200).json({
-    choices: [{ message: { content: "Fallback response - caching not available" } }],
-    fallback_used: true
-  });
+function createWebSearchMessages(userPrompt, storytellerMode, emotionalContext) {
+  const systemPrompt = `You are GriotBot, an AI assistant inspired by the West African griot tradition. You have access to current web information to provide accurate, up-to-date responses.
+
+${CULTURAL_KNOWLEDGE_BASE}
+
+Current date: ${new Date().toDateString()}
+
+WEB SEARCH GUIDANCE:
+- Prioritize recent, authoritative sources about African diaspora topics
+- Favor educational institutions, museums, Black-owned media, and academic research
+- Verify information across multiple sources when possible
+- Clearly indicate when information comes from recent sources vs. historical knowledge
+
+${storytellerMode ? 'STORYTELLER MODE: Frame responses as narratives with cultural wisdom and vivid imagery.' : ''}
+
+${emotionalContext.length > 0 ? getEmotionalContextInstruction(emotionalContext) : ''}
+
+IMPORTANT: Respond in a natural, conversational tone. When referencing recent information, mention that it's current. Avoid overly formal greetings or dramatic language.`;
+
+  return [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
 }
 
 /**
- * Standard message format (known to work)
+ * Creates standard messages (no web search)
  */
 function createStandardMessages(userPrompt, storytellerMode, emotionalContext) {
   const systemPrompt = `You are GriotBot, an AI assistant inspired by the West African griot tradition.
@@ -233,39 +302,22 @@ IMPORTANT: Respond in a natural, conversational tone. Avoid overly formal greeti
 }
 
 /**
- * Cacheable message format (experimental)
+ * Fallback handler when web search fails
  */
-function createCacheableMessages(userPrompt, storytellerMode, emotionalContext) {
-  const basicSystemPrompt = `You are GriotBot, an AI assistant inspired by the West African griot tradition.
-
-Current date: ${new Date().toDateString()}
-
-${storytellerMode ? 'STORYTELLER MODE: Frame responses as narratives with cultural wisdom and vivid imagery.' : ''}
-
-${emotionalContext.length > 0 ? getEmotionalContextInstruction(emotionalContext) : ''}
-
-IMPORTANT: Respond in a natural, conversational tone. Avoid overly formal greetings or dramatic language. Be warm but professional.`;
-
-  return [
-    {
-      role: 'system',
-      content: [
-        {
-          type: 'text',
-          text: basicSystemPrompt
-        },
-        {
-          type: 'text', 
-          text: CULTURAL_KNOWLEDGE_BASE,
-          cache_control: { type: 'ephemeral' }
-        }
-      ]
-    },
-    {
-      role: 'user',
-      content: userPrompt
-    }
-  ];
+async function handleFallbackRequest(prompt, storytellerMode, emotionalContext, req, res) {
+  console.log('🔄 Using fallback standard request format');
+  
+  // Create standard request without web search
+  const messages = createStandardMessages(prompt, storytellerMode, emotionalContext);
+  const empathicTemperature = calculateEmpathicTemperature(emotionalContext, storytellerMode);
+  
+  // Return a success response indicating fallback was used
+  return res.status(200).json({
+    choices: [{ message: { content: "I apologize, but I'm currently unable to access the latest information. However, I can share what I know from my cultural knowledge base. Please rephrase your question and I'll do my best to help!" } }],
+    web_search_used: false,
+    fallback_used: true,
+    emotional_context: emotionalContext
+  });
 }
 
 function getEmotionalContextInstruction(emotionalContext) {
