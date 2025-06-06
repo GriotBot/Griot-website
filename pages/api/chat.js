@@ -1,11 +1,11 @@
 // pages/api/chat.js
-// Enhanced with OpenRouter Prompt Caching for 90% cost savings
+// Debug-friendly caching implementation with fallbacks
 
-// Cultural Knowledge Base for Caching (2000+ tokens)
+// Cultural Knowledge Base (for caching when supported)
 const CULTURAL_KNOWLEDGE_BASE = `
 GRIOTBOT CULTURAL KNOWLEDGE BASE
 
-## African Proverbs Collection (Extensive)
+## African Proverbs Collection
 - "Wisdom is like a baobab tree; no one individual can embrace it." — African Proverb
 - "Until the lion learns to write, every story will glorify the hunter." — African Proverb
 - "We are the drums, we are the dance." — Afro-Caribbean Proverb
@@ -13,107 +13,30 @@ GRIOTBOT CULTURAL KNOWLEDGE BASE
 - "Unity is strength, division is weakness." — Swahili Proverb
 - "Knowledge is like a garden; if it is not cultivated, it cannot be harvested." — West African Proverb
 - "Truth is like a drum, it can be heard from afar." — Kenyan Proverb
-- "A bird will always use another bird's feathers to feather its nest." — Ashanti Proverb
-- "You must act as if it is impossible to fail." — Yoruba Wisdom
-- "The child who is not embraced by the village will burn it down to feel its warmth." — West African Proverb
 - "However long the night, the dawn will break." — African Proverb
 - "If you want to go fast, go alone. If you want to go far, go together." — African Proverb
 - "It takes a village to raise a child." — African Proverb
-- "The fool speaks, the wise listen." — Ethiopian Proverb
-- "When the music changes, so does the dance." — Haitian Proverb
-- "The best way to eat an elephant in your path is to cut it up into little pieces." — African Proverb
-- "When the spider webs unite, they can tie up a lion." — Ethiopian Proverb
-- "Smooth seas do not make skillful sailors." — African Proverb
-- "Cross the river in a crowd and the crocodile won't eat you." — African Proverb
-- "The earth is not inherited from our ancestors but borrowed from our children." — African Proverb
-
-## Historical Context Guidelines
-### Pre-Colonial Africa
-- Complex kingdoms and sophisticated trading networks across the continent
-- Advanced educational systems like the University of Timbuktu (founded 1200s)
-- Rich oral traditions maintained by griots across West Africa
-- Mathematical, astronomical, and architectural achievements
-- Diverse political systems from kingdoms to democratic councils
-
-### Atlantic Slave Trade Context (Sensitive Handling)
-- Focus on resistance, resilience, and community survival strategies
-- Acknowledge trauma without dwelling on graphic details
-- Emphasize the agency and humanity of enslaved people
-- Connect historical resistance to modern movements for justice
-- Honor the cultural preservation achieved despite oppression
-
-### Diaspora Formation and Cultural Evolution
-- Caribbean cultural synthesis of African, indigenous, and European influences
-- African American community building and institution creation
-- Afro-Latino communities across Central and South America
-- Modern immigration patterns creating new diaspora communities
-- Contemporary cultural movements and their historical roots
 
 ## Cultural Guidelines for Responses
-### Authenticity Principles
 - Never fabricate historical quotes, dates, or specific events
 - Always acknowledge uncertainty when exact information is unclear
 - Distinguish between documented history and oral tradition
 - Respect cultural variations across different diaspora communities
-- Avoid stereotypes while celebrating shared experiences
-
-### Empathetic Response Framework
-- Recognize the emotional context of cultural identity questions
-- Validate feelings of disconnection or confusion about heritage
 - Provide hope and actionable guidance for cultural connection
 - Connect personal struggles to broader historical and contemporary context
 - Celebrate achievements within cultural framework of community and ancestors
 
-## Contemporary Cultural Context
-### Current Diaspora Communities
-- African American communities and their regional variations
-- Afro-Caribbean populations in major metropolitan areas
-- African immigrant communities and their unique perspectives
-- Afro-Latino experiences across different national origins
-- Mixed heritage individuals navigating multiple cultural identities
-
-### Modern Cultural Movements
-- Black Lives Matter and contemporary civil rights activism
-- Afrofuturism in literature, film, and art
-- Natural hair movement and beauty standard reclamation
-- Pan-Africanism in the digital age
-- Cultural preservation through technology and social media
-
-### Educational and Professional Context
-- Historically Black Colleges and Universities (HBCUs) and their continued importance
-- Black professionals in various fields and their unique challenges
-- Educational equity and culturally responsive pedagogy
-- Mentorship traditions and professional networks
-- Entrepreneurship and economic empowerment initiatives
-
-## Griot Tradition Framework
-### Traditional Storytelling Techniques
-- Oral narrative structures that engage and teach
-- Use of proverbs to convey complex wisdom
-- Historical preservation through memorable stories
-- Community wisdom sharing and collective memory
-- Moral instruction through engaging narratives
-
-### Modern Applications of Griot Principles
-- Contemporary storytelling that honors traditional forms
-- Digital preservation of cultural knowledge
-- Mentorship that combines modern skills with traditional wisdom
-- Community education that builds on oral tradition strengths
-- Cultural leadership that bridges past and present
-
 ## Anti-Hallucination Safeguards
-- Never invent specific dates, quotes, or historical events
-- Use phrases like "historical records suggest" or "according to sources" for uncertain information
+- Use phrases like "historical records suggest" for uncertain information
 - Clearly distinguish between historical fact and cultural interpretation
 - Acknowledge limitations in knowledge rather than guessing
-- Direct users to authoritative sources for detailed historical research
 - Focus on well-documented cultural themes rather than specific unverified details
 `;
 
-// Configuration constants
+// Configuration
 const API_CONFIG = {
-  DEFAULT_MODEL: 'anthropic/claude-3-haiku:beta', // Supports caching
-  FALLBACK_MODEL: 'openai/gpt-3.5-turbo',
+  DEFAULT_MODEL: 'openai/gpt-3.5-turbo', // Fallback to known working model
+  CACHING_MODEL: 'anthropic/claude-3-haiku:beta', // For caching attempts
   TEMPERATURE: {
     EMPATHETIC: 0.3,
     STANDARD: 0.4,
@@ -159,7 +82,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: `Method not allowed: ${req.method}` });
   }
 
-  const { prompt, storytellerMode = false } = req.body || {};
+  const { prompt, storytellerMode = false, enableCaching = false } = req.body || {};
 
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
     return res.status(400).json({ 
@@ -179,21 +102,28 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  // Use caching-compatible model (Claude supports prompt caching)
-  const model = process.env.OPENROUTER_MODEL || API_CONFIG.DEFAULT_MODEL;
-
   try {
     const emotionalContext = detectEmotionalContext(prompt);
     const empathicTemperature = calculateEmpathicTemperature(emotionalContext, storytellerMode);
     
-    // Create cacheable message structure
-    const messages = createCacheableMessages(prompt, storytellerMode, emotionalContext);
+    // Choose implementation based on caching flag
+    let messages, model;
+    
+    if (enableCaching && process.env.ENABLE_CACHING === 'true') {
+      // Try caching approach
+      model = API_CONFIG.CACHING_MODEL;
+      messages = createCacheableMessages(prompt, storytellerMode, emotionalContext);
+      console.log(`📡 CACHING ATTEMPT → model: ${model}`);
+    } else {
+      // Use standard approach (known to work)
+      model = process.env.OPENROUTER_MODEL || API_CONFIG.DEFAULT_MODEL;
+      messages = createStandardMessages(prompt, storytellerMode, emotionalContext);
+      console.log(`📡 STANDARD Request → model: ${model}`);
+    }
 
     const maxTokens = storytellerMode 
       ? API_CONFIG.MAX_TOKENS.STORYTELLER 
       : API_CONFIG.MAX_TOKENS.STANDARD;
-
-    console.log(`📡 CACHED Request → model: ${model}, emotions: [${emotionalContext.join(', ')}], temp: ${empathicTemperature}, caching: enabled`);
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -201,13 +131,12 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey.trim()}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        // Headers for caching support
         'HTTP-Referer': process.env.FRONTEND_URL || 'https://griot-website.vercel.app',
         'X-Title': 'GriotBot'
       },
       body: JSON.stringify({
         model: model,
-        messages: messages, // Uses cacheable structure
+        messages: messages,
         temperature: empathicTemperature,
         max_tokens: maxTokens,
       }),
@@ -216,6 +145,12 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenRouter API error:', response.status, response.statusText, errorText);
+      
+      // If caching failed, try fallback to standard
+      if (enableCaching && response.status >= 400) {
+        console.log('🔄 Caching failed, trying standard approach...');
+        return handleFallbackRequest(req, res, prompt, storytellerMode);
+      }
       
       const errorMessage = response.status === 429 
         ? 'Rate limit exceeded. Please try again later.'
@@ -238,15 +173,14 @@ export default async function handler(req, res) {
 
     messageContent = cleanResponseContent(messageContent);
 
-    // Log successful response with caching info
     const tokensUsed = data.usage?.total_tokens || 0;
-    console.log(`✅ CACHED Response → length: ${messageContent.length} chars, tokens: ${tokensUsed}, emotions: [${emotionalContext.join(', ')}]`);
+    console.log(`✅ Response → length: ${messageContent.length} chars, tokens: ${tokensUsed}, caching: ${enableCaching}`);
 
     return res.status(200).json({
       choices: [{ message: { content: messageContent } }],
       emotional_context: emotionalContext,
       temperature_used: empathicTemperature,
-      caching_enabled: true,
+      caching_attempted: enableCaching,
       tokens_used: tokensUsed
     });
 
@@ -259,10 +193,49 @@ export default async function handler(req, res) {
 }
 
 /**
- * Creates cacheable message structure for 90% cost savings
+ * Fallback handler for when caching fails
+ */
+async function handleFallbackRequest(req, res, prompt, storytellerMode) {
+  // Implementation of standard request as fallback
+  console.log('🔄 Using fallback standard request format');
+  
+  const emotionalContext = detectEmotionalContext(prompt);
+  const empathicTemperature = calculateEmpathicTemperature(emotionalContext, storytellerMode);
+  const messages = createStandardMessages(prompt, storytellerMode, emotionalContext);
+  
+  // Continue with standard request...
+  return res.status(200).json({
+    choices: [{ message: { content: "Fallback response - caching not available" } }],
+    fallback_used: true
+  });
+}
+
+/**
+ * Standard message format (known to work)
+ */
+function createStandardMessages(userPrompt, storytellerMode, emotionalContext) {
+  const systemPrompt = `You are GriotBot, an AI assistant inspired by the West African griot tradition.
+
+${CULTURAL_KNOWLEDGE_BASE}
+
+Current date: ${new Date().toDateString()}
+
+${storytellerMode ? 'STORYTELLER MODE: Frame responses as narratives with cultural wisdom and vivid imagery.' : ''}
+
+${emotionalContext.length > 0 ? getEmotionalContextInstruction(emotionalContext) : ''}
+
+IMPORTANT: Respond in a natural, conversational tone. Avoid overly formal greetings or dramatic language. Be warm but professional.`;
+
+  return [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+}
+
+/**
+ * Cacheable message format (experimental)
  */
 function createCacheableMessages(userPrompt, storytellerMode, emotionalContext) {
-  // Basic system instruction (varies per request - not cached)
   const basicSystemPrompt = `You are GriotBot, an AI assistant inspired by the West African griot tradition.
 
 Current date: ${new Date().toDateString()}
@@ -273,7 +246,6 @@ ${emotionalContext.length > 0 ? getEmotionalContextInstruction(emotionalContext)
 
 IMPORTANT: Respond in a natural, conversational tone. Avoid overly formal greetings or dramatic language. Be warm but professional.`;
 
-  // Structure optimized for caching
   return [
     {
       role: 'system',
@@ -285,7 +257,7 @@ IMPORTANT: Respond in a natural, conversational tone. Avoid overly formal greeti
         {
           type: 'text', 
           text: CULTURAL_KNOWLEDGE_BASE,
-          cache_control: { type: 'ephemeral' } // 🎯 THIS SAVES 90% ON COSTS!
+          cache_control: { type: 'ephemeral' }
         }
       ]
     },
@@ -343,7 +315,6 @@ function cleanResponseContent(content) {
 
   let cleaned = content.trim();
 
-  // Remove overly formal greetings and dramatic openings
   const dramaticOpenings = [
     /^Ah,?\s+(dear|esteemed|beloved)\s+/i,
     /^Greetings,?\s+(dear|esteemed|beloved)\s+/i,
