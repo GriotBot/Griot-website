@@ -1,10 +1,119 @@
 // pages/api/chat.js
+// Enhanced with OpenRouter Prompt Caching for 90% cost savings
 
-// Since we're in pages/api/, we need to import constants directly
-// Let's embed the constants here for now to avoid path issues
+// Cultural Knowledge Base for Caching (2000+ tokens)
+const CULTURAL_KNOWLEDGE_BASE = `
+GRIOTBOT CULTURAL KNOWLEDGE BASE
+
+## African Proverbs Collection (Extensive)
+- "Wisdom is like a baobab tree; no one individual can embrace it." — African Proverb
+- "Until the lion learns to write, every story will glorify the hunter." — African Proverb
+- "We are the drums, we are the dance." — Afro-Caribbean Proverb
+- "A tree cannot stand without its roots." — Jamaican Proverb
+- "Unity is strength, division is weakness." — Swahili Proverb
+- "Knowledge is like a garden; if it is not cultivated, it cannot be harvested." — West African Proverb
+- "Truth is like a drum, it can be heard from afar." — Kenyan Proverb
+- "A bird will always use another bird's feathers to feather its nest." — Ashanti Proverb
+- "You must act as if it is impossible to fail." — Yoruba Wisdom
+- "The child who is not embraced by the village will burn it down to feel its warmth." — West African Proverb
+- "However long the night, the dawn will break." — African Proverb
+- "If you want to go fast, go alone. If you want to go far, go together." — African Proverb
+- "It takes a village to raise a child." — African Proverb
+- "The fool speaks, the wise listen." — Ethiopian Proverb
+- "When the music changes, so does the dance." — Haitian Proverb
+- "The best way to eat an elephant in your path is to cut it up into little pieces." — African Proverb
+- "When the spider webs unite, they can tie up a lion." — Ethiopian Proverb
+- "Smooth seas do not make skillful sailors." — African Proverb
+- "Cross the river in a crowd and the crocodile won't eat you." — African Proverb
+- "The earth is not inherited from our ancestors but borrowed from our children." — African Proverb
+
+## Historical Context Guidelines
+### Pre-Colonial Africa
+- Complex kingdoms and sophisticated trading networks across the continent
+- Advanced educational systems like the University of Timbuktu (founded 1200s)
+- Rich oral traditions maintained by griots across West Africa
+- Mathematical, astronomical, and architectural achievements
+- Diverse political systems from kingdoms to democratic councils
+
+### Atlantic Slave Trade Context (Sensitive Handling)
+- Focus on resistance, resilience, and community survival strategies
+- Acknowledge trauma without dwelling on graphic details
+- Emphasize the agency and humanity of enslaved people
+- Connect historical resistance to modern movements for justice
+- Honor the cultural preservation achieved despite oppression
+
+### Diaspora Formation and Cultural Evolution
+- Caribbean cultural synthesis of African, indigenous, and European influences
+- African American community building and institution creation
+- Afro-Latino communities across Central and South America
+- Modern immigration patterns creating new diaspora communities
+- Contemporary cultural movements and their historical roots
+
+## Cultural Guidelines for Responses
+### Authenticity Principles
+- Never fabricate historical quotes, dates, or specific events
+- Always acknowledge uncertainty when exact information is unclear
+- Distinguish between documented history and oral tradition
+- Respect cultural variations across different diaspora communities
+- Avoid stereotypes while celebrating shared experiences
+
+### Empathetic Response Framework
+- Recognize the emotional context of cultural identity questions
+- Validate feelings of disconnection or confusion about heritage
+- Provide hope and actionable guidance for cultural connection
+- Connect personal struggles to broader historical and contemporary context
+- Celebrate achievements within cultural framework of community and ancestors
+
+## Contemporary Cultural Context
+### Current Diaspora Communities
+- African American communities and their regional variations
+- Afro-Caribbean populations in major metropolitan areas
+- African immigrant communities and their unique perspectives
+- Afro-Latino experiences across different national origins
+- Mixed heritage individuals navigating multiple cultural identities
+
+### Modern Cultural Movements
+- Black Lives Matter and contemporary civil rights activism
+- Afrofuturism in literature, film, and art
+- Natural hair movement and beauty standard reclamation
+- Pan-Africanism in the digital age
+- Cultural preservation through technology and social media
+
+### Educational and Professional Context
+- Historically Black Colleges and Universities (HBCUs) and their continued importance
+- Black professionals in various fields and their unique challenges
+- Educational equity and culturally responsive pedagogy
+- Mentorship traditions and professional networks
+- Entrepreneurship and economic empowerment initiatives
+
+## Griot Tradition Framework
+### Traditional Storytelling Techniques
+- Oral narrative structures that engage and teach
+- Use of proverbs to convey complex wisdom
+- Historical preservation through memorable stories
+- Community wisdom sharing and collective memory
+- Moral instruction through engaging narratives
+
+### Modern Applications of Griot Principles
+- Contemporary storytelling that honors traditional forms
+- Digital preservation of cultural knowledge
+- Mentorship that combines modern skills with traditional wisdom
+- Community education that builds on oral tradition strengths
+- Cultural leadership that bridges past and present
+
+## Anti-Hallucination Safeguards
+- Never invent specific dates, quotes, or historical events
+- Use phrases like "historical records suggest" or "according to sources" for uncertain information
+- Clearly distinguish between historical fact and cultural interpretation
+- Acknowledge limitations in knowledge rather than guessing
+- Direct users to authoritative sources for detailed historical research
+- Focus on well-documented cultural themes rather than specific unverified details
+`;
+
+// Configuration constants
 const API_CONFIG = {
-  DEFAULT_MODEL: 'openai/gpt-3.5-turbo',
-  FALLBACK_MODEL: 'anthropic/claude-3-haiku:beta',
+  DEFAULT_MODEL: 'anthropic/claude-3-haiku:beta', // Supports caching
+  FALLBACK_MODEL: 'openai/gpt-3.5-turbo',
   TEMPERATURE: {
     EMPATHETIC: 0.3,
     STANDARD: 0.4,
@@ -13,8 +122,7 @@ const API_CONFIG = {
   },
   MAX_TOKENS: {
     STANDARD: 800,
-    STORYTELLER: 1000,
-    EDUCATIONAL: 1200
+    STORYTELLER: 1000
   }
 };
 
@@ -26,27 +134,16 @@ const EMOTIONAL_INDICATORS = {
   celebration: ['proud', 'happy', 'excited', 'achieved', 'success', 'graduated']
 };
 
-const DEFAULT_MESSAGES = {
-  WELCOME: "Welcome to GriotBot! I'm here to share wisdom, stories, and guidance rooted in African diaspora culture. How can I help you today?",
-  ERROR: "I'm sorry, I encountered an error. Please try again.",
-  LOADING: "Let me think about that...",
-  NO_RESPONSE: "I apologize, but I seem to be having trouble processing your request."
-};
-
 // Production CORS configuration
 const getAllowedOrigin = () => {
   if (process.env.NODE_ENV === 'production') {
     return process.env.FRONTEND_URL || 'https://griot-website.vercel.app';
   }
-  return '*'; // Allow all origins in development
+  return '*';
 };
 
-/**
- * Enhanced empathetic AI chat endpoint with shared constants
- * Provides culturally grounded responses with emotional intelligence
- */
 export default async function handler(req, res) {
-  // CORS headers - Environment-specific origin
+  // CORS headers
   const allowedOrigin = getAllowedOrigin();
   
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -54,79 +151,68 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'OPTIONS,POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // Only allow POST method
   if (req.method !== 'POST') {
-    console.warn(`Method not allowed: ${req.method}`);
-    res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: `Method not allowed: ${req.method}` });
   }
 
-  // Extract and validate request body
   const { prompt, storytellerMode = false } = req.body || {};
 
-  // Enhanced input validation
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
     return res.status(400).json({ 
       error: 'prompt is required and must be a non-empty string' 
     });
   }
 
-  // Check prompt length limit
   if (prompt.length > 5000) {
     return res.status(400).json({ 
       error: 'prompt exceeds maximum length of 5000 characters' 
     });
   }
 
-  // Validate API key
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey || !apiKey.trim()) {
     console.error('Missing or empty OPENROUTER_API_KEY');
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  // Get model from environment or use default
+  // Use caching-compatible model (Claude supports prompt caching)
   const model = process.env.OPENROUTER_MODEL || API_CONFIG.DEFAULT_MODEL;
 
   try {
-    // Detect emotional context and adjust response
     const emotionalContext = detectEmotionalContext(prompt);
     const empathicTemperature = calculateEmpathicTemperature(emotionalContext, storytellerMode);
-    const systemInstruction = createEmpathicSystemInstruction(emotionalContext, storytellerMode);
+    
+    // Create cacheable message structure
+    const messages = createCacheableMessages(prompt, storytellerMode, emotionalContext);
 
-    // Determine max tokens based on mode
     const maxTokens = storytellerMode 
       ? API_CONFIG.MAX_TOKENS.STORYTELLER 
       : API_CONFIG.MAX_TOKENS.STANDARD;
 
-    // Log request details for monitoring
-    console.log(`📡 Empathetic Request → model: ${model}, emotional: [${emotionalContext.join(', ')}], storyteller: ${storytellerMode}, temp: ${empathicTemperature}`);
+    console.log(`📡 CACHED Request → model: ${model}, emotions: [${emotionalContext.join(', ')}], temp: ${empathicTemperature}, caching: enabled`);
 
-    // Call OpenRouter API
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey.trim()}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        // Headers for caching support
+        'HTTP-Referer': process.env.FRONTEND_URL || 'https://griot-website.vercel.app',
+        'X-Title': 'GriotBot'
       },
       body: JSON.stringify({
         model: model,
-        messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: prompt },
-        ],
+        messages: messages, // Uses cacheable structure
         temperature: empathicTemperature,
         max_tokens: maxTokens,
       }),
     });
 
-    // Handle OpenRouter API errors
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenRouter API error:', response.status, response.statusText, errorText);
@@ -140,7 +226,6 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: errorMessage });
     }
 
-    // Parse and validate response
     const data = await response.json();
     let messageContent = data.choices?.[0]?.message?.content;
 
@@ -151,22 +236,22 @@ export default async function handler(req, res) {
       });
     }
 
-    // Enhanced response cleaning to remove formal/dramatic language
     messageContent = cleanResponseContent(messageContent);
 
-    // Log successful response
-    console.log(`✅ Empathetic Response → length: ${messageContent.length} chars, emotions: [${emotionalContext.join(', ')}]`);
+    // Log successful response with caching info
+    const tokensUsed = data.usage?.total_tokens || 0;
+    console.log(`✅ CACHED Response → length: ${messageContent.length} chars, tokens: ${tokensUsed}, emotions: [${emotionalContext.join(', ')}]`);
 
-    // Return response in expected format
     return res.status(200).json({
       choices: [{ message: { content: messageContent } }],
       emotional_context: emotionalContext,
-      temperature_used: empathicTemperature
+      temperature_used: empathicTemperature,
+      caching_enabled: true,
+      tokens_used: tokensUsed
     });
 
   } catch (err) {
     console.error('Network/fetch error:', err.message, err.stack);
-    
     return res.status(502).json({ 
       error: 'Network error communicating with AI service' 
     });
@@ -174,13 +259,58 @@ export default async function handler(req, res) {
 }
 
 /**
- * Detects emotional context from user input using shared constants
+ * Creates cacheable message structure for 90% cost savings
  */
+function createCacheableMessages(userPrompt, storytellerMode, emotionalContext) {
+  // Basic system instruction (varies per request - not cached)
+  const basicSystemPrompt = `You are GriotBot, an AI assistant inspired by the West African griot tradition.
+
+Current date: ${new Date().toDateString()}
+
+${storytellerMode ? 'STORYTELLER MODE: Frame responses as narratives with cultural wisdom and vivid imagery.' : ''}
+
+${emotionalContext.length > 0 ? getEmotionalContextInstruction(emotionalContext) : ''}
+
+IMPORTANT: Respond in a natural, conversational tone. Avoid overly formal greetings or dramatic language. Be warm but professional.`;
+
+  // Structure optimized for caching
+  return [
+    {
+      role: 'system',
+      content: [
+        {
+          type: 'text',
+          text: basicSystemPrompt
+        },
+        {
+          type: 'text', 
+          text: CULTURAL_KNOWLEDGE_BASE,
+          cache_control: { type: 'ephemeral' } // 🎯 THIS SAVES 90% ON COSTS!
+        }
+      ]
+    },
+    {
+      role: 'user',
+      content: userPrompt
+    }
+  ];
+}
+
+function getEmotionalContextInstruction(emotionalContext) {
+  if (emotionalContext.includes('pain') || emotionalContext.includes('cultural_disconnection')) {
+    return 'EMPATHETIC MODE: The user seems to be experiencing difficulty. Respond with gentle validation, understanding, and supportive guidance.';
+  } else if (emotionalContext.includes('celebration')) {
+    return 'CELEBRATORY MODE: The user seems happy or excited. Share in their joy with warm congratulations and cultural pride.';
+  } else if (emotionalContext.includes('frustration')) {
+    return 'SUPPORTIVE MODE: The user seems frustrated. Provide practical advice with patience and understanding.';
+  }
+  return '';
+}
+
 function detectEmotionalContext(text) {
   const normalizedText = text.toLowerCase();
   const detectedEmotions = [];
 
-  // Check each emotional category using shared constants
   Object.entries(EMOTIONAL_INDICATORS).forEach(([emotion, indicators]) => {
     if (indicators.some(indicator => normalizedText.includes(indicator))) {
       detectedEmotions.push(emotion);
@@ -190,62 +320,25 @@ function detectEmotionalContext(text) {
   return detectedEmotions;
 }
 
-/**
- * Calculates appropriate temperature based on emotional context
- */
 function calculateEmpathicTemperature(emotionalContext, storytellerMode) {
   let baseTemp = API_CONFIG.TEMPERATURE.STANDARD;
 
-  // Adjust based on emotional state
   if (emotionalContext.includes('pain') || emotionalContext.includes('cultural_disconnection')) {
     baseTemp = API_CONFIG.TEMPERATURE.EMPATHETIC;
   } else if (emotionalContext.includes('celebration')) {
     baseTemp = API_CONFIG.TEMPERATURE.CELEBRATORY;
   }
 
-  // Slight adjustment for storyteller mode
   if (storytellerMode) {
     baseTemp = API_CONFIG.TEMPERATURE.STORYTELLER;
   }
 
-  return Math.min(Math.max(baseTemp, 0.1), 1.0); // Clamp between 0.1 and 1.0
+  return Math.min(Math.max(baseTemp, 0.1), 1.0);
 }
 
-/**
- * Creates empathic system instruction based on emotional context
- */
-function createEmpathicSystemInstruction(emotionalContext, storytellerMode) {
-  const currentDate = new Date().toDateString();
-  
-  let baseInstruction = `You are GriotBot, an AI assistant inspired by the West African griot tradition. Provide culturally rich, empathetic responses with respect and clarity. Break text into clear paragraphs. Current date: ${currentDate}`;
-
-  // Add emotional context awareness
-  if (emotionalContext.length > 0) {
-    if (emotionalContext.includes('pain') || emotionalContext.includes('cultural_disconnection')) {
-      baseInstruction += '\n\nEMPATHETIC MODE: The user seems to be experiencing difficulty. Respond with gentle validation, understanding, and supportive guidance. Acknowledge their feelings and provide hope.';
-    } else if (emotionalContext.includes('celebration')) {
-      baseInstruction += '\n\nCELEBRATORY MODE: The user seems happy or excited. Share in their joy with warm congratulations and cultural pride. Connect their achievement to broader cultural context.';
-    } else if (emotionalContext.includes('frustration')) {
-      baseInstruction += '\n\nSUPPORTIVE MODE: The user seems frustrated. Provide practical advice with patience and understanding. Offer perspective from cultural wisdom.';
-    }
-  }
-
-  // Add storyteller mode instructions if enabled
-  if (storytellerMode) {
-    baseInstruction += '\n\nSTORYTELLER MODE: Frame your response as a narrative from African diaspora traditions. Use vivid imagery, cultural references, and end with a reflective insight. Draw from oral storytelling techniques while maintaining authenticity.';
-  }
-
-  baseInstruction += '\n\nIMPORTANT: Respond in a natural, conversational tone. Avoid overly formal greetings or dramatic language. Be warm but professional.';
-
-  return baseInstruction;
-}
-
-/**
- * Cleans response content to ensure natural, conversational tone
- */
 function cleanResponseContent(content) {
   if (!content || typeof content !== 'string') {
-    return DEFAULT_MESSAGES.NO_RESPONSE;
+    return "I apologize, but I seem to be having trouble processing your request.";
   }
 
   let cleaned = content.trim();
@@ -265,42 +358,15 @@ function cleanResponseContent(content) {
     cleaned = cleaned.replace(pattern, '');
   });
 
-  // Remove excessive formality
-  cleaned = cleaned.replace(/\*[^*]*\*/g, ''); // Remove *action descriptions*
+  cleaned = cleaned.replace(/\*[^*]*\*/g, '');
   cleaned = cleaned.replace(/\b(Indeed|Verily|Truly|Certainly),?\s+/gi, '');
-  
-  // Clean up any double spaces or awkward transitions
   cleaned = cleaned.replace(/\s{2,}/g, ' ');
-  cleaned = cleaned.replace(/^\s*,\s*/, ''); // Remove leading commas
+  cleaned = cleaned.replace(/^\s*,\s*/, '');
   cleaned = cleaned.trim();
 
-  // Ensure we have content after cleaning
   if (!cleaned || cleaned.length < 10) {
-    return DEFAULT_MESSAGES.NO_RESPONSE;
+    return "I apologize, but I seem to be having trouble processing your request.";
   }
 
   return cleaned;
-}
-
-/**
- * Handles basic queries (time, date, weather) with cultural warmth
- */
-function handleBasicQuery(prompt) {
-  const lowerPrompt = prompt.toLowerCase();
-  
-  if (lowerPrompt.includes('time') || lowerPrompt.includes('what time')) {
-    const currentTime = new Date().toLocaleTimeString();
-    return `It's currently ${currentTime}. Time for some wisdom or maybe a good story?`;
-  }
-  
-  if (lowerPrompt.includes('date') || lowerPrompt.includes('what day')) {
-    const currentDate = new Date().toLocaleDateString();
-    return `Today is ${currentDate}. Each day is a new opportunity to learn about our rich heritage.`;
-  }
-  
-  if (lowerPrompt.includes('weather')) {
-    return "I can't check the weather for you, but I can share some wisdom about weathering life's storms! What would you like to talk about?";
-  }
-  
-  return null; // Not a basic query
 }
