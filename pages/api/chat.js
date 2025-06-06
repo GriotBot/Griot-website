@@ -3,17 +3,17 @@
 // API Configuration Constants
 const API_CONFIG = {
   MAX_TOKENS: {
-    STANDARD: 200,
-    STORYTELLER: 280
+    STANDARD: 180,      // Reduced for more focused responses
+    STORYTELLER: 250    // Reduced for more concise stories
   },
   TEMPERATURE: {
-    MIN: 0.4,
-    MAX: 0.8,
-    BASE: 0.6
+    MIN: 0.3,           // Lower minimum for more controlled responses
+    MAX: 0.7,           // Lower maximum to reduce drama
+    BASE: 0.4           // Much lower base temperature
   },
   MODEL_PARAMS: {
-    TOP_P: 0.85,
-    FREQUENCY_PENALTY: 0.1,
+    TOP_P: 0.8,         // Slightly lower for more focused responses
+    FREQUENCY_PENALTY: 0.2,  // Higher to reduce repetitive formal language
     PRESENCE_PENALTY: 0.1
   }
 };
@@ -209,81 +209,58 @@ function handleBasicQueriesEmpathetically(originalPrompt, lowerPrompt, emotional
 
 /**
  * STEP 3: Create empathy-aware system message
+ * FIXED: Much more natural and conversational
  */
 function createEmpathicSystemMessage(storytellerMode, emotionalContext) {
   const currentDate = new Date().toDateString();
   
-  let basePrompt = `You are GriotBot, a digital griot with deep emotional intelligence and cultural wisdom.
-
-EMOTIONAL INTELLIGENCE FRAMEWORK:
-- Cognitive Empathy: Understand the user's cultural and emotional frame of reference
-- Affective Empathy: Respond with appropriate emotional tone and cultural sensitivity  
-- Somatic Empathy: Use language that conveys genuine warmth and understanding
-
-USER EMOTIONAL CONTEXT: ${emotionalContext.join(', ')}
-
-CULTURAL EMPATHY GUIDELINES:
-- Acknowledge struggles without being patronizing
-- Validate experiences within diaspora cultural context
-- Provide hope grounded in historical resilience and strength
-- Use appropriate African diaspora wisdom traditions
-- Never assume all Black experiences are the same
-- Be warm but not overly familiar`;
-
-  // Adjust based on emotional context
-  if (emotionalContext.includes('pain') || emotionalContext.includes('discrimination')) {
-    basePrompt += `
-
-SENSITIVE RESPONSE MODE:
-- Acknowledge the reality and validity of their experience
-- Use gentle, measured language
-- Include historical context of resilience without minimizing current pain
-- Offer practical wisdom alongside emotional support`;
-  }
-
-  if (emotionalContext.includes('celebration') || emotionalContext.includes('hope')) {
-    basePrompt += `
-
-CELEBRATORY RESPONSE MODE:
-- Match their positive energy appropriately
-- Celebrate achievements within cultural context
-- Reference the joy and strength of our communities
-- Encourage continued growth and connection`;
-  }
-
   if (storytellerMode) {
-    basePrompt += `
+    return `You are GriotBot, a friendly AI assistant who tells stories from African, Caribbean, and African American traditions.
 
-STORYTELLER MODE WITH EMPATHY:
-- Craft narratives that emotionally resonate with their current state
-- Include characters who faced similar emotional challenges
-- End with wisdom that addresses their emotional needs
-- Use the rhythm and warmth of oral tradition
-- Keep stories concise but meaningful (2-3 paragraphs)`;
+When telling stories:
+- Keep it conversational and warm, like talking to a friend
+- Tell engaging 2-3 paragraph stories that relate to their question
+- End with a simple lesson or insight
+- Use natural, everyday language
+- Don't be overly formal or dramatic
+
+User's current mood: ${emotionalContext.join(', ')}
+Current date: ${currentDate}`;
   }
+  
+  return `You are GriotBot, a helpful AI assistant focused on African diaspora culture and empowerment.
 
-  return basePrompt + `\n\nCurrent date: ${currentDate}`;
+Be conversational and natural:
+- Talk like a knowledgeable friend, not a formal lecturer
+- Give helpful answers in 1-2 paragraphs
+- Include cultural context when relevant
+- Be warm and supportive without being overly dramatic
+- Never use formal greetings like "Greetings" or "Dear seeker"
+- Just answer the question naturally
+
+User's current mood: ${emotionalContext.join(', ')}
+Current date: ${currentDate}`;
 }
 
 /**
  * STEP 4: Calculate empathic temperature based on emotional state
- * Updated to use constants for consistency
+ * UPDATED: Much lower temperatures to reduce dramatic responses
  */
 function calculateEmpathicTemperature(emotionalContext, storytellerMode) {
-  let baseTemp = API_CONFIG.TEMPERATURE.BASE;
+  let baseTemp = API_CONFIG.TEMPERATURE.BASE; // Now 0.4 instead of 0.6
   
-  // Adjust for emotional intensity
+  // Adjust for emotional intensity - keeping it lower
   if (emotionalContext.includes('pain') || emotionalContext.includes('anxiety')) {
-    baseTemp = 0.5; // More careful, measured responses
+    baseTemp = 0.3; // Very controlled for sensitive topics
   } else if (emotionalContext.includes('celebration') || emotionalContext.includes('hope')) {
-    baseTemp = 0.7; // More expressive, warm responses
+    baseTemp = 0.5; // Slightly more expressive but still controlled
   } else if (emotionalContext.includes('curiosity') || emotionalContext.includes('connection_seeking')) {
-    baseTemp = 0.65; // Slightly more creative for learning
+    baseTemp = 0.45; // Slightly more creative for learning
   }
   
-  // Storyteller mode adjustment
+  // Storyteller mode adjustment - much smaller increase
   if (storytellerMode) {
-    baseTemp += 0.1; // More creative for storytelling
+    baseTemp += 0.05; // Only slight increase for storytelling
   }
   
   return Math.min(Math.max(baseTemp, API_CONFIG.TEMPERATURE.MIN), API_CONFIG.TEMPERATURE.MAX);
@@ -291,14 +268,24 @@ function calculateEmpathicTemperature(emotionalContext, storytellerMode) {
 
 /**
  * STEP 5: Post-process response for cultural empathy
- * Enhanced with multiple closing variations to reduce repetition
+ * ENHANCED: Remove dramatic and overly formal language
  */
 function enhanceWithCulturalEmpathy(content, emotionalContext) {
-  // Remove problematic patterns
+  // Remove problematic formal openings and patterns
   let cleaned = content
     .replace(/^my child,?\s*/i, '')
     .replace(/^dear child,?\s*/i, '')
     .replace(/^young one,?\s*/i, '')
+    .replace(/^greetings,?\s*/i, '')
+    .replace(/^ah,?\s*dear\s*/i, '')
+    .replace(/^dear seeker,?\s*/i, '')
+    .replace(/^esteemed\s+\w+,?\s*/i, '')
+    .replace(/^traveler of the digital realm,?\s*/i, '')
+    .replace(/^on this day,?\s*/i, '')
+    .replace(/^in the year \d+,?\s*/i, '')
+    .replace(/digital realm/gi, 'online')
+    .replace(/wellspring of wisdom/gi, 'great source of knowledge')
+    .replace(/journey through/gi, 'time on')
     .trim();
   
   // Ensure proper capitalization
@@ -306,19 +293,19 @@ function enhanceWithCulturalEmpathy(content, emotionalContext) {
     cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   }
   
-  // Add empathetic closing based on emotional context - multiple variations
-  if (emotionalContext.includes('pain') && !cleaned.includes('here for you')) {
+  // Add empathetic closing based on emotional context - keep it natural
+  if (emotionalContext.includes('pain') && !cleaned.includes('here for you') && !cleaned.includes('not alone')) {
     const painClosings = [
-      ' Remember, you are not alone in this journey.',
-      ' Your feelings are valid, and healing takes time.',
-      ' The community stands with you through this.'
+      ' You\'re not alone in this.',
+      ' That sounds really tough.',
+      ' I understand why that would be difficult.'
     ];
     cleaned += painClosings[Math.floor(Math.random() * painClosings.length)];
-  } else if (emotionalContext.includes('hope') && !cleaned.includes('proud')) {
+  } else if (emotionalContext.includes('hope') && !cleaned.includes('proud') && !cleaned.includes('believe')) {
     const hopeClosings = [
-      ' I believe in your strength and potential.',
-      ' Your determination inspires me.',
-      ' Keep moving forward - you\'re on the right path.'
+      ' You\'ve got this!',
+      ' That sounds like a great direction.',
+      ' I believe in you.'
     ];
     cleaned += hopeClosings[Math.floor(Math.random() * hopeClosings.length)];
   }
