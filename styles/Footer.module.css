@@ -1,0 +1,103 @@
+/* styles/Footer.module.css */
+/* Footer component styles with performance optimizations */
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-color);
+  border-top: 1px solid var(--input-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  min-height: var(--footer-height, 120px);
+  box-sizing: border-box;
+  z-index: 50;
+  transition: background-color 0.3s ease;
+}
+
+.proverbContainer {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--wisdom-color);
+  text-align: center;
+  font-family: var(--quote-font);
+  opacity: 0.9;
+  line-height: 1.5;
+  max-width: 85%;
+  margin: 0 auto;
+  position: relative;
+}
+
+.socialLinks {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.socialLink {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.socialLink:hover,
+.socialLink:focus {
+  opacity: 1;
+  background-color: rgba(215, 114, 44, 0.1);
+  text-decoration: underline;
+}
+
+.socialLink:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.copyright {
+  font-size: 0.8rem;
+  color: var(--text-color);
+  opacity: 0.6;
+  text-align: center;
+  font-family: var(--body-font);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .footer {
+    padding: 1rem;
+    gap: 0.5rem;
+  }
+  
+  .proverbContainer {
+    font-size: 1rem;
+    max-width: 95%;
+  }
+  
+  .socialLinks {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .socialLink {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .proverbContainer {
+    font-size: 0.9rem;
+  }
+  
+  .copyright {
+    font-size: 0.75rem;
+  }
+}
