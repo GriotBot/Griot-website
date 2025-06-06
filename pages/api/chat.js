@@ -1,9 +1,37 @@
 // pages/api/chat.js
-import { 
-  API_CONFIG, 
-  EMOTIONAL_INDICATORS, 
-  DEFAULT_MESSAGES 
-} from '../../lib/constants';
+
+// Since we're in pages/api/, we need to import constants directly
+// Let's embed the constants here for now to avoid path issues
+const API_CONFIG = {
+  DEFAULT_MODEL: 'openai/gpt-3.5-turbo',
+  FALLBACK_MODEL: 'anthropic/claude-3-haiku:beta',
+  TEMPERATURE: {
+    EMPATHETIC: 0.3,
+    STANDARD: 0.4,
+    CELEBRATORY: 0.5,
+    STORYTELLER: 0.45
+  },
+  MAX_TOKENS: {
+    STANDARD: 800,
+    STORYTELLER: 1000,
+    EDUCATIONAL: 1200
+  }
+};
+
+const EMOTIONAL_INDICATORS = {
+  frustration: ['tired', 'exhausted', 'frustrated', 'why me', 'stressed'],
+  pain: ['hurt', 'pain', 'sad', 'crying', 'broken', 'depressed'],
+  hope: ['trying', 'hoping', 'want to learn', 'help me grow', 'better'],
+  cultural_disconnection: ['not black enough', 'lost my heritage', 'identity', 'don\'t belong'],
+  celebration: ['proud', 'happy', 'excited', 'achieved', 'success', 'graduated']
+};
+
+const DEFAULT_MESSAGES = {
+  WELCOME: "Welcome to GriotBot! I'm here to share wisdom, stories, and guidance rooted in African diaspora culture. How can I help you today?",
+  ERROR: "I'm sorry, I encountered an error. Please try again.",
+  LOADING: "Let me think about that...",
+  NO_RESPONSE: "I apologize, but I seem to be having trouble processing your request."
+};
 
 // Production CORS configuration
 const getAllowedOrigin = () => {
