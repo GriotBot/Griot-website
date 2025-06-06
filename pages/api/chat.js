@@ -1,8 +1,30 @@
-// File: /pages/api/chat.js - EMPATHETIC AI VERSION
+// File: /pages/api/chat.js - PRODUCTION READY WITH IMMEDIATE FIXES
+
+// API Configuration Constants
+const API_CONFIG = {
+  MAX_TOKENS: {
+    STANDARD: 200,
+    STORYTELLER: 280
+  },
+  TEMPERATURE: {
+    MIN: 0.4,
+    MAX: 0.8,
+    BASE: 0.6
+  },
+  MODEL_PARAMS: {
+    TOP_P: 0.85,
+    FREQUENCY_PENALTY: 0.1,
+    PRESENCE_PENALTY: 0.1
+  }
+};
 
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // SECURE CORS headers - production ready
+  const allowedOrigin = process.env.NODE_ENV === 'production' 
+    ? 'https://griot-website.vercel.app'  // Production domain only
+    : '*';  // Allow all in development for easier testing
+    
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
@@ -21,11 +43,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
+    // Normalize prompt once - optimization fix
+    const normalizedPrompt = prompt.toLowerCase().trim();
+
     // STEP 1: Analyze user's emotional state
-    const emotionalContext = analyzeUserEmotionalState(prompt);
+    const emotionalContext = analyzeUserEmotionalState(prompt, normalizedPrompt);
     
     // STEP 2: Handle basic queries with empathy
-    const quickResponse = handleBasicQueriesEmpathetically(prompt, emotionalContext);
+    const quickResponse = handleBasicQueriesEmpathetically(prompt, normalizedPrompt, emotionalContext);
     if (quickResponse) {
       return res.status(200).json({
         choices: [{ message: { content: quickResponse } }]
@@ -60,16 +85,16 @@ export default async function handler(req, res) {
         'X-Title': 'GriotBot'
       },
       body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo',
+        model: process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo', // Configurable model
         messages: [
           { role: 'system', content: systemMessage },
           { role: 'user', content: prompt }
         ],
-        max_tokens: storytellerMode ? 280 : 200,
-        temperature: empathicTemp, // Dynamic based on emotional context
-        top_p: 0.85,
-        frequency_penalty: 0.1,
-        presence_penalty: 0.1
+        max_tokens: storytellerMode ? API_CONFIG.MAX_TOKENS.STORYTELLER : API_CONFIG.MAX_TOKENS.STANDARD,
+        temperature: empathicTemp,
+        top_p: API_CONFIG.MODEL_PARAMS.TOP_P,
+        frequency_penalty: API_CONFIG.MODEL_PARAMS.FREQUENCY_PENALTY,
+        presence_penalty: API_CONFIG.MODEL_PARAMS.PRESENCE_PENALTY
       })
     });
 
@@ -112,9 +137,9 @@ export default async function handler(req, res) {
 
 /**
  * STEP 1: Analyze user's emotional state using cultural context
+ * Updated to accept pre-normalized prompt for efficiency
  */
-function analyzeUserEmotionalState(prompt) {
-  const lowerPrompt = prompt.toLowerCase();
+function analyzeUserEmotionalState(originalPrompt, lowerPrompt) {
   const emotionalIndicators = {
     // Struggle and challenge
     frustration: ['tired', 'exhausted', 'frustrated', 'why me', 'unfair', 'hard', 'difficult'],
@@ -148,10 +173,9 @@ function analyzeUserEmotionalState(prompt) {
 
 /**
  * STEP 2: Handle basic queries with empathetic cultural context
+ * Updated with enhanced weather regex and efficiency improvements
  */
-function handleBasicQueriesEmpathetically(prompt, emotionalContext) {
-  const lowerPrompt = prompt.toLowerCase().trim();
-  
+function handleBasicQueriesEmpathetically(originalPrompt, lowerPrompt, emotionalContext) {
   // Time queries with cultural warmth
   if (lowerPrompt.match(/what time|current time|time is it/)) {
     const now = new Date();
@@ -170,8 +194,8 @@ function handleBasicQueriesEmpathetically(prompt, emotionalContext) {
     return responses[Math.floor(Math.random() * responses.length)];
   }
   
-  // Weather with cultural wisdom
-  if (lowerPrompt.match(/weather|temperature|forecast/)) {
+  // Weather with cultural wisdom - enhanced regex
+  if (lowerPrompt.match(/weather|forecast|temperature|how hot|is it cold|climate|rain|snow|sunny/)) {
     const responses = [
       `I can't check the current weather, but I recommend checking your local forecast. You know, there's wisdom in weather - as Maya Angelou said, "Try to be a rainbow in someone's cloud." What storms are you weathering that I might help with?`,
       `I don't have access to weather data, but our ancestors knew that "after every storm, the sun shines again." Is there something else weighing on your mind that I can help you navigate?`
@@ -243,9 +267,10 @@ STORYTELLER MODE WITH EMPATHY:
 
 /**
  * STEP 4: Calculate empathic temperature based on emotional state
+ * Updated to use constants for consistency
  */
 function calculateEmpathicTemperature(emotionalContext, storytellerMode) {
-  let baseTemp = 0.6;
+  let baseTemp = API_CONFIG.TEMPERATURE.BASE;
   
   // Adjust for emotional intensity
   if (emotionalContext.includes('pain') || emotionalContext.includes('anxiety')) {
@@ -261,11 +286,12 @@ function calculateEmpathicTemperature(emotionalContext, storytellerMode) {
     baseTemp += 0.1; // More creative for storytelling
   }
   
-  return Math.min(Math.max(baseTemp, 0.4), 0.8);
+  return Math.min(Math.max(baseTemp, API_CONFIG.TEMPERATURE.MIN), API_CONFIG.TEMPERATURE.MAX);
 }
 
 /**
  * STEP 5: Post-process response for cultural empathy
+ * Enhanced with multiple closing variations to reduce repetition
  */
 function enhanceWithCulturalEmpathy(content, emotionalContext) {
   // Remove problematic patterns
@@ -280,11 +306,21 @@ function enhanceWithCulturalEmpathy(content, emotionalContext) {
     cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   }
   
-  // Add empathetic closing based on emotional context
+  // Add empathetic closing based on emotional context - multiple variations
   if (emotionalContext.includes('pain') && !cleaned.includes('here for you')) {
-    cleaned += ' Remember, you are not alone in this journey.';
+    const painClosings = [
+      ' Remember, you are not alone in this journey.',
+      ' Your feelings are valid, and healing takes time.',
+      ' The community stands with you through this.'
+    ];
+    cleaned += painClosings[Math.floor(Math.random() * painClosings.length)];
   } else if (emotionalContext.includes('hope') && !cleaned.includes('proud')) {
-    cleaned += ' I believe in your strength and potential.';
+    const hopeClosings = [
+      ' I believe in your strength and potential.',
+      ' Your determination inspires me.',
+      ' Keep moving forward - you\'re on the right path.'
+    ];
+    cleaned += hopeClosings[Math.floor(Math.random() * hopeClosings.length)];
   }
   
   return cleaned;
