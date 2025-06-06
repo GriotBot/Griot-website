@@ -1,22 +1,7 @@
 // File: /pages/api/chat.js - PRODUCTION READY WITH IMMEDIATE FIXES
 
-// API Configuration Constants
-const API_CONFIG = {
-  MAX_TOKENS: {
-    STANDARD: 180,      // Reduced for more focused responses
-    STORYTELLER: 250    // Reduced for more concise stories
-  },
-  TEMPERATURE: {
-    MIN: 0.3,           // Lower minimum for more controlled responses
-    MAX: 0.7,           // Lower maximum to reduce drama
-    BASE: 0.4           // Much lower base temperature
-  },
-  MODEL_PARAMS: {
-    TOP_P: 0.8,         // Slightly lower for more focused responses
-    FREQUENCY_PENALTY: 0.2,  // Higher to reduce repetitive formal language
-    PRESENCE_PENALTY: 0.1
-  }
-};
+// Import shared constants to eliminate duplication
+import { API_CONFIG } from '../lib/constants';
 
 export default async function handler(req, res) {
   // SECURE CORS headers - production ready
