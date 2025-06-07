@@ -8,7 +8,8 @@ import EnhancedSidebar from './EnhancedSidebar';
 import ChatFooter from './ChatFooter';
 
 // Import shared constants and utility functions
-import { getRandomProverb } from '../lib/constants';
+// FIXED: Corrected the import path to go up two directories
+import { getRandomProverb } from '../../lib/constants';
 
 // Constants for localStorage keys
 const THEME_STORAGE_KEY = 'griotbot-theme';
