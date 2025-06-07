@@ -1,4 +1,4 @@
-// File: /pages/api/chat.js - Optimized Online Method
+// File: /pages/api/chat.js - With Conversation Memory
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -14,7 +14,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt, storytellerMode = false } = req.body || {};
+  // UPDATED: Now accepts conversation history
+  const { 
+    prompt, 
+    storytellerMode = false, 
+    conversationHistory = [] // NEW: Array of previous messages
+  } = req.body || {};
+
+  console.log(`📨 Received request: prompt="${prompt?.substring(0, 50)}...", historyLength=${conversationHistory.length}, storyteller=${storytellerMode}`);
 
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
     return res.status(400).json({ error: 'Prompt is required' });
@@ -25,38 +32,51 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  // Web search detection
+  // Web search detection (check current prompt + recent context)
   const webSearchTriggers = [
     'current', 'recent', 'latest', 'today', 'this year', 'happening now',
     'new research', 'recent studies', 'current events', 'breaking news',
     'what\'s happening', 'right now', '2024', '2025'
   ];
   
+  // Check both current prompt and recent conversation for web search triggers
+  const recentContext = conversationHistory.slice(-2).map(msg => msg.content).join(' ');
+  const contextToCheck = (prompt + ' ' + recentContext).toLowerCase();
+  
   const shouldUseWebSearch = webSearchTriggers.some(trigger => 
-    prompt.toLowerCase().includes(trigger)
+    contextToCheck.includes(trigger)
   );
 
-  // Select model and method
+  // Build conversation messages for AI
+  const messages = [
+    {
+      role: 'system',
+      content: createSystemInstruction(storytellerMode, shouldUseWebSearch)
+    }
+  ];
+
+  // Add conversation history (limit to last 10 messages to control costs)
+  const recentHistory = conversationHistory.slice(-10);
+  messages.push(...recentHistory);
+
+  // Add current user message
+  messages.push({
+    role: 'user',
+    content: prompt
+  });
+
+  // Select model based on web search need
   let baseModel = process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
   let model = shouldUseWebSearch ? `${baseModel}:online` : baseModel;
 
   const requestBody = {
     model: model,
-    messages: [
-      {
-        role: 'system',
-        content: createSystemInstruction(storytellerMode, shouldUseWebSearch)
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
+    messages: messages,
     temperature: storytellerMode ? 0.45 : 0.4,
     max_tokens: storytellerMode ? 600 : 500
   };
 
-  console.log(`📡 Request → model: ${model}, webSearch: ${shouldUseWebSearch}, storyteller: ${storytellerMode}`);
+  console.log(`📡 Request → model: ${model}, webSearch: ${shouldUseWebSearch}, historyLength: ${recentHistory.length}, storyteller: ${storytellerMode}`);
 
   try {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -101,7 +121,7 @@ export default async function handler(req, res) {
           return res.status(200).json({
             choices: [{
               message: {
-                content: fallbackContent + "\n\n*Note: I couldn't access current web information, but I've provided the best cultural context from my knowledge. For the latest updates, you might want to check recent news sources.*"
+                content: fallbackContent + "\n\n*Note: I couldn't access current web information for this query.*"
               }
             }]
           });
@@ -130,7 +150,7 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log(`✅ Response → length: ${messageContent.length} chars, webSearch: ${shouldUseWebSearch}`);
+    console.log(`✅ Response → length: ${messageContent.length} chars, webSearch: ${shouldUseWebSearch}, contextual: ${recentHistory.length > 0}`);
 
     return res.status(200).json({
       choices: [{
@@ -160,6 +180,8 @@ function createSystemInstruction(storytellerMode, hasWebSearch = false) {
     'You are GriotBot, an AI assistant inspired by the West African griot tradition.',
     'Provide culturally rich, concise responses with respect and clarity.',
     'Break text into clear paragraphs. Avoid meta-statements.',
+    'Maintain conversation context and refer to previous messages when relevant.',
+    'If a user asks a follow-up question, consider the conversation history to provide contextual answers.',
     `Current date: ${currentDate}`
   ];
 
