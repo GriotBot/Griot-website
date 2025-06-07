@@ -1,13 +1,14 @@
 // File: components/layout/StandardLayout.js - Updated to use the Header component
-
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 
 // Import the new Header component
-import Header from '../Header'; 
+import Header from '../Header';
 import EnhancedSidebar from './EnhancedSidebar';
 import ChatFooter from './ChatFooter';
+
+// Import shared constants and utility functions
+import { getRandomProverb } from '../lib/constants';
 
 // Constants for localStorage keys
 const THEME_STORAGE_KEY = 'griotbot-theme';
@@ -28,27 +29,19 @@ export default function StandardLayout({
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [theme, setTheme] = useState('light');
   const [currentProverb, setCurrentProverb] = useState('');
-  const router = useRouter();
-
-  // Proverbs array (can be moved to constants if used elsewhere)
-  const PROVERBS = [
-    "Wisdom is like a baobab tree; no one individual can embrace it. — African Proverb",
-    "Until the lion learns to write, every story will glorify the hunter. — African Proverb",
-    "However long the night, the dawn will break. — African Proverb",
-    "If you want to go fast, go alone. If you want to go far, go together. — African Proverb"
-  ];
 
   // Initialize theme and proverb
   useEffect(() => {
+    // This check ensures code only runs on the client-side
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
       
-      const randomIndex = Math.floor(Math.random() * PROVERBS.length);
-      setCurrentProverb(PROVERBS[randomIndex]);
+      // Use the centralized utility function for consistency
+      setCurrentProverb(getRandomProverb());
     }
-  }, []);
+  }, []); // Empty dependency array means this runs once on mount
 
   // Theme toggle function
   const toggleTheme = () => {
