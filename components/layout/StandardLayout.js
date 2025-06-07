@@ -21,7 +21,8 @@ export default function StandardLayout({
   description = 'An AI-powered digital griot providing culturally rich responses',
   currentPath = '/',
   // Pass down the onNewChat handler from the index page
-  onNewChat,
+  // FIXED: Provide a default empty function to prevent runtime errors on pages that don't pass this prop.
+  onNewChat = () => {},
   // Chat-specific props for index page
   onSendMessage = null,
   chatDisabled = false
