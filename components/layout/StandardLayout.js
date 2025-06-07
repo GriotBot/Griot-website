@@ -1,28 +1,24 @@
-// File: components/layout/StandardLayout.js - Updated to use the Header component
+// File: components/layout/StandardLayout.js - IMPROVED VERSION
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-
-// Import the new Header component
-import Header from '../Header';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { Menu, Home, User, Sun, Moon } from 'react-feather';
+import MessageCirclePlus from '../icons/MessageCirclePlus';
 import EnhancedSidebar from './EnhancedSidebar';
 import ChatFooter from './ChatFooter';
-
-// Import shared constants and utility functions
-// FIXED: Corrected the import path to go up two directories
-import { getRandomProverb } from '../../lib/constants';
+import StandardFooter from './StandardFooter';
 
 // Constants for localStorage keys
 const THEME_STORAGE_KEY = 'griotbot-theme';
+const CHAT_HISTORY_STORAGE_KEY = 'griotbot-history';
 
-export default function StandardLayout({
-  children,
+export default function StandardLayout({ 
+  children, 
   pageType = 'standard', // 'index' or 'standard'
   title = 'GriotBot - Your Digital Griot',
   description = 'An AI-powered digital griot providing culturally rich responses',
   currentPath = '/',
-  // Pass down the onNewChat handler from the index page
-  // FIXED: Provide a default empty function to prevent runtime errors on pages that don't pass this prop.
-  onNewChat = () => {},
   // Chat-specific props for index page
   onSendMessage = null,
   chatDisabled = false
@@ -30,20 +26,17 @@ export default function StandardLayout({
   // State management
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [theme, setTheme] = useState('light');
-  const [currentProverb, setCurrentProverb] = useState('');
+  const [logoError, setLogoError] = useState(false);
+  const router = useRouter();
 
-  // Initialize theme and proverb
+  // Initialize theme from localStorage
   useEffect(() => {
-    // This check ensures code only runs on the client-side
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
-      
-      // Use the centralized utility function for consistency
-      setCurrentProverb(getRandomProverb());
     }
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   // Theme toggle function
   const toggleTheme = () => {
@@ -58,6 +51,33 @@ export default function StandardLayout({
     setSidebarVisible(!sidebarVisible);
   };
 
+  // New chat handler with Next.js router
+  const handleNewChat = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+      if (currentPath !== '/') {
+        router.push('/');
+      } else {
+        // For index page, reload to reset chat state
+        router.reload();
+      }
+    }
+  };
+
+  // Logo error handler
+  const handleLogoError = () => {
+    setLogoError(true);
+  };
+
+  // Dynamic margin for main content
+  const mainContentStyle = {
+    flex: 1,
+    marginTop: 'var(--topmenu-height)',
+    marginBottom: pageType === 'index' ? 'var(--footer-height-index)' : 'var(--footer-height-standard)',
+    overflowY: 'auto',
+    padding: '1rem'
+  };
+
   return (
     <>
       <Head>
@@ -69,35 +89,40 @@ export default function StandardLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet" />
         
-        {/* Global CSS Variables */}
+        {/* CSS Variables */}
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
             /* Layout Variables */
             --topmenu-height: 72px;
-            --sidebar-width: 250px;
-            --footer-height-index: 150px;
-            --footer-height-standard: 75px;
+            --sidebar-width: 189px;
+            --footer-height-index: 189px;
+            --footer-height-standard: 95px;
+            --sidebar-right-width: 189px;
             
-            /* Color Variables - Light Theme */
+            /* Color Variables */
             --bg-color: #f8f5f0;
             --text-color: #33302e;
             --header-bg: #c49a6c;
-            --header-text: #33302e; /* Text color on header */
+            --header-text: #33302e;
             --sidebar-bg: rgba(75, 46, 42, 0.97);
             --sidebar-text: #f8f5f0;
+            --user-bubble: #bd8735;
+            --user-text: #f8f5f0;
+            --bot-bubble-start: #7d8765;
+            --bot-bubble-end: #5e6e4f;
+            --bot-text: #f8f5f0;
             --accent-color: #d7722c;
             --accent-hover: #c86520;
             --wisdom-color: #6b4226;
             --input-bg: #ffffff;
             --input-border: rgba(75, 46, 42, 0.2);
+            --input-text: #33302e;
             --shadow-color: rgba(75, 46, 42, 0.15);
             --card-bg: #ffffff;
-            --footer-background-standard: rgb(239, 230, 223);
-            
-            /* Fonts */
             --body-font: 'Montserrat', sans-serif;
             --heading-font: 'Lora', serif;
             --quote-font: 'Lora', serif;
+            --footer-background-standard: rgb(239, 230, 223);
           }
           
           [data-theme="dark"] {
@@ -107,11 +132,17 @@ export default function StandardLayout({
             --header-text: #f0ece4;
             --sidebar-bg: rgba(40, 30, 25, 0.97);
             --sidebar-text: #f0ece4;
-            --accent-color: #e8833d;
-            --accent-hover: #d7722c;
+            --user-bubble: #bb7e41;
+            --user-text: #f0ece4;
+            --bot-bubble-start: #5e6e4f;
+            --bot-bubble-end: #3e4a38;
+            --bot-text: #f0ece4;
+            --accent-color: #d7722c;
+            --accent-hover: #e8833d;
             --wisdom-color: #e0c08f;
             --input-bg: #352e29;
             --input-border: rgba(240, 236, 228, 0.2);
+            --input-text: #f0ece4;
             --shadow-color: rgba(0, 0, 0, 0.3);
             --card-bg: #352e29;
             --footer-background-standard: #3a302a;
@@ -129,43 +160,165 @@ export default function StandardLayout({
             line-height: 1.6;
           }
 
+          /* Layout Structure */
           .layout-container {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             position: relative;
           }
+          
+          .top-menu {
+            height: var(--topmenu-height);
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: background-color 0.3s;
+          }
+          
+          .menu-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+          }
+          
+          .menu-center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--heading-font);
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-decoration: none;
+            color: var(--header-text);
+          }
+          
+          .menu-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+          
+          .menu-button {
+            background: none;
+            border: none;
+            color: var(--header-text);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s, transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+          }
+          
+          .menu-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+          }
+          
+          .menu-button:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+          }
+          
+          .menu-button.rotated {
+            transform: rotate(90deg);
+          }
         `}} />
       </Head>
 
       <div className="layout-container">
-        
-        {/* USE THE NEW HEADER COMPONENT */}
-        <Header
-          theme={theme}
-          toggleTheme={toggleTheme}
-          sidebarVisible={sidebarVisible}
-          toggleSidebar={toggleSidebar}
-          onNewChat={onNewChat}
-          isHome={pageType === 'index'}
-        />
+        {/* Top Menu - Always 72px tall */}
+        <header className="top-menu" role="banner">
+          {/* Left Side - Menu Icon */}
+          <div className="menu-left">
+            <button 
+              className={`menu-button ${sidebarVisible ? 'rotated' : ''}`}
+              onClick={toggleSidebar}
+              aria-label="Toggle sidebar"
+              aria-expanded={sidebarVisible}
+              aria-controls="sidebar"
+            >
+              <Menu size={24} />
+            </button>
+          </div>
 
-        {/* Enhanced Sidebar (remains the same) */}
-        <EnhancedSidebar
+          {/* Center - Logo */}
+          <Link href="/" className="menu-center">
+            {!logoError ? (
+              <img 
+                src="/images/GriotBot logo horiz wht.svg"
+                alt="GriotBot"
+                style={{ 
+                  height: '32px',
+                  width: 'auto'
+                }}
+                onError={handleLogoError}
+              />
+            ) : (
+              <div style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <span style={{ fontSize: '1.5rem' }} aria-hidden="true">ðŸŒ¿</span>
+                <span>GriotBot</span>
+              </div>
+            )}
+          </Link>
+
+          {/* Right Side - Action Icons */}
+          <div className="menu-right">
+            <button 
+              className="menu-button"
+              onClick={handleNewChat}
+              aria-label="New chat"
+              title="New Chat"
+            >
+              <MessageCirclePlus size={20} />
+            </button>
+            
+            <Link href="/comingsoon" className="menu-button" title="Account">
+              <User size={20} />
+            </Link>
+            
+            <button 
+              className="menu-button"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </div>
+        </header>
+
+        {/* Enhanced Sidebar */}
+        <EnhancedSidebar 
           isVisible={sidebarVisible}
           onToggle={toggleSidebar}
           currentPage={currentPath}
-          onNewChat={onNewChat}
+          onNewChat={handleNewChat}
         />
 
         {/* Main Content Area */}
-        <main
-          style={{
-            flex: 1,
-            paddingTop: 'var(--topmenu-height)', // Use paddingTop to account for fixed header
-            paddingBottom: pageType === 'index' ? 'var(--footer-height-index)' : 'var(--footer-height-standard)',
-            overflowY: 'auto'
-          }}
+        <main 
+          className="main-content"
+          style={mainContentStyle}
           role="main"
         >
           {children}
@@ -173,33 +326,12 @@ export default function StandardLayout({
 
         {/* Footer - Conditional based on page type */}
         {pageType === 'index' ? (
-          <ChatFooter
+          <ChatFooter 
             onSendMessage={onSendMessage}
             disabled={chatDisabled}
           />
         ) : (
-          <footer
-            role="contentinfo"
-            aria-label="Page footer with cultural proverb"
-            style={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 'var(--footer-height-standard)',
-              background: 'var(--footer-background-standard)',
-              borderTop: '1px solid var(--input-border)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '1rem',
-              zIndex: 50,
-            }}
-          >
-            <div style={{ fontStyle: 'italic', color: 'var(--wisdom-color)', textAlign: 'center' }}>
-              {currentProverb}
-            </div>
-          </footer>
+          <StandardFooter />
         )}
       </div>
     </>
