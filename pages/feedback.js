@@ -42,7 +42,7 @@ export default function Feedback() {
     setSubmitStatus({ success: false, error: '' });
 
     try {
-      const response = await fetch('https://script.google.com/a/macros/griotbot.com/s/AKfycbx4PDKFDf9wUECenGjQblgF6nc3wNS_53r97_62yH8opNDxP_ShFgWYYrd6d4nb8ep_UQ/exec', {
+      const response = await fetch('https://script.google.com/a/macros/griotbot.com/s/AKfycbzvCVIyFUbJbioFQTJ74ZQHFWZumi4HppyRJ0EloQhfCr0EaTWlBRON4a7KXMGMJkGM2A/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
