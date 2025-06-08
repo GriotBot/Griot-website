@@ -259,35 +259,32 @@ export default function Home() {
 
         .animated-greeting {
           display: flex;
+          flex-direction: column; /* UPDATED: Stack symbol and text vertically */
           align-items: center;
           justify-content: center;
-          gap: 1.5rem;
-          margin-bottom: 1rem;
+          margin-bottom: 1.5rem; /* Increased margin */
         }
 
         .adinkra-symbol {
-          width: 60px;
-          height: 60px;
-          opacity: 0;
-          animation: fadeIn 1s ease 0.5s forwards;
+          width: 50px; /* Slightly smaller */
+          height: 50px;
+          margin-bottom: 1rem;
+          animation: fadeIn 1s ease forwards;
         }
 
         .greeting-text {
           font-family: 'Great Vibes', cursive;
-          font-size: 4.5rem;
+          font-size: 2.7rem; /* UPDATED: Reduced by 40% */
           font-weight: 400;
-          color: var(--text-color);
+          color: #6D3636; /* UPDATED: New color */
           margin: 0;
-          opacity: 0;
-          transform: translateY(20px);
-          animation: traceIn 1.5s ease-out forwards;
+          animation: fadeInOut 4s ease-in-out infinite; /* UPDATED: New animation */
         }
         
-        @keyframes traceIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* UPDATED: New fade-in and fade-out animation */
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            25%, 75% { opacity: 1; }
         }
 
         .welcome-subtitle {
@@ -295,12 +292,10 @@ export default function Home() {
           font-size: 1.5rem;
           font-weight: 500;
           margin: 0.5rem 0 2rem 0;
-          opacity: 0;
           animation: fadeIn 1s ease 1s forwards;
         }
         
         .welcome-quote {
-            opacity: 0;
             animation: fadeIn 1s ease 1.5s forwards;
         }
         
@@ -339,17 +334,18 @@ export default function Home() {
         
         /* General Fade-In Animation */
         @keyframes fadeIn {
+            0% { opacity: 0; }
             to { opacity: 1; }
         }
 
         /* --- Media Queries for Responsiveness --- */
         @media (max-width: 600px) {
             .greeting-text {
-                font-size: 3rem;
+                font-size: 2.2rem; /* Adjusted for mobile */
             }
             .adinkra-symbol {
-              width: 45px;
-              height: 45px;
+              width: 40px;
+              height: 40px;
             }
             .welcome-subtitle {
               font-size: 1.2rem;
