@@ -42,7 +42,7 @@ export default function Feedback() {
     setSubmitStatus({ success: false, error: '' });
 
     try {
-      const response = await fetch('/api/feedback', {
+      const response = await fetch('https://script.google.com/a/macros/griotbot.com/s/AKfycbwR0EYH9AuDLwk3_rhP3qLKWd-4DL0Tf-z0fEAlwk9nTMijZlMvZ4hGc3sylDm_aPHZ/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
