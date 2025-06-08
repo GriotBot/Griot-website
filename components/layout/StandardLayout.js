@@ -226,6 +226,11 @@ export default function StandardLayout({
           .menu-button.active {
             background-color: rgba(0, 0, 0, 0.1);
           }
+
+          /* ADDED: Class for rotating the menu icon */
+          .menu-button.rotated {
+            transform: rotate(90deg);
+          }
           
           /* Theme toggle icon animation */
           .theme-icon-container {
@@ -262,7 +267,7 @@ export default function StandardLayout({
         <header className={`top-menu ${headerVisible ? '' : 'hidden'}`} role="banner">
           <div className="menu-left">
             <button 
-              className="menu-button"
+              className={`menu-button ${sidebarVisible ? 'rotated' : ''}`}
               onClick={toggleSidebar}
               aria-label="Toggle sidebar"
             >
