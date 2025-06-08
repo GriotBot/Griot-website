@@ -183,6 +183,9 @@ export default function Home() {
         <title>GriotBot - Your Digital Griot</title>
         <meta name="description" content="GriotBot is a culturally-aware AI companion." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </Head>
 
       <StandardLayout onNewChat={handleNewChat} pageType="index">
@@ -197,14 +200,21 @@ export default function Home() {
                   </blockquote>
                 </div>
               ) : (
-                <>
+                <div className="first-visit-welcome">
                   <div className="animated-greeting">
-                    <h1 className="typewriter">{GREETINGS[greetingIndex].text}</h1>
-                    <p className="greeting-origin">A greeting from {GREETINGS[greetingIndex].origin}</p>
+                    <img src="/images/Adinkra_SiamCroc.svg" alt="Adinkra Symbol" className="adinkra-symbol" />
+                    <h1 className="greeting-text" key={greetingIndex}>
+                      {GREETINGS[greetingIndex].text}
+                    </h1>
                   </div>
-                  <p className="welcome-subtitle">
-                    Welcome to GriotBot, your AI companion for culturally rich conversations.
-                  </p>
+                  <h2 className="welcome-subtitle">Welcome to GriotBot</h2>
+                  <blockquote className="quote-container welcome-quote">
+                    <p>
+                      A people without the knowledge of their past history,
+                      origin and culture is like a tree without roots.
+                    </p>
+                    <cite className="quote-attribution">— Marcus Mosiah Garvey</cite>
+                  </blockquote>
                 </>
               )}
             </div>
@@ -231,47 +241,71 @@ export default function Home() {
           height: 100%;
         }
         .welcome-container {
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
+          align-items: center;
+          justify-content: center; /* Vertically center the content */
+          text-align: center;
+          padding: 1rem;
+          max-width: 800px;
+          margin: 0 auto;
         }
+
+        /* --- Styles for New Welcome Screen --- */
+
+        .first-visit-welcome {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
         .animated-greeting {
-          margin-bottom: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1.5rem;
+          margin-bottom: 1rem;
         }
-        .typewriter {
-          font-family: 'Lora', serif;
-          font-size: 3rem;
-          font-weight: 600;
+
+        .adinkra-symbol {
+          width: 60px;
+          height: 60px;
+          opacity: 0;
+          animation: fadeIn 1s ease 0.5s forwards;
+        }
+
+        .greeting-text {
+          font-family: 'Great Vibes', cursive;
+          font-size: 4.5rem;
+          font-weight: 400;
           color: var(--text-color);
-          display: inline-block;
-          overflow: hidden;
-          border-right: .12em solid var(--accent-color);
-          white-space: nowrap;
-          letter-spacing: .1em; 
-          animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
-          animation-iteration-count: 1; /* Run typing animation once */
+          margin: 0;
+          opacity: 0;
+          transform: translateY(20px);
+          animation: traceIn 1.5s ease-out forwards;
         }
-        @keyframes typing {
-          from { width: 0 }
-          to { width: 100% }
+        
+        @keyframes traceIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        @keyframes blink-caret {
-          from, to { border-color: transparent }
-          50% { border-color: var(--accent-color); }
+
+        .welcome-subtitle {
+          font-family: 'Lora', serif;
+          font-size: 1.5rem;
+          font-weight: 500;
+          margin: 0.5rem 0 2rem 0;
+          opacity: 0;
+          animation: fadeIn 1s ease 1s forwards;
         }
-        .greeting-origin {
-            margin-top: 0.5rem;
-            color: var(--wisdom-color);
-            font-style: italic;
+        
+        .welcome-quote {
             opacity: 0;
-            animation: fadeIn 1s ease 3.5s forwards;
+            animation: fadeIn 1s ease 1.5s forwards;
         }
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
+        
+        /* --- Styles for Returning Visitor "New Chat" screen --- */
+
         .quote-only-view {
           display: flex;
           flex-direction: column;
@@ -281,17 +315,11 @@ export default function Home() {
           flex-grow: 1;
         }
         .quote-only-title {
-            font-family: var(--heading-font, 'Lora', serif);
-            font-weight: 500;
-            color: var(--text-color);
-            opacity: 0.8;
-            margin-bottom: 2rem;
-        }
-        .welcome-subtitle {
-          font-size: 1.1rem;
+          font-family: var(--heading-font, 'Lora', serif);
+          font-weight: 500;
+          color: var(--text-color);
           opacity: 0.8;
-          line-height: 1.6;
-          max-width: 500px;
+          margin-bottom: 2rem;
         }
         .quote-container {
           font-size: 1.2rem;
@@ -300,10 +328,31 @@ export default function Home() {
           line-height: 1.7;
           max-width: 600px;
           border: none;
+          background: transparent;
         }
+        .quote-attribution {
+          display: block;
+          font-size: 1rem;
+          margin-top: 1rem;
+          opacity: 0.8;
+        }
+        
+        /* General Fade-In Animation */
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* --- Media Queries for Responsiveness --- */
         @media (max-width: 600px) {
-            .typewriter {
-                font-size: 2rem;
+            .greeting-text {
+                font-size: 3rem;
+            }
+            .adinkra-symbol {
+              width: 45px;
+              height: 45px;
+            }
+            .welcome-subtitle {
+              font-size: 1.2rem;
             }
         }
       `}</style>
