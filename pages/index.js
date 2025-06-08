@@ -124,16 +124,26 @@ export default function Home() {
         throw new Error(errorData.error || `Request failed with status ${response.status}`);
       }
       
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      // FIXED: Added logic to handle both streaming and non-streaming (JSON) responses.
+      const contentType = response.headers.get('content-type');
       let accumulatedContent = '';
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        accumulatedContent += decoder.decode(value, { stream: true });
-        setMessages(prev => prev.map(msg => 
-            msg.id === botMessageId ? { ...msg, content: accumulatedContent, isStreaming: true } : msg
-        ));
+
+      if (contentType && contentType.includes('application/json')) {
+        // Handle non-streaming JSON response
+        const data = await response.json();
+        accumulatedContent = data.choices?.[0]?.message?.content || "Sorry, I received an unexpected response.";
+      } else {
+        // Handle streaming text response
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          accumulatedContent += decoder.decode(value, { stream: true });
+          setMessages(prev => prev.map(msg => 
+              msg.id === botMessageId ? { ...msg, content: accumulatedContent, isStreaming: true } : msg
+          ));
+        }
       }
 
       const finalBotMessage = {
@@ -234,9 +244,6 @@ export default function Home() {
             />
           )}
         </div>
-
-        {/* REMOVED: Redundant ChatFooter component was removed from here. 
-            StandardLayout now handles rendering it correctly. */}
       </StandardLayout>
 
       <style jsx>{`
