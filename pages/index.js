@@ -1,4 +1,4 @@
-// File: pages/index.js - With Enhanced Welcome Experience
+// File: pages/index.js - With Chat Input Functionality Restored
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -188,7 +188,13 @@ export default function Home() {
         <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </Head>
 
-      <StandardLayout onNewChat={handleNewChat} pageType="index">
+      {/* FIXED: Passed the onSendMessage and chatDisabled props to StandardLayout */}
+      <StandardLayout 
+        onNewChat={handleNewChat} 
+        pageType="index"
+        onSendMessage={handleSendMessage}
+        chatDisabled={isLoading}
+      >
         <div className="main-content">
           {showWelcome && (
             <div className="welcome-container" role="main">
@@ -229,7 +235,8 @@ export default function Home() {
           )}
         </div>
 
-        <ChatFooter onSendMessage={handleSendMessage} disabled={isLoading} />
+        {/* REMOVED: Redundant ChatFooter component was removed from here. 
+            StandardLayout now handles rendering it correctly. */}
       </StandardLayout>
 
       <style jsx>{`
@@ -241,12 +248,12 @@ export default function Home() {
           height: 100%;
         }
         .welcome-container {
-          align-items: center;
-          justify-content: center; /* Vertically center the content */
-          text-align: center;
-          padding: 1rem;
-          max-width: 800px;
-          margin: 0 auto;
+            align-items: center;
+            justify-content: center; /* Vertically center the content */
+            text-align: center;
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         /* --- Styles for New Welcome Screen --- */
@@ -259,14 +266,14 @@ export default function Home() {
 
         .animated-greeting {
           display: flex;
-          flex-direction: column; /* UPDATED: Stack symbol and text vertically */
+          flex-direction: column; 
           align-items: center;
           justify-content: center;
-          margin-bottom: 1.5rem; /* Increased margin */
+          margin-bottom: 1.5rem;
         }
 
         .adinkra-symbol {
-          width: 50px; /* Slightly smaller */
+          width: 50px;
           height: 50px;
           margin-bottom: 1rem;
           animation: fadeIn 1s ease forwards;
@@ -274,14 +281,13 @@ export default function Home() {
 
         .greeting-text {
           font-family: 'Great Vibes', cursive;
-          font-size: 2.7rem; /* UPDATED: Reduced by 40% */
+          font-size: 2.7rem;
           font-weight: 400;
-          color: #6D3636; /* UPDATED: New color */
+          color: #6D3636;
           margin: 0;
-          animation: fadeInOut 4s ease-in-out infinite; /* UPDATED: New animation */
+          animation: fadeInOut 4s ease-in-out infinite;
         }
         
-        /* UPDATED: New fade-in and fade-out animation */
         @keyframes fadeInOut {
             0%, 100% { opacity: 0; }
             25%, 75% { opacity: 1; }
@@ -341,7 +347,7 @@ export default function Home() {
         /* --- Media Queries for Responsiveness --- */
         @media (max-width: 600px) {
             .greeting-text {
-                font-size: 2.2rem; /* Adjusted for mobile */
+                font-size: 2.2rem;
             }
             .adinkra-symbol {
               width: 40px;
