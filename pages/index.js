@@ -215,7 +215,7 @@ export default function Home() {
                     </p>
                     <cite className="quote-attribution">— Marcus Mosiah Garvey</cite>
                   </blockquote>
-                </>
+                </div>
               )}
             </div>
           )}
