@@ -1,7 +1,8 @@
-// File: pages/feedback.js - Streamlined Version
+// File: pages/feedback.js - Corrected Version
 import { useState } from 'react';
 import { Send, CheckCircle, AlertCircle } from 'react-feather';
 import StandardLayout from '../components/layout/StandardLayout';
+// FIXED: Corrected the import path for the CSS module.
 import styles from '../styles/components/Feedback.module.css';
 
 export default function Feedback() {
@@ -173,4 +174,3 @@ export default function Feedback() {
     </StandardLayout>
   );
 }
-
