@@ -8,26 +8,25 @@ export default function EnhancedChatContainer({
   onRegenerateMessage,
   onMessageFeedback 
 }) {
-  // Use a single ref for the scrolling container, which is more direct.
   const containerRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages arrive.
-  // This is a more robust method than using a marker div and setTimeout.
+  // Auto-scroll to bottom when new messages arrive or loading state changes.
   useEffect(() => {
     if (containerRef.current) {
-      // The scrollHeight is the total height of all content, visible or not.
-      // We set the scrollTop to this value to scroll to the very bottom.
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      // Using a smooth scroll behavior for a better user experience.
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
-  }, [messages, isLoading]); // Rerun whenever messages or loading state changes
+  }, [messages, isLoading]);
 
-  // Your existing helper functions are preserved.
+  // All helper functions are preserved.
   const handleCopyMessage = async (content) => {
     try {
       await navigator.clipboard.writeText(content);
       return true;
     } catch (err) {
-      // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = content;
       document.body.appendChild(textArea);
@@ -48,8 +47,6 @@ export default function EnhancedChatContainer({
     if (onMessageFeedback) {
       onMessageFeedback(messageId, feedbackType);
     }
-    
-    // Your localStorage logic is preserved.
     try {
       const existingFeedback = JSON.parse(localStorage.getItem('griotbot-feedback') || '[]');
       existingFeedback.push({
@@ -63,31 +60,14 @@ export default function EnhancedChatContainer({
     }
   };
   
-  // When there are no messages, we still render the container so the ref exists,
-  // but it will be visually empty.
-  if (!messages || messages.length === 0) {
-    return (
-      <>
-        <div className="chat-container empty" ref={containerRef}>
-          {/* Empty - no content displayed when no messages */}
-        </div>
-        
-        <style jsx>{`
-          .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            /* other styles from your original file... */
-          }
-        `}</style>
-      </>
-    );
-  }
-
+  // FIXED: Removed the faulty "early return" block. 
+  // The component now has a single, unified return statement.
   return (
     <>
-      {/* The main container now uses the ref for scrolling */}
       <div className="chat-container" ref={containerRef}>
         <div className="messages-list">
+          {/* This map function will now correctly render messages as they are added,
+              even if the initial array is empty. */}
           {messages.map((message, index) => (
             <EnhancedMessage
               key={message.id || `msg-${index}`}
@@ -101,7 +81,7 @@ export default function EnhancedChatContainer({
             />
           ))}
           
-          {/* Your detailed loading message is preserved */}
+          {/* The loading indicator is preserved. */}
           {isLoading && (
             <div className="loading-message">
               <div className="loading-header">
@@ -130,7 +110,7 @@ export default function EnhancedChatContainer({
         </div>
       </div>
       
-      {/* Your original styled-jsx block is preserved */}
+      {/* The original styled-jsx block is preserved. */}
       <style jsx>{`
         .chat-container {
           flex: 1;
