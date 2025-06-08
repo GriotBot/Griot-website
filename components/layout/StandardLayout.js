@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Menu, Home, User, Sun, Moon } from 'react-feather';
+import { Menu, User, Sun, Moon } from 'react-feather';
 import MessageCirclePlus from '../icons/MessageCirclePlus';
 import EnhancedSidebar from './EnhancedSidebar';
 import ChatFooter from './ChatFooter';
@@ -171,7 +171,6 @@ export default function StandardLayout({
           .top-menu {
             height: var(--topmenu-height);
             background-color: var(--header-bg);
-            color: var(--header-text);
             display: flex;
             align-items: center;
             padding: 0 1rem;
@@ -215,11 +214,11 @@ export default function StandardLayout({
           .menu-button {
             background: none;
             border: none;
-            color: var(--header-text);
+            color: #D8C7BA; /* UPDATED: Set icon color to brown */
             cursor: pointer;
             padding: 8px;
             border-radius: 6px;
-            transition: background-color 0.2s, transform 0.3s;
+            transition: background-color 0.2s, color 0.2s, transform 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -228,6 +227,7 @@ export default function StandardLayout({
           
           .menu-button:hover {
             background-color: rgba(255, 255, 255, 0.1);
+            color: #FFFFFF; /* UPDATED: Set icon color to white on hover */
           }
           
           .menu-button:focus {
@@ -275,7 +275,7 @@ export default function StandardLayout({
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
-                <span style={{ fontSize: '1.5rem' }} aria-hidden="true">ðŸŒ¿</span>
+                <span style={{ fontSize: '1.5rem' }} aria-hidden="true">🌿</span>
                 <span>GriotBot</span>
               </div>
             )}
