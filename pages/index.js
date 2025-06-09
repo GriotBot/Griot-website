@@ -1,78 +1,47 @@
-// File: pages/index.js - With Chat Functionality Restored
+// File: pages/index.js - Final Refactored Version
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
 import EnhancedChatContainer from '../components/chat/EnhancedChatContainer';
 import ChatFooter from '../components/layout/ChatFooter';
 import {
-  PROVERBS,
   MAX_HISTORY_LENGTH,
   CHAT_HISTORY_KEY,
-  getRandomProverb,
-  GREETINGS
+  getRandomProverb
 } from '../lib/constants';
 
-const HAS_VISITED_KEY = 'griotbot-has-visited';
-
-// Helper component to display the proverb with the author on a new line
-const ProverbDisplay = ({ proverb }) => {
-  if (!proverb) return null;
-
-  const parts = proverb.split('—');
-  const quote = parts[0].trim();
-  const author = parts[1];
-
-  return (
-    <>
-      <p>"{quote}"</p>
-      {author && <cite className="quote-attribution">— {author.trim()}</cite>}
-    </>
-  );
-};
-
-
 export default function Home() {
+  // State management
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentProverb, setCurrentProverb] = useState('');
-  
-  const [greetingIndex, setGreetingIndex] = useState(0);
-  const [hasVisited, setHasVisited] = useState(true);
 
-  const getProverbOfTheDay = () => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const diff = now - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    const dayOfYear = Math.floor(diff / oneDay);
-    const proverbIndex = dayOfYear % PROVERBS.length;
-    return PROVERBS[proverbIndex];
-  };
-
+  // Initialize component
   useEffect(() => {
+    // Set random proverb using utility function
     setCurrentProverb(getRandomProverb());
-    loadChatHistory();
-    const visited = localStorage.getItem(HAS_VISITED_KEY) === 'true';
-    setHasVisited(visited);
-  }, []);
-  
-  useEffect(() => {
-    if (showWelcome && !hasVisited) {
-      const interval = setInterval(() => {
-        setGreetingIndex(prevIndex => (prevIndex + 1) % GREETINGS.length);
-      }, 4000);
-      return () => clearInterval(interval);
-    }
-  }, [showWelcome, hasVisited]);
 
+    // Load chat history from localStorage
+    loadChatHistory();
+  }, []);
+
+  // Load chat history from localStorage
   const loadChatHistory = useCallback(() => {
     try {
       const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
       if (savedHistory) {
         const parsedHistory = JSON.parse(savedHistory);
         if (Array.isArray(parsedHistory) && parsedHistory.length > 0) {
-          setMessages(parsedHistory);
+          // Convert old format to new format if needed
+          const formattedMessages = parsedHistory.map((msg, index) => ({
+            id: msg.id || `msg-${Date.now()}-${index}`,
+            role: msg.role === 'user' ? 'user' : 'assistant',
+            content: msg.content || '',
+            timestamp: msg.timestamp || msg.time || new Date().toISOString()
+          }));
+
+          setMessages(formattedMessages);
           setShowWelcome(false);
         }
       }
@@ -82,8 +51,10 @@ export default function Home() {
     }
   }, []);
 
+  // Save chat history to localStorage
   const saveChatHistory = useCallback((messagesToSave) => {
     try {
+      // Keep only the most recent messages to prevent localStorage bloat
       const recentMessages = messagesToSave.slice(-MAX_HISTORY_LENGTH);
       localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(recentMessages));
     } catch (error) {
@@ -91,13 +62,9 @@ export default function Home() {
     }
   }, []);
 
+  // Handle sending messages with corrected regeneration logic
   const handleSendMessage = useCallback(async (messageText, storytellerMode = false, explicitHistory = null) => {
     if (!messageText.trim() || isLoading) return;
-
-    if (!hasVisited) {
-        localStorage.setItem(HAS_VISITED_KEY, 'true');
-        setHasVisited(true);
-    }
 
     setShowWelcome(false);
     setIsLoading(true);
@@ -108,60 +75,71 @@ export default function Home() {
       content: messageText.trim(),
       timestamp: new Date().toISOString()
     };
-    
-    const updatedMessages = [...(explicitHistory || messages), userMessage];
+
+    const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
 
     const botMessageId = `bot-${Date.now()}`;
-    setMessages(prev => [...prev, {
+    const initialBotMessage = {
       id: botMessageId,
       role: 'assistant',
       content: '',
       timestamp: new Date().toISOString(),
       isStreaming: true
-    }]);
+    };
+
+    setMessages(prev => [...prev, initialBotMessage]);
 
     try {
+      // Use explicit history if provided (for regeneration), otherwise use current messages
       const messagesToUse = explicitHistory || updatedMessages;
-      const conversationHistory = messagesToUse.slice(-10).map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
+      const conversationHistory = messagesToUse
+        .slice(-10) // Last 10 messages to control token usage and costs
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
 
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           prompt: messageText.trim(),
-          storytellerMode,
-          conversationHistory
+          storytellerMode: storytellerMode,
+          conversationHistory: conversationHistory
         })
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        // Try to parse a specific error message from the API, otherwise fall back
+        const errorData = await response.json().catch(() => ({ error: 'An unknown server error occurred.' }));
+        const errorMessage = errorData.error || `Unable to process your request (Error ${response.status}).`;
+        throw new Error(errorMessage);
       }
-      
-      const contentType = response.headers.get('content-type');
+
+      // Handle streaming response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
       let accumulatedContent = '';
 
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        accumulatedContent = data.choices?.[0]?.message?.content || "Sorry, I received an unexpected response.";
-      } else {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          accumulatedContent += decoder.decode(value, { stream: true });
-          setMessages(prev => prev.map(msg => 
-              msg.id === botMessageId ? { ...msg, content: accumulatedContent, isStreaming: true } : msg
-          ));
-        }
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        accumulatedContent += decoder.decode(value, { stream: true });
+
+        setMessages(prevMessages =>
+          prevMessages.map(msg =>
+            msg.id === botMessageId
+              ? { ...msg, content: accumulatedContent, isStreaming: true }
+              : msg
+          )
+        );
       }
 
+      // Finalize the bot message
       const finalBotMessage = {
         id: botMessageId,
         role: 'assistant',
@@ -170,205 +148,195 @@ export default function Home() {
         isStreaming: false
       };
 
-      setMessages(prev => {
-        const finalMessages = prev.map(msg => msg.id === botMessageId ? finalBotMessage : msg);
-        saveChatHistory(finalMessages);
-        return finalMessages;
-      });
+      const finalMessages = [...updatedMessages, finalBotMessage];
+      setMessages(finalMessages);
+      saveChatHistory(finalMessages);
 
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages(prev => prev.map(msg => msg.id === botMessageId ? {
-        ...msg, content: `I'm sorry, an error occurred: ${error.message}`, isStreaming: false
-      } : msg));
+      const errorMessageText = error.message || 'Something went wrong. Please try again.';
+
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
+          msg.id === botMessageId
+            ? {
+                ...msg,
+                content: `I'm sorry, an error occurred: ${errorMessageText}`,
+                isStreaming: false
+              }
+            : msg
+        )
+      );
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, saveChatHistory, hasVisited]);
+  }, [messages, isLoading, saveChatHistory]);
 
+
+  // Handle new chat with proper dependencies
   const handleNewChat = useCallback(() => {
     setMessages([]);
     setShowWelcome(true);
     localStorage.removeItem(CHAT_HISTORY_KEY);
-    setCurrentProverb(getProverbOfTheDay());
+    setCurrentProverb(getRandomProverb());
   }, []);
 
+  // Handle message regeneration with corrected context logic
   const handleRegenerateMessage = useCallback(async (messageId) => {
     const messageIndex = messages.findIndex(msg => msg.id === messageId);
-    if (messageIndex < 1) return;
+    if (messageIndex < 1) return; // Ensure there's a message to regenerate and a user prompt before it
+
     const userMessage = messages[messageIndex - 1];
-    if (userMessage.role !== 'user') return;
+    if (userMessage.role !== 'user') return; // Should be responding to a user message
+
+    // Capture the correct historical context BEFORE removing the bot message
     const messagesForContext = messages.slice(0, messageIndex);
+    
+    // Update the UI to remove the old bot message
     setMessages(messagesForContext);
+    
+    // Regenerate response using the correct, preserved historical context
     await handleSendMessage(userMessage.content, false, messagesForContext);
   }, [messages, handleSendMessage]);
+
+  // Handle message feedback
+  const handleMessageFeedback = useCallback((messageId, feedbackType) => {
+    console.log(`Feedback for message ${messageId}: ${feedbackType}`);
+    // Optional: Send to an analytics API in the future
+  }, []);
 
   return (
     <>
       <Head>
         <title>GriotBot - Your Digital Griot</title>
-        {/* ... other meta tags ... */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
+        <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="keywords" content="griot, African culture, AI assistant, cultural wisdom, storytelling" />
+        <meta property="og:title" content="GriotBot - Your Digital Griot" />
+        <meta property="og:description" content="AI-powered digital griot providing culturally grounded wisdom and knowledge" />
+        <meta property="og:type" content="website" />
       </Head>
 
-      <StandardLayout 
-        onNewChat={handleNewChat} 
-        pageType="index"
-        onSendMessage={handleSendMessage}
-        chatDisabled={isLoading}
+      <StandardLayout
+        showWelcome={showWelcome}
+        currentProverb={currentProverb}
+        onNewChat={handleNewChat}
       >
         <div className="main-content">
           {showWelcome && (
-            <div className="welcome-container" role="main">
-              {hasVisited ? (
-                <div className="quote-only-view">
-                  <blockquote className="quote-container">
-                    <ProverbDisplay proverb={currentProverb} />
-                  </blockquote>
-                </div>
-              ) : (
-                <div className="first-visit-welcome">
-                   <div className="animated-greeting">
-                    <img src="/images/Adinkra_SiamCroc.svg" alt="Adinkra Symbol" className="adinkra-symbol" />
-                    <h1 className="greeting-text" key={greetingIndex}>
-                      {GREETINGS[greetingIndex].text}
-                    </h1>
-                  </div>
-                  <h2 className="welcome-subtitle">Welcome to GriotBot</h2>
-                  <blockquote className="quote-container welcome-quote">
-                    <p>
-                      A people without the knowledge of their past history,
-                      origin and culture is like a tree without roots.
-                    </p>
-                    <cite className="quote-attribution">— Marcus Mosiah Garvey</cite>
-                  </blockquote>
-                </div>
-              )}
+            <div className="welcome-container" role="main" aria-labelledby="welcome-title">
+              <h1 id="welcome-title" className="welcome-title">Welcome to GriotBot</h1>
+              <p className="welcome-subtitle">
+                Your AI companion for culturally rich conversations and wisdom
+              </p>
+              
+              <blockquote className="quote-container" cite="Marcus Garvey">
+                <p>
+                  A people without the knowledge of their past history,<br/>
+                  origin and culture is like a tree without roots.
+                </p>
+                <cite className="quote-attribution">â€” Marcus Mosiah Garvey</cite>
+              </blockquote>
+              
+              {/* --- Suggestion Cards Section Removed As Requested --- */}
+
             </div>
           )}
 
-          {!showWelcome && (
-            <EnhancedChatContainer
-              messages={messages}
-              isLoading={isLoading}
-              onRegenerateMessage={handleRegenerateMessage}
-            />
-          )}
+          <EnhancedChatContainer
+            messages={messages}
+            isLoading={isLoading}
+            onRegenerateMessage={handleRegenerateMessage}
+            onMessageFeedback={handleMessageFeedback}
+          />
         </div>
-        
-        {/* FIXED: Re-added the ChatFooter to the main page structure */}
-        <ChatFooter onSendMessage={handleSendMessage} disabled={isLoading} />
 
+        <ChatFooter
+          onSendMessage={handleSendMessage}
+          disabled={isLoading}
+        />
       </StandardLayout>
 
       <style jsx>{`
-        /* --- Core Layout Styles --- */
-        .main-content, .welcome-container {
+        .main-content {
+          flex: 1;
           display: flex;
           flex-direction: column;
-          flex-grow: 1;
           width: 100%;
           height: 100%;
+          overflow: hidden;
         }
         .welcome-container {
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        /* --- First Visit Welcome Screen Styles --- */
-        .first-visit-welcome {
           display: flex;
           flex-direction: column;
           align-items: center;
+          text-align: center;
+          max-width: 700px;
+          margin: 2rem auto;
+          padding: 1rem;
         }
-        .animated-greeting {
-          display: flex;
-          flex-direction: column; 
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 1.5rem;
-        }
-        .adinkra-symbol {
-          width: 50px;
-          height: 50px;
-          margin-bottom: 1rem;
-          animation: fadeIn 1s ease forwards;
-        }
-        .greeting-text {
-          font-family: 'Great Vibes', cursive;
-          font-size: 2.7rem;
-          font-weight: 400;
-          color: #6D3636;
-          margin: 0;
-          animation: fadeInOut 4s ease-in-out infinite;
-        }
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            25%, 75% { opacity: 1; }
+        .welcome-title {
+          font-family: var(--heading-font, 'Lora', serif);
+          font-size: 2.5rem;
+          font-weight: 600;
+          color: var(--text-color, #33302e);
+          margin: 0 0 1rem 0;
         }
         .welcome-subtitle {
-          font-family: 'Lora', serif;
-          font-size: 1.5rem;
-          font-weight: 500;
-          margin: 0.5rem 0 2rem 0;
-          animation: fadeIn 1s ease 1s forwards;
-        }
-        .welcome-quote {
-            animation: fadeIn 1s ease 1.5s forwards;
-        }
-
-        /* --- "New Chat" Screen for Returning Visitors --- */
-        .quote-only-view {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center; /* This ensures vertical centering */
-          text-align: center;
-          flex-grow: 1;
-          height: 100%; /* This is crucial for vertical centering to work */
+          font-size: 1.1rem;
+          color: var(--text-color, #33302e);
+          opacity: 0.8;
+          margin-bottom: 2rem;
+          line-height: 1.6;
         }
         .quote-container {
           font-size: 1.2rem;
           font-style: italic;
           color: var(--wisdom-color, #6b4226);
+          text-align: center;
+          font-family: var(--quote-font, 'Lora', serif);
           line-height: 1.7;
+          margin-bottom: 2.5rem;
           max-width: 600px;
+          padding: 0 1rem;
           border: none;
           background: transparent;
-          margin: 0;
         }
         .quote-container p {
-            margin-bottom: 1rem;
+          margin: 0 0 1rem 0;
         }
         .quote-attribution {
           display: block;
+          font-weight: 500;
           font-size: 1rem;
-          margin-top: 1rem;
-          opacity: 0.8;
+          opacity: 0.9;
         }
 
-        /* --- General Animations & Responsive Styles --- */
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            to { opacity: 1; }
+        /* Styles for Suggestion Cards have been removed */
+
+        @media (max-width: 768px) {
+          .welcome-container {
+            margin: 1rem auto;
+            padding: 0.75rem;
+          }
+          .welcome-title {
+            font-size: 2rem;
+          }
+          .welcome-subtitle {
+            font-size: 1rem;
+          }
+          .quote-container {
+            font-size: 1.1rem;
+            padding: 0 0.5rem;
+          }
         }
-        @media (max-width: 600px) {
-            .greeting-text {
-                font-size: 2.2rem;
-            }
-            .adinkra-symbol {
-              width: 40px;
-              height: 40px;
-            }
-            .welcome-subtitle {
-              font-size: 1.2rem;
-            }
+        @media (max-width: 480px) {
+          .welcome-title {
+            font-size: 1.75rem;
+          }
+          .quote-container {
+            font-size: 1rem;
+          }
         }
       `}</style>
     </>
