@@ -1,84 +1,78 @@
-// File: pages/index.js - Updated with Clean Footer (No Border Line) - IMPROVED VERSION
+// File: pages/index.js - With Chat Functionality Restored
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
 import EnhancedChatContainer from '../components/chat/EnhancedChatContainer';
 import ChatFooter from '../components/layout/ChatFooter';
+import {
+  PROVERBS,
+  MAX_HISTORY_LENGTH,
+  CHAT_HISTORY_KEY,
+  getRandomProverb,
+  GREETINGS
+} from '../lib/constants';
 
-// Constants moved outside component to prevent re-declaration on every render
-const PROVERBS = [
-  "Wisdom is like a baobab tree; no one individual can embrace it. â€” African Proverb",
-  "Until the lion learns to write, every story will glorify the hunter. â€” African Proverb", 
-  "We are the drums, we are the dance. â€” Afro-Caribbean Proverb",
-  "A tree cannot stand without its roots. â€” Jamaican Proverb",
-  "Unity is strength, division is weakness. â€” Swahili Proverb",
-  "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. â€” West African Proverb",
-  "Truth is like a drum, it can be heard from afar. â€” Kenyan Proverb",
-  "However long the night, the dawn will break. â€” African Proverb",
-  "If you want to go fast, go alone. If you want to go far, go together. â€” African Proverb",
-  "It takes a village to raise a child. â€” African Proverb"
-];
+const HAS_VISITED_KEY = 'griotbot-has-visited';
 
-const SUGGESTION_CARDS = [
-  {
-    category: "Storytelling",
-    title: "Tell me a diaspora story about resilience",
-    prompt: "Tell me a story about resilience from the African diaspora"
-  },
-  {
-    category: "Wisdom", 
-    title: "African wisdom on community building",
-    prompt: "Share some wisdom about community building from African traditions"
-  },
-  {
-    category: "Personal Growth",
-    title: "Connect with my cultural heritage", 
-    prompt: "How can I connect more with my cultural heritage?"
-  },
-  {
-    category: "History",
-    title: "The historical significance of Juneteenth",
-    prompt: "Explain the historical significance of Juneteenth"
-  }
-];
+// Helper component to display the proverb with the author on a new line
+const ProverbDisplay = ({ proverb }) => {
+  if (!proverb) return null;
 
-// Configuration constants
-const MAX_HISTORY_LENGTH = 50; // Maximum number of messages to store in localStorage
-const CHAT_HISTORY_KEY = 'griotbot-history';
+  const parts = proverb.split('—');
+  const quote = parts[0].trim();
+  const author = parts[1];
+
+  return (
+    <>
+      <p>"{quote}"</p>
+      {author && <cite className="quote-attribution">— {author.trim()}</cite>}
+    </>
+  );
+};
+
 
 export default function Home() {
-  // State management
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentProverb, setCurrentProverb] = useState('');
+  
+  const [greetingIndex, setGreetingIndex] = useState(0);
+  const [hasVisited, setHasVisited] = useState(true);
 
-  // Initialize component
+  const getProverbOfTheDay = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now - start;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    const proverbIndex = dayOfYear % PROVERBS.length;
+    return PROVERBS[proverbIndex];
+  };
+
   useEffect(() => {
-    // Set random proverb
-    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
-    setCurrentProverb(PROVERBS[randomIndex]);
-    
-    // Load chat history from localStorage
+    setCurrentProverb(getRandomProverb());
     loadChatHistory();
+    const visited = localStorage.getItem(HAS_VISITED_KEY) === 'true';
+    setHasVisited(visited);
   }, []);
+  
+  useEffect(() => {
+    if (showWelcome && !hasVisited) {
+      const interval = setInterval(() => {
+        setGreetingIndex(prevIndex => (prevIndex + 1) % GREETINGS.length);
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [showWelcome, hasVisited]);
 
-  // Load chat history from localStorage
   const loadChatHistory = useCallback(() => {
     try {
       const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
       if (savedHistory) {
         const parsedHistory = JSON.parse(savedHistory);
         if (Array.isArray(parsedHistory) && parsedHistory.length > 0) {
-          // Convert old format to new format if needed
-          const formattedMessages = parsedHistory.map((msg, index) => ({
-            id: msg.id || `msg-${Date.now()}-${index}`,
-            role: msg.role === 'user' ? 'user' : 'assistant',
-            content: msg.content || '',
-            timestamp: msg.timestamp || msg.time || new Date().toISOString()
-          }));
-          
-          setMessages(formattedMessages);
+          setMessages(parsedHistory);
           setShowWelcome(false);
         }
       }
@@ -88,10 +82,8 @@ export default function Home() {
     }
   }, []);
 
-  // Save chat history to localStorage
   const saveChatHistory = useCallback((messagesToSave) => {
     try {
-      // Keep only the most recent messages to prevent localStorage bloat
       const recentMessages = messagesToSave.slice(-MAX_HISTORY_LENGTH);
       localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(recentMessages));
     } catch (error) {
@@ -99,428 +91,284 @@ export default function Home() {
     }
   }, []);
 
-  // Handle sending messages with proper dependencies
-  const handleSendMessage = useCallback(async (messageText, storytellerMode = false) => {
+  const handleSendMessage = useCallback(async (messageText, storytellerMode = false, explicitHistory = null) => {
     if (!messageText.trim() || isLoading) return;
 
-    // Hide welcome screen
+    if (!hasVisited) {
+        localStorage.setItem(HAS_VISITED_KEY, 'true');
+        setHasVisited(true);
+    }
+
     setShowWelcome(false);
     setIsLoading(true);
 
-    // Create user message
     const userMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
       content: messageText.trim(),
       timestamp: new Date().toISOString()
     };
-
-    // Add user message to state
-    const updatedMessages = [...messages, userMessage];
+    
+    const updatedMessages = [...(explicitHistory || messages), userMessage];
     setMessages(updatedMessages);
 
-    // Create initial bot message (for streaming)
     const botMessageId = `bot-${Date.now()}`;
-    const initialBotMessage = {
+    setMessages(prev => [...prev, {
       id: botMessageId,
       role: 'assistant',
       content: '',
       timestamp: new Date().toISOString(),
       isStreaming: true
-    };
+    }]);
 
-    setMessages(prev => [...prev, initialBotMessage]);
+    try {
+      const messagesToUse = explicitHistory || updatedMessages;
+      const conversationHistory = messagesToUse.slice(-10).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
 
-    try {  
-      // Make API call
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: messageText.trim(),
-          storytellerMode: storytellerMode
+          storytellerMode,
+          conversationHistory
         })
       });
 
       if (!response.ok) {
-        const errorMessage = response.status === 429 
-          ? 'Too many requests. Please wait a moment and try again.'
-          : response.status === 500 
-          ? 'Service temporarily unavailable. Please try again.'
-          : `Unable to process your request (Error ${response.status}).`;
-        throw new Error(errorMessage);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Request failed with status ${response.status}`);
       }
-
-      // Check if response is streaming or JSON
+      
       const contentType = response.headers.get('content-type');
       let accumulatedContent = '';
-      
-      if (contentType && contentType.includes('text/plain')) {
-        // Handle streaming response
-        const reader = response.body.getReader();
 
-        try {
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            const chunk = new TextDecoder().decode(value);
-            accumulatedContent += chunk;
-
-            // Update the streaming message
-            setMessages(prevMessages => 
-              prevMessages.map(msg => 
-                msg.id === botMessageId 
-                  ? { ...msg, content: accumulatedContent }
-                  : msg
-              )
-            );
-          }
-        } finally {
-          reader.releaseLock();
-        }
-      } else {
-        // Handle JSON response (fallback)
+      if (contentType && contentType.includes('application/json')) {
         const data = await response.json();
-        accumulatedContent = data.choices?.[0]?.message?.content || 
-                          data.choices?.[0]?.text || 
-                          'I apologize, but I seem to be having trouble processing your request.';
+        accumulatedContent = data.choices?.[0]?.message?.content || "Sorry, I received an unexpected response.";
+      } else {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          accumulatedContent += decoder.decode(value, { stream: true });
+          setMessages(prev => prev.map(msg => 
+              msg.id === botMessageId ? { ...msg, content: accumulatedContent, isStreaming: true } : msg
+          ));
+        }
       }
 
-      // Finalize the bot message
       const finalBotMessage = {
         id: botMessageId,
-        role: 'assistant', 
+        role: 'assistant',
         content: accumulatedContent,
         timestamp: new Date().toISOString(),
         isStreaming: false
       };
 
-      const finalMessages = [...updatedMessages, finalBotMessage];
-      setMessages(finalMessages);
-      saveChatHistory(finalMessages);
+      setMessages(prev => {
+        const finalMessages = prev.map(msg => msg.id === botMessageId ? finalBotMessage : msg);
+        saveChatHistory(finalMessages);
+        return finalMessages;
+      });
 
     } catch (error) {
       console.error('Error sending message:', error);
-      
-      // Show user-friendly error message
-      const errorMessage = error.message.includes('fetch') 
-        ? 'Unable to connect. Please check your internet connection and try again.'
-        : error.message || 'Something went wrong. Please try again.';
-      
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.id === botMessageId 
-            ? { 
-                ...msg, 
-                content: `I'm sorry, ${errorMessage}`, 
-                isStreaming: false 
-              }
-            : msg
-        )
-      );
+      setMessages(prev => prev.map(msg => msg.id === botMessageId ? {
+        ...msg, content: `I'm sorry, an error occurred: ${error.message}`, isStreaming: false
+      } : msg));
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading, saveChatHistory]);
+  }, [messages, isLoading, saveChatHistory, hasVisited]);
 
-  // Handle suggestion card clicks
-  const handleSuggestionClick = useCallback((prompt) => {
-    handleSendMessage(prompt);
-  }, [handleSendMessage]);
-
-  // Handle new chat with proper dependencies
   const handleNewChat = useCallback(() => {
     setMessages([]);
     setShowWelcome(true);
     localStorage.removeItem(CHAT_HISTORY_KEY);
-    
-    // Set new random proverb
-    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
-    setCurrentProverb(PROVERBS[randomIndex]);
+    setCurrentProverb(getProverbOfTheDay());
   }, []);
 
-  // Handle message regeneration with proper dependencies
   const handleRegenerateMessage = useCallback(async (messageId) => {
     const messageIndex = messages.findIndex(msg => msg.id === messageId);
-    if (messageIndex === -1 || messageIndex === 0) return;
-
-    // Find the user message that prompted this response
+    if (messageIndex < 1) return;
     const userMessage = messages[messageIndex - 1];
-    if (!userMessage || userMessage.role !== 'user') return;
-
-    // Remove the bot message and regenerate
-    const messagesBeforeBot = messages.slice(0, messageIndex);
-    setMessages(messagesBeforeBot);
-    
-    // Regenerate response
-    await handleSendMessage(userMessage.content, false);
+    if (userMessage.role !== 'user') return;
+    const messagesForContext = messages.slice(0, messageIndex);
+    setMessages(messagesForContext);
+    await handleSendMessage(userMessage.content, false, messagesForContext);
   }, [messages, handleSendMessage]);
-
-  // Handle message feedback
-  const handleMessageFeedback = useCallback((messageId, feedbackType) => {
-    console.log(`Feedback for message ${messageId}: ${feedbackType}`);
-    
-    // Optional: Send to analytics API in the future
-    // You could add an API call here to track user feedback
-    /*
-    fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        messageId, 
-        feedbackType, 
-        timestamp: new Date().toISOString(),
-        sessionId: sessionStorage.getItem('session-id') // If you implement sessions
-      })
-    });
-    */
-  }, []);
 
   return (
     <>
       <Head>
         <title>GriotBot - Your Digital Griot</title>
-        <meta name="description" content="GriotBot - An AI-powered digital griot providing culturally grounded wisdom and knowledge for the African diaspora" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="keywords" content="griot, African culture, AI assistant, cultural wisdom, storytelling" />
-        <meta property="og:title" content="GriotBot - Your Digital Griot" />
-        <meta property="og:description" content="AI-powered digital griot providing culturally grounded wisdom and knowledge" />
-        <meta property="og:type" content="website" />
+        {/* ... other meta tags ... */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </Head>
 
-      <StandardLayout
-        showWelcome={showWelcome}
-        currentProverb={currentProverb}
-        onNewChat={handleNewChat}
+      <StandardLayout 
+        onNewChat={handleNewChat} 
+        pageType="index"
+        onSendMessage={handleSendMessage}
+        chatDisabled={isLoading}
       >
         <div className="main-content">
           {showWelcome && (
-            <div className="welcome-container" role="main" aria-labelledby="welcome-title">
-              <h1 id="welcome-title" className="welcome-title">Welcome to GriotBot</h1>
-              <p className="welcome-subtitle">
-                Your AI companion for culturally rich conversations and wisdom
-              </p>
-              
-              <blockquote className="quote-container" cite="Marcus Garvey">
-                <p>
-                  A people without the knowledge of their past history,<br/>
-                  origin and culture is like a tree without roots.
-                </p>
-                <cite className="quote-attribution">â€” Marcus Mosiah Garvey</cite>
-              </blockquote>
-              
-              <div 
-                className="suggestion-cards"
-                role="region"
-                aria-label="Conversation starters"
-              >
-                {SUGGESTION_CARDS.map((card, index) => (
-                  <button 
-                    key={`suggestion-${index}`}
-                    className="suggestion-card"
-                    onClick={() => handleSuggestionClick(card.prompt)}
-                    aria-label={`Start conversation about: ${card.title}`}
-                  >
-                    <div className="suggestion-category" aria-hidden="true">
-                      {card.category}
-                    </div>
-                    <h3 className="suggestion-title">{card.title}</h3>
-                  </button>
-                ))}
-              </div>
+            <div className="welcome-container" role="main">
+              {hasVisited ? (
+                <div className="quote-only-view">
+                  <blockquote className="quote-container">
+                    <ProverbDisplay proverb={currentProverb} />
+                  </blockquote>
+                </div>
+              ) : (
+                <div className="first-visit-welcome">
+                   <div className="animated-greeting">
+                    <img src="/images/Adinkra_SiamCroc.svg" alt="Adinkra Symbol" className="adinkra-symbol" />
+                    <h1 className="greeting-text" key={greetingIndex}>
+                      {GREETINGS[greetingIndex].text}
+                    </h1>
+                  </div>
+                  <h2 className="welcome-subtitle">Welcome to GriotBot</h2>
+                  <blockquote className="quote-container welcome-quote">
+                    <p>
+                      A people without the knowledge of their past history,
+                      origin and culture is like a tree without roots.
+                    </p>
+                    <cite className="quote-attribution">— Marcus Mosiah Garvey</cite>
+                  </blockquote>
+                </div>
+              )}
             </div>
           )}
 
-          <EnhancedChatContainer
-            messages={messages}
-            isLoading={isLoading}
-            onRegenerateMessage={handleRegenerateMessage}
-            onMessageFeedback={handleMessageFeedback}
-          />
+          {!showWelcome && (
+            <EnhancedChatContainer
+              messages={messages}
+              isLoading={isLoading}
+              onRegenerateMessage={handleRegenerateMessage}
+            />
+          )}
         </div>
+        
+        {/* FIXED: Re-added the ChatFooter to the main page structure */}
+        <ChatFooter onSendMessage={handleSendMessage} disabled={isLoading} />
 
-        <ChatFooter 
-          onSendMessage={handleSendMessage}
-          disabled={isLoading}
-        />
       </StandardLayout>
 
       <style jsx>{`
-        .main-content {
-          flex: 1;
+        /* --- Core Layout Styles --- */
+        .main-content, .welcome-container {
           display: flex;
           flex-direction: column;
+          flex-grow: 1;
           width: 100%;
           height: 100%;
-          overflow: hidden;
+        }
+        .welcome-container {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        .welcome-container {
+        /* --- First Visit Welcome Screen Styles --- */
+        .first-visit-welcome {
           display: flex;
           flex-direction: column;
           align-items: center;
-          text-align: center;
-          max-width: 700px;
-          margin: 2rem auto;
-          padding: 1rem;
         }
-
-        .welcome-title {
-          font-family: var(--heading-font, 'Lora', serif);
-          font-size: 2.5rem;
-          font-weight: 600;
-          color: var(--text-color, #33302e);
-          margin: 0 0 1rem 0;
+        .animated-greeting {
+          display: flex;
+          flex-direction: column; 
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 1.5rem;
         }
-
+        .adinkra-symbol {
+          width: 50px;
+          height: 50px;
+          margin-bottom: 1rem;
+          animation: fadeIn 1s ease forwards;
+        }
+        .greeting-text {
+          font-family: 'Great Vibes', cursive;
+          font-size: 2.7rem;
+          font-weight: 400;
+          color: #6D3636;
+          margin: 0;
+          animation: fadeInOut 4s ease-in-out infinite;
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            25%, 75% { opacity: 1; }
+        }
         .welcome-subtitle {
-          font-size: 1.1rem;
-          color: var(--text-color, #33302e);
-          opacity: 0.8;
-          margin-bottom: 2rem;
-          line-height: 1.6;
+          font-family: 'Lora', serif;
+          font-size: 1.5rem;
+          font-weight: 500;
+          margin: 0.5rem 0 2rem 0;
+          animation: fadeIn 1s ease 1s forwards;
+        }
+        .welcome-quote {
+            animation: fadeIn 1s ease 1.5s forwards;
         }
 
+        /* --- "New Chat" Screen for Returning Visitors --- */
+        .quote-only-view {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center; /* This ensures vertical centering */
+          text-align: center;
+          flex-grow: 1;
+          height: 100%; /* This is crucial for vertical centering to work */
+        }
         .quote-container {
           font-size: 1.2rem;
           font-style: italic;
           color: var(--wisdom-color, #6b4226);
-          text-align: center;
-          font-family: var(--quote-font, 'Lora', serif);
           line-height: 1.7;
-          margin-bottom: 2.5rem;
           max-width: 600px;
-          padding: 0 1rem;
           border: none;
           background: transparent;
+          margin: 0;
         }
-
         .quote-container p {
-          margin: 0 0 1rem 0;
+            margin-bottom: 1rem;
         }
-
         .quote-attribution {
           display: block;
-          font-weight: 500;
           font-size: 1rem;
-          opacity: 0.9;
+          margin-top: 1rem;
+          opacity: 0.8;
         }
 
-        .suggestion-cards {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
-          width: 100%;
-          max-width: 700px;
+        /* --- General Animations & Responsive Styles --- */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            to { opacity: 1; }
         }
-
-        .suggestion-card {
-          background: var(--card-bg, #ffffff);
-          padding: 1.5rem;
-          border-radius: 16px;
-          box-shadow: 0 4px 20px var(--shadow-color, rgba(75, 46, 42, 0.15));
-          cursor: pointer;
-          transition: all 0.3s ease;
-          border: 1px solid var(--input-border, rgba(75, 46, 42, 0.2));
-          text-align: left;
-          width: 100%;
-          font-family: inherit;
-        }
-
-        .suggestion-card:hover,
-        .suggestion-card:focus {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 30px var(--shadow-color, rgba(75, 46, 42, 0.2));
-          outline: 2px solid var(--accent-color, #d7722c);
-          outline-offset: 2px;
-        }
-
-        .suggestion-card:focus {
-          outline-style: solid;
-        }
-
-        .suggestion-category {
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          color: var(--accent-color, #d7722c);
-          font-weight: 600;
-          margin-bottom: 0.75rem;
-        }
-
-        .suggestion-title {
-          font-family: var(--heading-font, 'Lora', serif);
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: var(--text-color, #33302e);
-          margin: 0;
-          line-height: 1.4;
-        }
-
-        /* FIXED: Remove border-top from form container and adjust spacing */
-        :global(#form-container) {
-          border-top: none !important;
-          padding-top: 0.5rem !important;
-          padding-bottom: 1rem !important;
-        }
-
-        /* FIXED: Ensure storyteller mode toggle is properly positioned */
-        :global(.form-actions) {
-          margin-top: 0.75rem !important;
-          padding: 0 0.25rem !important;
-        }
-
-        /* FIXED: Ensure toggle switch is fully visible */
-        :global(.storyteller-mode) {
-          margin-right: 0.5rem !important;
-        }
-
-        :global(.toggle-switch) {
-          margin-left: 0.5rem !important;
-          position: relative !important;
-          z-index: 10 !important;
-        }
-
-        @media (max-width: 768px) {
-          .welcome-container {
-            margin: 1rem auto;
-            padding: 0.75rem;
-          }
-
-          .welcome-title {
-            font-size: 2rem;
-          }
-
-          .welcome-subtitle {
-            font-size: 1rem;
-          }
-
-          .quote-container {
-            font-size: 1.1rem;
-            padding: 0 0.5rem;
-          }
-
-          .suggestion-cards {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-          }
-
-          .suggestion-card {
-            padding: 1.25rem;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .welcome-title {
-            font-size: 1.75rem;
-          }
-
-          .quote-container {
-            font-size: 1rem;
-          }
+        @media (max-width: 600px) {
+            .greeting-text {
+                font-size: 2.2rem;
+            }
+            .adinkra-symbol {
+              width: 40px;
+              height: 40px;
+            }
+            .welcome-subtitle {
+              font-size: 1.2rem;
+            }
         }
       `}</style>
     </>
