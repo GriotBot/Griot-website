@@ -1,4 +1,4 @@
-// File: components/chat/EnhancedChatContainer.js - Merged & Improved
+// File: components/chat/EnhancedChatContainer.js - With Improved Scrolling
 import { useEffect, useRef } from 'react';
 import EnhancedMessage from './EnhancedMessage';
 
@@ -8,20 +8,19 @@ export default function EnhancedChatContainer({
   onRegenerateMessage,
   onMessageFeedback 
 }) {
+  // We will use one ref for the main scrolling container.
   const containerRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages arrive or loading state changes.
+  // FIXED: This is a more robust auto-scrolling implementation.
+  // It triggers whenever the messages change, ensuring the view is always current.
   useEffect(() => {
     if (containerRef.current) {
-      // Using a smooth scroll behavior for a better user experience.
-      containerRef.current.scrollTo({
-        top: containerRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
+      // This directly sets the scroll position to the bottom of the content.
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [messages, isLoading]);
+  }, [messages]); // The effect depends only on the messages array.
 
-  // All helper functions are preserved.
+  // All your original helper functions are preserved.
   const handleCopyMessage = async (content) => {
     try {
       await navigator.clipboard.writeText(content);
@@ -59,15 +58,33 @@ export default function EnhancedChatContainer({
       console.warn('Could not save feedback:', err);
     }
   };
-  
-  // FIXED: Removed the faulty "early return" block. 
-  // The component now has a single, unified return statement.
+
+  // Your original empty state handling is preserved.
+  if (!messages || messages.length === 0) {
+    return (
+      <>
+        <div className="chat-container empty">
+          {/* Empty - no content displayed when no messages */}
+        </div>
+        <style jsx>{`
+          .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 1rem;
+          }
+        `}</style>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="chat-container" ref={containerRef}>
         <div className="messages-list">
-          {/* This map function will now correctly render messages as they are added,
-              even if the initial array is empty. */}
           {messages.map((message, index) => (
             <EnhancedMessage
               key={message.id || `msg-${index}`}
@@ -81,7 +98,6 @@ export default function EnhancedChatContainer({
             />
           ))}
           
-          {/* The loading indicator is preserved. */}
           {isLoading && (
             <div className="loading-message">
               <div className="loading-header">
@@ -90,7 +106,9 @@ export default function EnhancedChatContainer({
                     src="/images/logo-light.svg" 
                     alt="GriotBot"
                     className="bot-logo"
-                    onError={(e) => { e.target.src = "/images/logo-light.png"; }}
+                    onError={(e) => {
+                      e.target.src = "/images/logo-light.png";
+                    }}
                   />
                 </div>
                 <div className="bot-identity">
@@ -107,10 +125,12 @@ export default function EnhancedChatContainer({
               </div>
             </div>
           )}
+          
+          {/* The chat-end-marker div is no longer needed for scrolling */}
         </div>
       </div>
       
-      {/* The original styled-jsx block is preserved. */}
+      {/* Your original styled-jsx block is preserved. */}
       <style jsx>{`
         .chat-container {
           flex: 1;
@@ -213,6 +233,11 @@ export default function EnhancedChatContainer({
         .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
         .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
         
+        .chat-end-marker {
+          height: 1px;
+          width: 100%;
+        }
+        
         @keyframes messageSlideIn {
           from {
             opacity: 0;
@@ -246,6 +271,11 @@ export default function EnhancedChatContainer({
           }
         }
         
+        /* Smooth scrolling for the container */
+        .chat-container {
+          scroll-padding-bottom: 20px;
+        }
+        
         .chat-container::-webkit-scrollbar {
           width: 6px;
         }
@@ -259,10 +289,15 @@ export default function EnhancedChatContainer({
           border-radius: 3px;
         }
         
+        .chat-container::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 0, 0, 0.3);
+        }
+        
         @media (max-width: 768px) {
           .chat-container {
             padding: 0.75rem;
           }
+          
           .loading-message {
             max-width: 95%;
           }
