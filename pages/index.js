@@ -1,16 +1,50 @@
-// File: pages/index.js - Updated with Conversation Memory Support & Shared Constants
+// File: pages/index.js - Updated with Clean Footer (No Border Line) - IMPROVED VERSION
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
 import EnhancedChatContainer from '../components/chat/EnhancedChatContainer';
 import ChatFooter from '../components/layout/ChatFooter';
-import { 
-  PROVERBS, 
-  SUGGESTION_CARDS, 
-  MAX_HISTORY_LENGTH, 
-  CHAT_HISTORY_KEY,
-  getRandomProverb 
-} from '../lib/constants';
+
+// Constants moved outside component to prevent re-declaration on every render
+const PROVERBS = [
+  "Wisdom is like a baobab tree; no one individual can embrace it. â€” African Proverb",
+  "Until the lion learns to write, every story will glorify the hunter. â€” African Proverb", 
+  "We are the drums, we are the dance. â€” Afro-Caribbean Proverb",
+  "A tree cannot stand without its roots. â€” Jamaican Proverb",
+  "Unity is strength, division is weakness. â€” Swahili Proverb",
+  "Knowledge is like a garden; if it is not cultivated, it cannot be harvested. â€” West African Proverb",
+  "Truth is like a drum, it can be heard from afar. â€” Kenyan Proverb",
+  "However long the night, the dawn will break. â€” African Proverb",
+  "If you want to go fast, go alone. If you want to go far, go together. â€” African Proverb",
+  "It takes a village to raise a child. â€” African Proverb"
+];
+
+const SUGGESTION_CARDS = [
+  {
+    category: "Storytelling",
+    title: "Tell me a diaspora story about resilience",
+    prompt: "Tell me a story about resilience from the African diaspora"
+  },
+  {
+    category: "Wisdom", 
+    title: "African wisdom on community building",
+    prompt: "Share some wisdom about community building from African traditions"
+  },
+  {
+    category: "Personal Growth",
+    title: "Connect with my cultural heritage", 
+    prompt: "How can I connect more with my cultural heritage?"
+  },
+  {
+    category: "History",
+    title: "The historical significance of Juneteenth",
+    prompt: "Explain the historical significance of Juneteenth"
+  }
+];
+
+// Configuration constants
+const MAX_HISTORY_LENGTH = 50; // Maximum number of messages to store in localStorage
+const CHAT_HISTORY_KEY = 'griotbot-history';
 
 export default function Home() {
   // State management
@@ -21,8 +55,9 @@ export default function Home() {
 
   // Initialize component
   useEffect(() => {
-    // Set random proverb using utility function
-    setCurrentProverb(getRandomProverb());
+    // Set random proverb
+    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
+    setCurrentProverb(PROVERBS[randomIndex]);
     
     // Load chat history from localStorage
     loadChatHistory();
@@ -65,7 +100,7 @@ export default function Home() {
   }, []);
 
   // Handle sending messages with proper dependencies
-  const handleSendMessage = useCallback(async (messageText, storytellerMode = false, explicitHistory = null) => {
+  const handleSendMessage = useCallback(async (messageText, storytellerMode = false) => {
     if (!messageText.trim() || isLoading) return;
 
     // Hide welcome screen
@@ -97,17 +132,7 @@ export default function Home() {
     setMessages(prev => [...prev, initialBotMessage]);
 
     try {  
-      // Prepare conversation history for API call (CONVERSATION MEMORY FIX)
-      // Use explicit history if provided (for regeneration), otherwise use current messages
-      const messagesToUse = explicitHistory || updatedMessages;
-      const conversationHistory = messagesToUse
-        .slice(-10) // Last 10 messages to control costs
-        .map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        }));
-
-      // Make API call with conversation history
+      // Make API call
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -115,8 +140,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           prompt: messageText.trim(),
-          storytellerMode: storytellerMode,
-          conversationHistory: conversationHistory // ADDED: Conversation memory support
+          storytellerMode: storytellerMode
         })
       });
 
@@ -213,8 +237,9 @@ export default function Home() {
     setShowWelcome(true);
     localStorage.removeItem(CHAT_HISTORY_KEY);
     
-    // Set new random proverb using utility function
-    setCurrentProverb(getRandomProverb());
+    // Set new random proverb
+    const randomIndex = Math.floor(Math.random() * PROVERBS.length);
+    setCurrentProverb(PROVERBS[randomIndex]);
   }, []);
 
   // Handle message regeneration with proper dependencies
@@ -226,14 +251,12 @@ export default function Home() {
     const userMessage = messages[messageIndex - 1];
     if (!userMessage || userMessage.role !== 'user') return;
 
-    // Capture the correct historical context BEFORE removing the bot message
-    const messagesForContext = messages.slice(0, messageIndex);
-    
     // Remove the bot message and regenerate
-    setMessages(messagesForContext);
+    const messagesBeforeBot = messages.slice(0, messageIndex);
+    setMessages(messagesBeforeBot);
     
-    // Regenerate response using the correct historical context
-    await handleSendMessage(userMessage.content, false, messagesForContext);
+    // Regenerate response
+    await handleSendMessage(userMessage.content, false);
   }, [messages, handleSendMessage]);
 
   // Handle message feedback
