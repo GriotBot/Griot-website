@@ -1,4 +1,4 @@
-// File: pages/index.js - With Wisdom of the Day Title
+// File: pages/index.js - With Accessibility Improvements
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -224,7 +224,6 @@ export default function Home() {
             <div className="welcome-container" role="main">
               {hasVisited ? (
                 <div className="quote-only-view">
-                  {/* ADDED: New title for the Proverb of the Day */}
                   <h2 className="wisdom-title">GriotBot's Wisdom of the Day</h2>
                   <blockquote className="quote-container">
                     <ProverbDisplay proverb={currentProverb} />
@@ -232,8 +231,10 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="first-visit-welcome">
-                   <div className="animated-greeting">
-                    <img src="/images/Adinkra_SiamCroc.svg" alt="Adinkra Symbol" className="adinkra-symbol" />
+                  {/* ACCESSIBILITY: Added aria-live to announce greeting changes */}
+                   <div className="animated-greeting" aria-live="polite" aria-atomic="true">
+                    {/* ACCESSIBILITY: Added more descriptive alt text */}
+                    <img src="/images/Adinkra_SiamCroc.svg" alt="The Adinkra symbol for adaptability, the Siamese crocodile" className="adinkra-symbol" />
                     <h1 className="greeting-text" key={greetingIndex}>
                       {GREETINGS[greetingIndex].text}
                     </h1>
@@ -302,7 +303,7 @@ export default function Home() {
           font-family: 'Great Vibes', cursive;
           font-size: 2.7rem;
           font-weight: 400;
-          color: #6D3636;
+          color: #5D2E2E; /* ACCESSIBILITY: Darkened color for better contrast */
           margin: 0;
           animation: fadeInOut 4s ease-in-out infinite;
         }
@@ -326,13 +327,11 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center;
+          justify-content: center; 
           text-align: center;
           flex-grow: 1;
           height: 100%; 
         }
-
-        /* ADDED: Styles for the new "Wisdom of the Day" title */
         .wisdom-title {
           font-family: var(--body-font, 'Montserrat', sans-serif);
           font-weight: 500;
@@ -345,7 +344,6 @@ export default function Home() {
           border-radius: 20px;
           background-color: rgba(0,0,0,0.02);
         }
-
         .quote-container {
           font-size: 1.2rem;
           font-style: italic;
@@ -365,12 +363,23 @@ export default function Home() {
           margin-top: 1rem;
           opacity: 0.8;
         }
-
+        
         /* --- General Animations & Responsive Styles --- */
         @keyframes fadeIn {
             0% { opacity: 0; }
             to { opacity: 1; }
         }
+        
+        /* ACCESSIBILITY: Respects user preference for reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+          .adinkra-symbol,
+          .greeting-text,
+          .welcome-subtitle,
+          .welcome-quote {
+            animation: fadeIn 1s ease forwards; /* Use a simple fade-in instead of complex animations */
+          }
+        }
+
         @media (max-width: 600px) {
             .greeting-text {
                 font-size: 2.2rem;
