@@ -1,5 +1,5 @@
 // File: components/chat/EnhancedChatContainer.js - Final Scrolling Fix
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import EnhancedMessage from './EnhancedMessage';
 
 export default function EnhancedChatContainer({ 
@@ -8,25 +8,22 @@ export default function EnhancedChatContainer({
   onRegenerateMessage,
   onMessageFeedback 
 }) {
-  // A ref for the overall scrolling container
   const containerRef = useRef(null);
-  // A ref for a marker div at the end of the messages to ensure scrolling is accurate
   const messagesEndRef = useRef(null);
 
-  // This is the definitive auto-scrolling logic.
-  // It triggers whenever the messages array is updated.
+  // OPTIMIZED: This effect now only runs when a new message is added or removed,
+  // rather than on every character stream. This is more performant.
   useEffect(() => {
-    // We use a smooth scroll to bring the marker div at the end of the chat into view.
-    // This is the most reliable method to ensure the latest message is always visible.
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]); // This effect runs every time a message is added.
+  }, [messages.length]); // Dependency is now the length of the array.
 
-  // All your original helper functions are preserved.
-  const handleCopyMessage = async (content) => {
+  // IMPROVED: Handler functions are wrapped in useCallback for performance.
+  const handleCopyMessage = useCallback(async (content) => {
     try {
       await navigator.clipboard.writeText(content);
       return true;
     } catch (err) {
+      // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = content;
       document.body.appendChild(textArea);
@@ -35,15 +32,15 @@ export default function EnhancedChatContainer({
       document.body.removeChild(textArea);
       return true;
     }
-  };
+  }, []);
 
-  const handleRegenerateMessage = (messageId) => {
+  const handleRegenerateMessage = useCallback((messageId) => {
     if (onRegenerateMessage) {
       onRegenerateMessage(messageId);
     }
-  };
+  }, [onRegenerateMessage]);
 
-  const handleMessageFeedback = (messageId, feedbackType) => {
+  const handleMessageFeedback = useCallback((messageId, feedbackType) => {
     if (onMessageFeedback) {
       onMessageFeedback(messageId, feedbackType);
     }
@@ -58,10 +55,8 @@ export default function EnhancedChatContainer({
     } catch (err) {
       console.warn('Could not save feedback:', err);
     }
-  };
+  }, [onMessageFeedback]);
   
-  // FIXED: The component now has a single, unified return statement.
-  // The early return that was causing messages to disappear has been removed.
   return (
     <>
       <div className="chat-container" ref={containerRef}>
