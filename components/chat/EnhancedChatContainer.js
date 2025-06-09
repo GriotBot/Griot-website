@@ -1,6 +1,8 @@
 // File: components/chat/EnhancedChatContainer.js - With All Fixes Applied
 import { useEffect, useRef, useCallback } from 'react';
 import EnhancedMessage from './EnhancedMessage';
+// ADDED: Share icon for the action buttons
+import { Share2 } from 'react-feather';
 
 export default function EnhancedChatContainer({ 
   messages, 
@@ -19,10 +21,11 @@ export default function EnhancedChatContainer({
     }
   }, [messages.length]); // Dependency is now the length of the array.
 
-  // All your original helper functions are preserved.
+  // All your original helper functions are preserved and optimized.
   const handleCopyMessage = useCallback(async (content) => {
     try {
       await navigator.clipboard.writeText(content);
+      alert('Copied to clipboard!');
       return true;
     } catch (err) {
       const textArea = document.createElement('textarea');
@@ -31,9 +34,29 @@ export default function EnhancedChatContainer({
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
+      alert('Copied to clipboard!');
       return true;
     }
   }, []);
+
+  // ADDED: The "Share This Story" handler function
+  const handleShare = useCallback(async (content) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'A Story from GriotBot',
+          text: content,
+          url: window.location.href,
+        });
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      }
+    } else {
+      await handleCopyMessage(content);
+    }
+  }, [handleCopyMessage]);
 
   const handleRegenerateMessage = useCallback((messageId) => {
     if (onRegenerateMessage) {
@@ -59,8 +82,11 @@ export default function EnhancedChatContainer({
     }
   }, [onMessageFeedback]);
 
+  // This logic determines if we should show the "Thinking..." indicator.
+  const lastMessage = messages[messages.length - 1];
+  const isBotThinking = isLoading && lastMessage?.role === 'assistant' && !lastMessage.content;
+
   // FIXED: The "early return" block that caused the chat to be non-functional has been removed.
-  // The component now has a single, unified return statement.
   return (
     <>
       <div className="chat-container" ref={containerRef}>
@@ -73,11 +99,14 @@ export default function EnhancedChatContainer({
                 timestamp: message.timestamp || message.time
               }}
               onCopy={handleCopyMessage}
+              // ADDED: Pass the onShare prop to EnhancedMessage
+              onShare={message.role === 'assistant' ? handleShare : null}
               onRegenerate={message.role === 'assistant' ? handleRegenerateMessage : null}
               onFeedback={message.role === 'assistant' ? handleMessageFeedback : null}
             />
           ))}
           
+          {/* Your original loading message is preserved */}
           {isLoading && (
             <div className="loading-message">
               <div className="loading-header">
