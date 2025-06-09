@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
 import EnhancedChatContainer from '../components/chat/EnhancedChatContainer';
+import ChatFooter from '../components/layout/ChatFooter';
 import {
   PROVERBS,
   MAX_HISTORY_LENGTH,
@@ -212,7 +213,6 @@ export default function Home() {
         <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </Head>
 
-      {/* FIXED: Passed the onSendMessage and chatDisabled props to StandardLayout to restore chat functionality */}
       <StandardLayout 
         onNewChat={handleNewChat} 
         pageType="index"
@@ -257,6 +257,10 @@ export default function Home() {
             />
           )}
         </div>
+        
+        {/* FIXED: Re-added the ChatFooter to the main page structure */}
+        <ChatFooter onSendMessage={handleSendMessage} disabled={isLoading} />
+
       </StandardLayout>
 
       <style jsx>{`
