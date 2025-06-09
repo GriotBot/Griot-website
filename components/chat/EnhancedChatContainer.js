@@ -1,4 +1,4 @@
-// File: components/chat/EnhancedChatContainer.js - With Improved Scrolling
+// File: components/chat/EnhancedChatContainer.js - Final Scrolling Fix
 import { useEffect, useRef } from 'react';
 import EnhancedMessage from './EnhancedMessage';
 
@@ -8,17 +8,18 @@ export default function EnhancedChatContainer({
   onRegenerateMessage,
   onMessageFeedback 
 }) {
-  // We will use one ref for the main scrolling container.
+  // A ref for the overall scrolling container
   const containerRef = useRef(null);
+  // A ref for a marker div at the end of the messages to ensure scrolling is accurate
+  const messagesEndRef = useRef(null);
 
-  // FIXED: This is a more robust auto-scrolling implementation.
-  // It triggers whenever the messages change, ensuring the view is always current.
+  // This is the definitive auto-scrolling logic.
+  // It triggers whenever the messages array is updated.
   useEffect(() => {
-    if (containerRef.current) {
-      // This directly sets the scroll position to the bottom of the content.
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [messages]); // The effect depends only on the messages array.
+    // We use a smooth scroll to bring the marker div at the end of the chat into view.
+    // This is the most reliable method to ensure the latest message is always visible.
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]); // This effect runs every time a message is added.
 
   // All your original helper functions are preserved.
   const handleCopyMessage = async (content) => {
@@ -58,29 +59,9 @@ export default function EnhancedChatContainer({
       console.warn('Could not save feedback:', err);
     }
   };
-
-  // Your original empty state handling is preserved.
-  if (!messages || messages.length === 0) {
-    return (
-      <>
-        <div className="chat-container empty">
-          {/* Empty - no content displayed when no messages */}
-        </div>
-        <style jsx>{`
-          .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 1rem;
-          }
-        `}</style>
-      </>
-    );
-  }
-
+  
+  // FIXED: The component now has a single, unified return statement.
+  // The early return that was causing messages to disappear has been removed.
   return (
     <>
       <div className="chat-container" ref={containerRef}>
@@ -126,7 +107,8 @@ export default function EnhancedChatContainer({
             </div>
           )}
           
-          {/* The chat-end-marker div is no longer needed for scrolling */}
+          {/* This empty div acts as a reliable marker for the scrollIntoView function. */}
+          <div ref={messagesEndRef} />
         </div>
       </div>
       
@@ -233,11 +215,6 @@ export default function EnhancedChatContainer({
         .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
         .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
         
-        .chat-end-marker {
-          height: 1px;
-          width: 100%;
-        }
-        
         @keyframes messageSlideIn {
           from {
             opacity: 0;
@@ -271,11 +248,6 @@ export default function EnhancedChatContainer({
           }
         }
         
-        /* Smooth scrolling for the container */
-        .chat-container {
-          scroll-padding-bottom: 20px;
-        }
-        
         .chat-container::-webkit-scrollbar {
           width: 6px;
         }
@@ -289,15 +261,10 @@ export default function EnhancedChatContainer({
           border-radius: 3px;
         }
         
-        .chat-container::-webkit-scrollbar-thumb:hover {
-          background: rgba(0, 0, 0, 0.3);
-        }
-        
         @media (max-width: 768px) {
           .chat-container {
             padding: 0.75rem;
           }
-          
           .loading-message {
             max-width: 95%;
           }
