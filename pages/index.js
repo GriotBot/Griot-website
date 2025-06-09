@@ -1,4 +1,4 @@
-// File: pages/index.js - With Accessibility Improvements
+// File: pages/index.js - With SEO & Accessibility Enhancements
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -206,11 +206,30 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>GriotBot - Your Digital Griot</title>
-        {/* ... other meta tags ... */}
+        {/* SEO: Updated Title and Description for better search ranking */}
+        <title>GriotBot | AI Storyteller for African Diaspora & Black Culture</title>
+        <meta name="description" content="Engage with GriotBot, your personal AI griot. Explore African diaspora history, proverbs, and stories with our culturally-aware, empathetic chatbot." />
+        
+        {/* Standard favicon and font links */}
+        <link rel="icon" href="/favicon.ico" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
         <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
+
+        {/* SEO: Added Open Graph and Twitter Card meta tags for rich social sharing */}
+        <meta property="og:title" content="GriotBot | AI Storyteller & Cultural Wisdom" />
+        <meta property="og:description" content="Explore African diaspora history, proverbs, and stories with a culturally-aware, empathetic AI." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.griotbot.com/" />
+        {/* IMPORTANT: Replace with the actual URL to your social sharing image */}
+        <meta property="og:image" content="https://www.griotbot.com/images/griotbot-social-card.png" /> 
+        
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://www.griotbot.com/" />
+        <meta name="twitter:title" content="GriotBot | AI Storyteller & Cultural Wisdom" />
+        <meta name="twitter:description" content="Explore African diaspora history, proverbs, and stories with a culturally-aware, empathetic AI." />
+        {/* IMPORTANT: Use the same image URL for Twitter */}
+        <meta property="twitter:image" content="https://www.griotbot.com/images/griotbot-social-card.png" />
       </Head>
 
       <StandardLayout 
@@ -231,15 +250,15 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="first-visit-welcome">
-                  {/* ACCESSIBILITY: Added aria-live to announce greeting changes */}
                    <div className="animated-greeting" aria-live="polite" aria-atomic="true">
-                    {/* ACCESSIBILITY: Added more descriptive alt text */}
                     <img src="/images/Adinkra_SiamCroc.svg" alt="The Adinkra symbol for adaptability, the Siamese crocodile" className="adinkra-symbol" />
-                    <h1 className="greeting-text" key={greetingIndex}>
+                    {/* SEO: Changed rotating greeting to an h2 for better semantic structure */}
+                    <h2 className="greeting-text" key={greetingIndex}>
                       {GREETINGS[greetingIndex].text}
-                    </h1>
+                    </h2>
                   </div>
-                  <h2 className="welcome-subtitle">Welcome to GriotBot</h2>
+                  {/* SEO: Changed main welcome to an h1 for SEO priority */}
+                  <h1 className="welcome-subtitle">Welcome to GriotBot</h1>
                   <blockquote className="quote-container welcome-quote">
                     <p>
                       A people without the knowledge of their past history,
@@ -314,7 +333,7 @@ export default function Home() {
         .welcome-subtitle {
           font-family: 'Lora', serif;
           font-size: 1.5rem;
-          font-weight: 500;
+          font-weight: 600; /* Made slightly bolder as it is now an h1 */
           margin: 0.5rem 0 2rem 0;
           animation: fadeIn 1s ease 1s forwards;
         }
@@ -370,13 +389,12 @@ export default function Home() {
             to { opacity: 1; }
         }
         
-        /* ACCESSIBILITY: Respects user preference for reduced motion */
         @media (prefers-reduced-motion: reduce) {
           .adinkra-symbol,
           .greeting-text,
           .welcome-subtitle,
           .welcome-quote {
-            animation: fadeIn 1s ease forwards; /* Use a simple fade-in instead of complex animations */
+            animation: fadeIn 1s ease forwards;
           }
         }
 
