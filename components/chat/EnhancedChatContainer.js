@@ -35,6 +35,31 @@ export default function EnhancedChatContainer({
     }
   }, []);
 
+  // NEW: "Share This Story" handler
+  const handleShare = useCallback(async (content) => {
+    // Use the modern Web Share API if available (on mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'A Story from GriotBot',
+          text: content,
+          url: window.location.href,
+        });
+        return true;
+      } catch (error) {
+        // Log error but don't alert if the user simply closed the share sheet
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+        return false;
+      }
+    } else {
+      // Fallback for desktop: copy to clipboard and notify user
+      await handleCopyMessage(content);
+      alert('Story copied to clipboard!');
+    }
+  }, [handleCopyMessage]);
+
   const handleRegenerateMessage = useCallback((messageId) => {
     if (onRegenerateMessage) {
       onRegenerateMessage(messageId);
@@ -94,6 +119,8 @@ export default function EnhancedChatContainer({
                   timestamp: message.timestamp || message.time
                 }}
                 onCopy={handleCopyMessage}
+                // ADDED: Pass the new onShare handler to the message component
+                onShare={message.role === 'assistant' ? handleShare : null}
                 onRegenerate={message.role === 'assistant' ? handleRegenerateMessage : null}
                 onFeedback={message.role === 'assistant' ? handleMessageFeedback : null}
               />
