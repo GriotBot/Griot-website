@@ -11,19 +11,16 @@ export default function EnhancedChatContainer({
   const containerRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // OPTIMIZED: This effect now only runs when a new message is added or removed,
-  // rather than on every character stream. This is more performant.
+  // This effect ensures the view scrolls to the latest message.
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]); // Dependency is now the length of the array.
+  }, [messages.length]); // Depends on the number of messages.
 
-  // IMPROVED: Handler functions are wrapped in useCallback for performance.
   const handleCopyMessage = useCallback(async (content) => {
     try {
       await navigator.clipboard.writeText(content);
       return true;
     } catch (err) {
-      // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = content;
       document.body.appendChild(textArea);
@@ -57,24 +54,36 @@ export default function EnhancedChatContainer({
     }
   }, [onMessageFeedback]);
   
+  // This logic determines if we should show the "Thinking..." indicator.
+  const lastMessage = messages[messages.length - 1];
+  const isBotThinking = isLoading && lastMessage?.role === 'assistant' && !lastMessage.content;
+
   return (
     <>
       <div className="chat-container" ref={containerRef}>
         <div className="messages-list">
-          {messages.map((message, index) => (
-            <EnhancedMessage
-              key={message.id || `msg-${index}`}
-              message={{
-                ...message,
-                timestamp: message.timestamp || message.time
-              }}
-              onCopy={handleCopyMessage}
-              onRegenerate={message.role === 'assistant' ? handleRegenerateMessage : null}
-              onFeedback={message.role === 'assistant' ? handleMessageFeedback : null}
-            />
-          ))}
+          {messages.map((message, index) => {
+            // FIXED: Hide the assistant's message bubble while the bot is "thinking".
+            // This prevents the empty bubble from appearing alongside the loading indicator.
+            if (index === messages.length - 1 && isBotThinking) {
+              return null;
+            }
+            return (
+              <EnhancedMessage
+                key={message.id || `msg-${index}`}
+                message={{
+                  ...message,
+                  timestamp: message.timestamp || message.time
+                }}
+                onCopy={handleCopyMessage}
+                onRegenerate={message.role === 'assistant' ? handleRegenerateMessage : null}
+                onFeedback={message.role === 'assistant' ? handleMessageFeedback : null}
+              />
+            );
+          })}
           
-          {isLoading && (
+          {/* FIXED: The loading indicator is now ONLY shown during the "thinking" phase. */}
+          {isBotThinking && (
             <div className="loading-message">
               <div className="loading-header">
                 <div className="bot-avatar">
@@ -102,12 +111,10 @@ export default function EnhancedChatContainer({
             </div>
           )}
           
-          {/* This empty div acts as a reliable marker for the scrollIntoView function. */}
           <div ref={messagesEndRef} />
         </div>
       </div>
       
-      {/* Your original styled-jsx block is preserved. */}
       <style jsx>{`
         .chat-container {
           flex: 1;
