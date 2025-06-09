@@ -1,4 +1,4 @@
-// File: pages/index.js - With Chat Functionality Restored
+// File: pages/index.js - With Wisdom of the Day Title
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -20,12 +20,12 @@ const ProverbDisplay = ({ proverb }) => {
 
   const parts = proverb.split('—');
   const quote = parts[0].trim();
-  const author = parts[1];
+  const author = parts.length > 1 ? parts[1].trim() : null;
 
   return (
     <>
       <p>"{quote}"</p>
-      {author && <cite className="quote-attribution">— {author.trim()}</cite>}
+      {author && <cite className="quote-attribution">— {author}</cite>}
     </>
   );
 };
@@ -224,6 +224,8 @@ export default function Home() {
             <div className="welcome-container" role="main">
               {hasVisited ? (
                 <div className="quote-only-view">
+                  {/* ADDED: New title for the Proverb of the Day */}
+                  <h2 className="wisdom-title">GriotBot's Wisdom of the Day</h2>
                   <blockquote className="quote-container">
                     <ProverbDisplay proverb={currentProverb} />
                   </blockquote>
@@ -257,10 +259,6 @@ export default function Home() {
             />
           )}
         </div>
-        
-        {/* FIXED: Re-added the ChatFooter to the main page structure */}
-        <ChatFooter onSendMessage={handleSendMessage} disabled={isLoading} />
-
       </StandardLayout>
 
       <style jsx>{`
@@ -328,11 +326,26 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center; /* This ensures vertical centering */
+          justify-content: center;
           text-align: center;
           flex-grow: 1;
-          height: 100%; /* This is crucial for vertical centering to work */
+          height: 100%; 
         }
+
+        /* ADDED: Styles for the new "Wisdom of the Day" title */
+        .wisdom-title {
+          font-family: var(--body-font, 'Montserrat', sans-serif);
+          font-weight: 500;
+          font-size: 0.9rem;
+          color: var(--text-color);
+          opacity: 0.7;
+          margin-bottom: 1.5rem;
+          padding: 0.5rem 1rem;
+          border: 1px solid var(--input-border);
+          border-radius: 20px;
+          background-color: rgba(0,0,0,0.02);
+        }
+
         .quote-container {
           font-size: 1.2rem;
           font-style: italic;
