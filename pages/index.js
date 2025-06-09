@@ -1,4 +1,4 @@
-// File: pages/index.js - With Proverb of the Day & Fixed Chat Logic
+// File: pages/index.js - With Reverted Layout & Centering Fix
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import StandardLayout from '../components/layout/StandardLayout';
@@ -209,6 +209,9 @@ export default function Home() {
       <Head>
         <title>GriotBot - Your Digital Griot</title>
         {/* ... other meta tags ... */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
       </Head>
 
       <StandardLayout 
@@ -222,9 +225,8 @@ export default function Home() {
             <div className="welcome-container" role="main">
               {hasVisited ? (
                 <div className="quote-only-view">
-                  <h2 className="quote-only-title">A New Story Awaits</h2>
+                  {/* REMOVED: "A New Story Awaits" title has been removed */}
                   <blockquote className="quote-container">
-                    {/* UPDATED: Use the new ProverbDisplay component for proper formatting */}
                     <ProverbDisplay proverb={currentProverb} />
                   </blockquote>
                 </div>
@@ -249,6 +251,7 @@ export default function Home() {
             </div>
           )}
 
+          {/* REVERTED: The chat container is now rendered correctly, restoring the chat layout */}
           {!showWelcome && (
             <EnhancedChatContainer
               messages={messages}
@@ -260,7 +263,7 @@ export default function Home() {
       </StandardLayout>
 
       <style jsx>{`
-        /* ... all existing styles are preserved ... */
+        /* --- Core Layout Styles --- */
         .main-content, .welcome-container {
           display: flex;
           flex-direction: column;
@@ -276,6 +279,8 @@ export default function Home() {
             max-width: 800px;
             margin: 0 auto;
         }
+
+        /* --- First Visit Welcome Screen Styles --- */
         .first-visit-welcome {
           display: flex;
           flex-direction: column;
@@ -316,21 +321,16 @@ export default function Home() {
         .welcome-quote {
             animation: fadeIn 1s ease 1.5s forwards;
         }
+
+        /* --- "New Chat" Screen for Returning Visitors --- */
         .quote-only-view {
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center;
+          justify-content: center; /* This ensures vertical centering */
           text-align: center;
           flex-grow: 1;
-          height: 100%; /* FIXED: Ensure this container fills its parent vertically */
-        }
-        .quote-only-title {
-          font-family: var(--heading-font, 'Lora', serif);
-          font-weight: 500;
-          color: var(--text-color);
-          opacity: 0.8;
-          margin-bottom: 2rem;
+          height: 100%; /* This is crucial for vertical centering to work */
         }
         .quote-container {
           font-size: 1.2rem;
@@ -340,9 +340,10 @@ export default function Home() {
           max-width: 600px;
           border: none;
           background: transparent;
+          margin: 0;
         }
         .quote-container p {
-            margin: 0; /* Add this to prevent default paragraph margins from affecting layout */
+            margin-bottom: 1rem;
         }
         .quote-attribution {
           display: block;
@@ -350,6 +351,8 @@ export default function Home() {
           margin-top: 1rem;
           opacity: 0.8;
         }
+
+        /* --- General Animations & Responsive Styles --- */
         @keyframes fadeIn {
             0% { opacity: 0; }
             to { opacity: 1; }
