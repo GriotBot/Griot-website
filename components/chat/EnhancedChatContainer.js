@@ -1,6 +1,7 @@
-// File: components/chat/EnhancedChatContainer.js - With Final Fixes
+// File: components/chat/EnhancedChatContainer.js - With Share Button Added
 import { useEffect, useRef, useCallback } from 'react';
-import EnhancedMessage from './EnhancedMessage';
+// ADDED: Share and other icons for the action buttons
+import { RefreshCw, Copy, Share2 } from 'react-feather'; 
 
 export default function EnhancedChatContainer({ 
   messages, 
@@ -11,18 +12,16 @@ export default function EnhancedChatContainer({
   const chatEndRef = useRef(null);
   const containerRef = useRef(null);
 
-  // This is the optimized and reliable auto-scrolling logic.
-  // It runs only when a new message is added, not on every character stream.
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages.length]); // Performance: Depends on the number of messages.
+  }, [messages.length]);
 
-  // Helper functions are wrapped in useCallback for performance.
   const handleCopyMessage = useCallback(async (content) => {
     try {
       await navigator.clipboard.writeText(content);
+      alert('Copied to clipboard!');
       return true;
     } catch (err) {
       const textArea = document.createElement('textarea');
@@ -31,13 +30,12 @@ export default function EnhancedChatContainer({
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
+      alert('Copied to clipboard!');
       return true;
     }
   }, []);
 
-  // NEW: "Share This Story" handler
   const handleShare = useCallback(async (content) => {
-    // Use the modern Web Share API if available (on mobile)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -45,18 +43,13 @@ export default function EnhancedChatContainer({
           text: content,
           url: window.location.href,
         });
-        return true;
       } catch (error) {
-        // Log error but don't alert if the user simply closed the share sheet
         if (error.name !== 'AbortError') {
           console.error('Error sharing:', error);
         }
-        return false;
       }
     } else {
-      // Fallback for desktop: copy to clipboard and notify user
       await handleCopyMessage(content);
-      alert('Story copied to clipboard!');
     }
   }, [handleCopyMessage]);
 
@@ -66,68 +59,42 @@ export default function EnhancedChatContainer({
     }
   }, [onRegenerateMessage]);
 
-  const handleMessageFeedback = useCallback((messageId, feedbackType) => {
-    if (onMessageFeedback) {
-      onMessageFeedback(messageId, feedbackType);
-    }
-    try {
-      const existingFeedback = JSON.parse(localStorage.getItem('griotbot-feedback') || '[]');
-      existingFeedback.push({
-        messageId,
-        feedbackType,
-        timestamp: new Date().toISOString()
-      });
-      localStorage.setItem('griotbot-feedback', JSON.stringify(existingFeedback.slice(-100)));
-    } catch (err) {
-      console.warn('Could not save feedback:', err);
-    }
-  }, [onMessageFeedback]);
-
-  // This logic determines if we should show the "Thinking..." indicator.
   const lastMessage = messages[messages.length - 1];
   const isBotThinking = isLoading && lastMessage?.role === 'assistant' && !lastMessage.content;
-
-  if (!messages || messages.length === 0) {
-    return (
-      <>
-        <div className="chat-container empty"></div>
-        <style jsx>{`
-          .chat-container {
-            flex: 1;
-            /* ... other styles from your original file ... */
-          }
-        `}</style>
-      </>
-    );
-  }
 
   return (
     <>
       <div className="chat-container" ref={containerRef}>
         <div className="messages-list">
           {messages.map((message, index) => {
-            // FIXED: Hide the assistant's message bubble while the bot is "thinking".
-            // This prevents the empty bubble from appearing alongside the loading indicator.
             if (index === messages.length - 1 && isBotThinking) {
               return null;
             }
+            const isUser = message.role === 'user';
+            
             return (
-              <EnhancedMessage
-                key={message.id || `msg-${index}`}
-                message={{
-                  ...message,
-                  timestamp: message.timestamp || message.time
-                }}
-                onCopy={handleCopyMessage}
-                // ADDED: Pass the new onShare handler to the message component
-                onShare={message.role === 'assistant' ? handleShare : null}
-                onRegenerate={message.role === 'assistant' ? handleRegenerateMessage : null}
-                onFeedback={message.role === 'assistant' ? handleMessageFeedback : null}
-              />
+              <div key={message.id || `msg-${index}`} className={`message-wrapper ${isUser ? 'user' : 'assistant'}`}>
+                <div className={`message-bubble ${isUser ? 'user-bubble' : 'assistant-bubble'}`}>
+                  <div className="message-content" dangerouslySetInnerHTML={{ __html: message.content.replace(/\n/g, '<br />') }} />
+                </div>
+                {!isUser && !message.isStreaming && (
+                  <div className="message-actions">
+                    <button onClick={() => handleCopyMessage(message.content)} className="action-button" title="Copy">
+                      <Copy size={14} />
+                    </button>
+                    {/* ADDED: The visible Share button */}
+                    <button onClick={() => handleShare(message.content)} className="action-button" title="Share">
+                      <Share2 size={14} />
+                    </button>
+                    <button onClick={() => handleRegenerateMessage(message.id)} className="action-button" title="Regenerate">
+                      <RefreshCw size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
             );
           })}
           
-          {/* FIXED: The loading indicator is now ONLY shown during the "thinking" phase. */}
           {isBotThinking && (
             <div className="loading-message">
               <div className="loading-header">
@@ -136,9 +103,7 @@ export default function EnhancedChatContainer({
                     src="/images/logo-light.svg" 
                     alt="GriotBot"
                     className="bot-logo"
-                    onError={(e) => {
-                      e.target.src = "/images/logo-light.png";
-                    }}
+                    onError={(e) => { e.target.src = "/images/logo-light.png"; }}
                   />
                 </div>
                 <div className="bot-identity">
@@ -160,7 +125,6 @@ export default function EnhancedChatContainer({
         </div>
       </div>
       
-      {/* Your original styled-jsx block is preserved. */}
       <style jsx>{`
         .chat-container {
           flex: 1;
@@ -177,10 +141,80 @@ export default function EnhancedChatContainer({
         .messages-list {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 1.5rem; /* Increased gap for better spacing */
           min-height: 0;
         }
         
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+        }
+
+        .message-wrapper.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .message-wrapper.assistant {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+        
+        .message-bubble {
+            padding: 0.875rem 1.25rem;
+            border-radius: 18px;
+            line-height: 1.6;
+            font-size: 1rem;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .user-bubble {
+            background: var(--accent-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .assistant-bubble {
+            background: var(--card-bg, #ffffff);
+            color: var(--text-color);
+            border: 1px solid var(--input-border, #e0e0e0);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding-left: 0.25rem;
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.2s;
+        }
+
+        .message-wrapper:hover .message-actions {
+            opacity: 0.6; /* Visible on hover */
+        }
+        
+        .message-actions:hover {
+            opacity: 1; /* Fully visible when hovering actions themselves */
+        }
+
+        .action-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex;
+        }
+
+        .action-button:hover {
+            background-color: rgba(0,0,0,0.08);
+        }
+
         .loading-message {
           margin: 1.5rem 0;
           max-width: 85%;
@@ -271,11 +305,11 @@ export default function EnhancedChatContainer({
         @keyframes messageSlideIn {
           from {
             opacity: 0;
-            transform: translateY(15px) translateX(-10px);
+            transform: translateY(15px);
           }
           to {
             opacity: 1;
-            transform: translateY(0) translateX(0);
+            transform: translateY(0);
           }
         }
         
@@ -331,3 +365,4 @@ export default function EnhancedChatContainer({
     </>
   );
 }
+
