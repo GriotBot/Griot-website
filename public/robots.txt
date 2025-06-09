@@ -1,0 +1,2 @@
+Sitemap: 
+https://www.griotbot.com/sitemap.xml
