@@ -1,4 +1,4 @@
-// File: components/chat/EnhancedChatContainer.js - With All Fixes Applied
+// File: components/chat/EnhancedChatContainer.js - With Final Fixes
 import { useEffect, useRef, useCallback } from 'react';
 import EnhancedMessage from './EnhancedMessage';
 
@@ -11,18 +11,19 @@ export default function EnhancedChatContainer({
   const chatEndRef = useRef(null);
   const containerRef = useRef(null);
 
-  // FIXED: A more reliable and performant auto-scrolling implementation.
-  // This effect now only runs when a new message is added or removed.
+  // This is the optimized and reliable auto-scrolling logic.
+  // It runs only when a new message is added, not on every character stream.
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages.length]); // Dependency is now the length of the array.
+  }, [messages.length]); // Performance: Depends on the number of messages.
 
-  // All your original helper functions are preserved.
+  // Helper functions are wrapped in useCallback for performance.
   const handleCopyMessage = useCallback(async (content) => {
     try {
       await navigator.clipboard.writeText(content);
+      alert('Copied to clipboard!');
       return true;
     } catch (err) {
       const textArea = document.createElement('textarea');
@@ -31,6 +32,7 @@ export default function EnhancedChatContainer({
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
+      alert('Copied to clipboard!');
       return true;
     }
   }, []);
@@ -45,7 +47,6 @@ export default function EnhancedChatContainer({
     if (onMessageFeedback) {
       onMessageFeedback(messageId, feedbackType);
     }
-    
     try {
       const existingFeedback = JSON.parse(localStorage.getItem('griotbot-feedback') || '[]');
       existingFeedback.push({
@@ -59,26 +60,36 @@ export default function EnhancedChatContainer({
     }
   }, [onMessageFeedback]);
 
-  // FIXED: The "early return" block that caused the chat to be non-functional has been removed.
-  // The component now has a single, unified return statement.
+  // This logic determines if we should show the "Thinking..." indicator.
+  const lastMessage = messages[messages.length - 1];
+  const isBotThinking = isLoading && lastMessage?.role === 'assistant' && !lastMessage.content;
+
   return (
     <>
       <div className="chat-container" ref={containerRef}>
         <div className="messages-list">
-          {messages.map((message, index) => (
-            <EnhancedMessage
-              key={message.id || `msg-${index}`}
-              message={{
-                ...message,
-                timestamp: message.timestamp || message.time
-              }}
-              onCopy={handleCopyMessage}
-              onRegenerate={message.role === 'assistant' ? handleRegenerateMessage : null}
-              onFeedback={message.role === 'assistant' ? handleMessageFeedback : null}
-            />
-          ))}
+          {messages.map((message, index) => {
+            // FIXED: Hide the assistant's message bubble while the bot is "thinking".
+            // This prevents the empty bubble from appearing alongside the loading indicator.
+            if (index === messages.length - 1 && isBotThinking) {
+              return null;
+            }
+            return (
+              <EnhancedMessage
+                key={message.id || `msg-${index}`}
+                message={{
+                  ...message,
+                  timestamp: message.timestamp || message.time
+                }}
+                onCopy={handleCopyMessage}
+                onRegenerate={message.role === 'assistant' ? handleRegenerateMessage : null}
+                onFeedback={message.role === 'assistant' ? handleMessageFeedback : null}
+              />
+            );
+          })}
           
-          {isLoading && (
+          {/* FIXED: The loading indicator is now ONLY shown during the "thinking" phase. */}
+          {isBotThinking && (
             <div className="loading-message">
               <div className="loading-header">
                 <div className="bot-avatar">
@@ -106,7 +117,6 @@ export default function EnhancedChatContainer({
             </div>
           )}
           
-          {/* The marker div for reliable scrolling is preserved. */}
           <div ref={chatEndRef} className="chat-end-marker" />
         </div>
       </div>
