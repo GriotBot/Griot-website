@@ -31,7 +31,7 @@ export default function Feedback() {
             Replace 'YOUR_FORMSPREE_ENDPOINT_URL' with the URL you get from Formspree.
           */}
           <form 
-            action="https://formspree.io/f/YOUR_UNIQUE_FORM_ID" // <-- PASTE YOUR URL HERE
+            action="https://formspree.io/f/myzjpjyv" // <-- PASTE YOUR URL HERE
             method="POST"
           >
             <div className={styles.inputGroup}>
@@ -40,7 +40,7 @@ export default function Feedback() {
               </label>
               <select
                 id="feedbackType"
-                name="Feedback Type" // This name will be the subject in the email you receive
+                name="GriotBot Feedback Type" // This name will be the subject in the email you receive
                 value={feedbackType}
                 onChange={(e) => setFeedbackType(e.target.value)}
                 className={styles.select}
