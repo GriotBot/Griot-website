@@ -66,7 +66,7 @@ export default async function handler(req, res) {
   });
 
   // Select model based on web search need
-  let baseModel = process.env.OPENROUTER_MODEL || 'deepseek/deepseek-r1-0528:free';
+  let baseModel = process.env.OPENROUTER_MODEL || 'deepseek/deepseek-chat-v3-0324:free';
   let model = shouldUseWebSearch ? `${baseModel}:online` : baseModel;
 
   const requestBody = {
