@@ -8,7 +8,7 @@ export const config = {
   runtime: 'edge',
 };
 
-const MODEL = 'openai/gpt-3.5-turbo-instruct';
+const MODEL = 'deepseek/deepseek-r1-0528:free';
 const COMPLETIONS_ENDPOINT = 'https://openrouter.ai/api/v1/completions';
 
 export default async function handler(req) {
