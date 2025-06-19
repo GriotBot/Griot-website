@@ -126,20 +126,21 @@ export default function StandardLayout({
             --heading-font: 'Lora', serif;
           }
           
-          /* FIXED: Updated dark mode palette based on user-provided image */
+          /* FIXED: Updated dark mode palette based on user-provided hex codes */
           [data-theme="dark"] {
-            --bg-color: #452A25; /* Dark Brown */
-            --text-color: #F2E1DA; /* Light Cream */
-            --header-bg: #452A25; /* Same as background for a seamless look */
-            --header-text: #F2E1DA; /* Light Cream */
-            --sidebar-bg: rgba(69, 42, 37, 0.97); /* Darker sidebar based on the palette */
+            --bg-color: #452A25; /* Dark Brown for text on light backgrounds */
+            --text-color: #F2E1DA; /* Light Cream for text on dark backgrounds */
+            --header-bg: #AA7E6A; /* Taupe for top menu background */
+            --header-text: #452A25; /* Dark Brown text on Taupe header for contrast */
+            --sidebar-bg: rgba(69, 42, 37, 0.97);
             --sidebar-text: #F2E1DA;
-            --accent-color: #EC803E; /* Orange */
-            --accent-hover: #F0925A; /* Lighter Orange */
-            --wisdom-color: #AA7E6A; /* Taupe */
-            --input-bg: #775042; /* Medium Brown */
-            --input-border: #AA7E6A; /* Taupe */
+            --accent-color: #EC803E; /* Orange from palette for primary accents */
+            --accent-hover: #F0925A;
+            --wisdom-color: #F2E1DA; /* Light Cream for proverbs against dark bg */
+            --input-bg: #775042; /* Medium Brown - UNCHANGED AS REQUESTED */
+            --input-border: #AA7E6A;
             --shadow-color: rgba(0, 0, 0, 0.3);
+            --footer-background-standard: #775042; /* Medium Brown for footer area */
           }
 
           /* Global Styles */
