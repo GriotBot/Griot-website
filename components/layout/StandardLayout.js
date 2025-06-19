@@ -1,4 +1,4 @@
-// File: components/layout/StandardLayout.js - UX/UI ENHANCED VERSION
+// File: components/layout/StandardLayout.js - With Accessible Dark Mode
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -117,6 +117,7 @@ export default function StandardLayout({
             --sidebar-bg: rgba(75, 46, 42, 0.97);
             --sidebar-text: #f8f5f0;
             --accent-color: #d7722c;
+            --accent-hover: #c86520;
             --wisdom-color: #6b4226;
             --input-bg: #ffffff;
             --input-border: rgba(75, 46, 42, 0.2);
@@ -125,16 +126,19 @@ export default function StandardLayout({
             --heading-font: 'Lora', serif;
           }
           
+          /* FIXED: Updated dark mode palette for better accessibility and contrast */
           [data-theme="dark"] {
-            --bg-color: #292420;
-            --text-color: #f0ece4;
-            --header-bg: #50392d;
-            --header-text: #f0ece4;
+            --bg-color: #211F1C;
+            --text-color: #F1EBE4;
+            --header-bg: #332F2B;
+            --header-text: #F1EBE4;
             --sidebar-bg: rgba(40, 30, 25, 0.97);
-            --sidebar-text: #f0ece4;
-            --wisdom-color: #e0c08f;
-            --input-bg: #352e29;
-            --input-border: rgba(240, 236, 228, 0.2);
+            --sidebar-text: #F1EBE4;
+            --accent-color: #FFB74D; /* Brighter gold for accessibility */
+            --accent-hover: #FFA726;
+            --wisdom-color: #E8D5B1; /* Lighter tan for readability */
+            --input-bg: #2B2824;
+            --input-border: rgba(240, 236, 228, 0.25);
             --shadow-color: rgba(0, 0, 0, 0.3);
           }
 
