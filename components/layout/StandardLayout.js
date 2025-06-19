@@ -1,4 +1,4 @@
-// File: components/layout/StandardLayout.js - With Accessible Dark Mode
+// File: components/layout/StandardLayout.js - With New Dark Mode Palette
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -126,19 +126,19 @@ export default function StandardLayout({
             --heading-font: 'Lora', serif;
           }
           
-          /* FIXED: Updated dark mode palette for better accessibility and contrast */
+          /* FIXED: Updated dark mode palette based on user-provided image */
           [data-theme="dark"] {
-            --bg-color: #211F1C;
-            --text-color: #F1EBE4;
-            --header-bg: #332F2B;
-            --header-text: #F1EBE4;
-            --sidebar-bg: rgba(40, 30, 25, 0.97);
-            --sidebar-text: #F1EBE4;
-            --accent-color: #FFB74D; /* Brighter gold for accessibility */
-            --accent-hover: #FFA726;
-            --wisdom-color: #E8D5B1; /* Lighter tan for readability */
-            --input-bg: #2B2824;
-            --input-border: rgba(240, 236, 228, 0.25);
+            --bg-color: #452A25; /* Dark Brown */
+            --text-color: #F2E1DA; /* Light Cream */
+            --header-bg: #452A25; /* Same as background for a seamless look */
+            --header-text: #F2E1DA; /* Light Cream */
+            --sidebar-bg: rgba(69, 42, 37, 0.97); /* Darker sidebar based on the palette */
+            --sidebar-text: #F2E1DA;
+            --accent-color: #EC803E; /* Orange */
+            --accent-hover: #F0925A; /* Lighter Orange */
+            --wisdom-color: #AA7E6A; /* Taupe */
+            --input-bg: #775042; /* Medium Brown */
+            --input-border: #AA7E6A; /* Taupe */
             --shadow-color: rgba(0, 0, 0, 0.3);
           }
 
