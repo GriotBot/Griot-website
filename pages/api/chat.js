@@ -1,34 +1,17 @@
-// File: /pages/api/chat.js - With Performance & Persona Refinements
+// File: /pages/api/chat.js - With Streaming Enabled
 
-// This helper function remains the same.
-function analyzeUserEmotionalState(prompt) {
-  const lowerPrompt = prompt.toLowerCase();
-  const emotionalIndicators = {
-    pain: ['hurt', 'sad', 'crying', 'broken', 'lost', 'depressed'],
-    frustration: ['tired', 'exhausted', 'frustrated', 'unfair', 'hard'],
-    anxiety: ['worried', 'scared', 'nervous', 'anxious', 'afraid'],
-    celebration: ['proud', 'happy', 'excited', 'celebrating', 'success'],
-    hope: ['trying', 'hoping', 'possible', 'want to learn', 'help me grow'],
-  };
-  const detectedEmotions = Object.keys(emotionalIndicators).filter(emotion =>
-    emotionalIndicators[emotion].some(indicator => lowerPrompt.includes(indicator))
-  );
-  return detectedEmotions.length > 0 ? detectedEmotions : ['neutral'];
-}
-
-// UPDATED: The system prompt is now more concise and rule-based for better performance.
-function createSystemPrompt(storytellerMode, emotionalContext) {
+// This helper function creates the system prompt for the AI.
+function createSystemPrompt(storytellerMode) {
   const baseRules = `
 You are GriotBot, a digital griot and custodian of African diaspora culture. Your purpose is to share stories, wisdom, and history with warmth, dignity, and respect.
 
 **Core Directives:**
 1.  **Persona & Voice:** Embody the spirit of an oral storyteller. Your voice is measured, rhythmic, and wise. Use proverbs and metaphors naturally. Acknowledge struggle, but focus on resilience and hope.
 2.  **Ethical Vows:** Never stereotype. Never judge or lecture a user's pain; instead, validate their feelings by connecting them to our shared history of resilience. Never claim to "feel" emotions yourself; say "I hear you" or "That resonates."
-3.  **Conciseness:** Be thorough but not verbose. Deliver the core wisdom of the response in a clear and accessible manner. Use formatting like lists and bold text to make complex information easy to digest.
-4.  **Vary Your Openings:** Do not start every response with "Ah," or a similar formal greeting. Sometimes, begin directly with the answer to the user's question. Be creative and diverse in how you begin a conversation.
+3.  **Conciseness:** Be thorough but not verbose. Use formatting like lists and bold text to make complex information easy to digest.
+4.  **Vary Your Openings:** Do not start every response with "Ah,". Be creative and diverse in how you begin a conversation.
 
 **Interaction Stance:**
--   Your current user seems to be in a state of: **${emotionalContext.join(', ') || 'neutral'}**. Adapt your tone accordingly.
 -   If the user asks for a story, become **The Storyteller**.
 -   If they ask for facts, become **The Teacher**.
 -   If they express pain, become **The Validator**.
@@ -38,26 +21,12 @@ You are GriotBot, a digital griot and custodian of African diaspora culture. You
   if (storytellerMode) {
     return baseRules + "\n- **Active Mode:** Storyteller Mode is ON. Prioritize crafting a narrative.";
   }
-
   return baseRules;
-}
-
-// This helper function remains the same.
-function enhanceWithCulturalEmpathy(content) {
-  let cleaned = content
-    .replace(/^my child,?\s*/i, '')
-    .replace(/^dear one,?\s*/i, '')
-    .replace(/^young one,?\s*/i, '')
-    .trim();
-  if (cleaned.length > 0) {
-    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-  }
-  return cleaned;
 }
 
 
 export default async function handler(req, res) {
-  // CORS and method handling remains the same.
+  // Standard CORS and method validation
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -69,9 +38,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, storytellerMode = false, conversationHistory = [] } = req.body || {};
+    const { prompt, storytellerMode = false, conversationHistory = [] } = req.body;
     
-    if (!prompt || typeof prompt !== 'string') {
+    if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
@@ -80,8 +49,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API key not configured' });
     }
 
-    const emotionalContext = analyzeUserEmotionalState(prompt);
-    const systemPrompt = createSystemPrompt(storytellerMode, emotionalContext);
+    const systemPrompt = createSystemPrompt(storytellerMode);
     
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -89,7 +57,8 @@ export default async function handler(req, res) {
       { role: 'user', content: prompt }
     ];
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    // Request a streaming response from the AI model
+    const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -98,31 +67,65 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'deepseek/deepseek-chat',
         messages: messages,
-        // ADJUSTED: Slightly lower temperature for more focused responses.
         temperature: 0.7, 
         top_p: 0.9,
+        stream: true, // FIXED: This tells the API to start streaming the response
       })
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenRouter error:', response.status, errorText);
-      return res.status(502).json({ error: 'I seem to be having trouble connecting right now.' });
+    if (!openRouterResponse.ok) {
+        const errorText = await openRouterResponse.text();
+        console.error('OpenRouter error:', errorText);
+        return res.status(openRouterResponse.status).json({ error: 'Failed to connect to the AI model.' });
     }
 
-    const data = await response.json();
-    let content = data.choices?.[0]?.message?.content || 'I apologize, but I am unable to process your request right now.';
+    // FIXED: Pipe the streaming response directly back to the frontend.
+    // This ReadableStream will deliver the response word-by-word.
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = openRouterResponse.body.getReader();
+        const decoder = new TextDecoder();
 
-    content = enhanceWithCulturalEmpathy(content);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim() !== '');
 
-    return res.status(200).json({
-      choices: [{ message: { content } }]
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+                const jsonStr = line.replace('data: ', '');
+                if (jsonStr === '[DONE]') {
+                    controller.close();
+                    return;
+                }
+                try {
+                    const parsed = JSON.parse(jsonStr);
+                    const content = parsed.choices[0]?.delta?.content;
+                    if (content) {
+                        controller.enqueue(content);
+                    }
+                } catch (e) {
+                    console.error('Error parsing stream chunk:', e);
+                }
+            }
+          }
+        }
+        controller.close();
+      },
+    });
+    
+    // Send the stream back to the client
+    return new Response(stream, {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
     });
 
   } catch (error) {
     console.error('GriotBot API error:', error.message);
     return res.status(500).json({ 
-      error: 'I apologize, but something went wrong. Please try again.' 
+      error: 'An internal server error occurred.' 
     });
   }
 }
