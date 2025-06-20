@@ -1,6 +1,5 @@
-// File: /pages/api/chat.js - With Streaming Enabled
+// File: /pages/api/chat.js - Reverted to Stable (Non-Streaming) Version
 
-// This helper function creates the system prompt for the AI.
 function createSystemPrompt(storytellerMode) {
   const baseRules = `
 You are GriotBot, a digital griot and custodian of African diaspora culture. Your purpose is to share stories, wisdom, and history with warmth, dignity, and respect.
@@ -22,6 +21,21 @@ You are GriotBot, a digital griot and custodian of African diaspora culture. You
     return baseRules + "\n- **Active Mode:** Storyteller Mode is ON. Prioritize crafting a narrative.";
   }
   return baseRules;
+}
+
+// Post-processing to ensure cultural respect
+function enhanceWithCulturalEmpathy(content) {
+  let cleaned = content
+    .replace(/^my child,?\s*/i, '')
+    .replace(/^dear one,?\s*/i, '')
+    .replace(/^young one,?\s*/i, '')
+    .trim();
+  
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  
+  return cleaned;
 }
 
 
@@ -57,8 +71,8 @@ export default async function handler(req, res) {
       { role: 'user', content: prompt }
     ];
 
-    // Request a streaming response from the AI model
-    const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    // REVERTED: Requesting a standard JSON response instead of a stream.
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -69,57 +83,24 @@ export default async function handler(req, res) {
         messages: messages,
         temperature: 0.7, 
         top_p: 0.9,
-        stream: true, // FIXED: This tells the API to start streaming the response
+        // stream: false, // This is the default, so it can be omitted.
       })
     });
 
-    if (!openRouterResponse.ok) {
-        const errorText = await openRouterResponse.text();
+    if (!response.ok) {
+        const errorText = await response.text();
         console.error('OpenRouter error:', errorText);
-        return res.status(openRouterResponse.status).json({ error: 'Failed to connect to the AI model.' });
+        return res.status(response.status).json({ error: 'Failed to connect to the AI model.' });
     }
 
-    // FIXED: Pipe the streaming response directly back to the frontend.
-    // This ReadableStream will deliver the response word-by-word.
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = openRouterResponse.body.getReader();
-        const decoder = new TextDecoder();
+    // REVERTED: Handling a standard JSON response.
+    const data = await response.json();
+    let content = data.choices?.[0]?.message?.content || 'I apologize, but I am unable to process your request right now.';
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            break;
-          }
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n').filter(line => line.trim() !== '');
+    content = enhanceWithCulturalEmpathy(content);
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-                const jsonStr = line.replace('data: ', '');
-                if (jsonStr === '[DONE]') {
-                    controller.close();
-                    return;
-                }
-                try {
-                    const parsed = JSON.parse(jsonStr);
-                    const content = parsed.choices[0]?.delta?.content;
-                    if (content) {
-                        controller.enqueue(content);
-                    }
-                } catch (e) {
-                    console.error('Error parsing stream chunk:', e);
-                }
-            }
-          }
-        }
-        controller.close();
-      },
-    });
-    
-    // Send the stream back to the client
-    return new Response(stream, {
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    return res.status(200).json({
+      choices: [{ message: { content } }]
     });
 
   } catch (error) {
