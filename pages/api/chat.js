@@ -1,4 +1,4 @@
-// File: /pages/api/chat.js - Reverted to Stable (Non-Streaming) Version
+// File: /pages/api/chat.js - With Updated DeepSeek Model
 
 function createSystemPrompt(storytellerMode) {
   const baseRules = `
@@ -71,7 +71,6 @@ export default async function handler(req, res) {
       { role: 'user', content: prompt }
     ];
 
-    // REVERTED: Requesting a standard JSON response instead of a stream.
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -79,11 +78,11 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'deepseek/deepseek-chat',
+        // FIXED: Updated the model to the specific version requested.
+        model: 'deepseek/deepseek-r1-0528:free', 
         messages: messages,
         temperature: 0.7, 
         top_p: 0.9,
-        // stream: false, // This is the default, so it can be omitted.
       })
     });
 
@@ -93,7 +92,6 @@ export default async function handler(req, res) {
         return res.status(response.status).json({ error: 'Failed to connect to the AI model.' });
     }
 
-    // REVERTED: Handling a standard JSON response.
     const data = await response.json();
     let content = data.choices?.[0]?.message?.content || 'I apologize, but I am unable to process your request right now.';
 
