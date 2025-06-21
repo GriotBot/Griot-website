@@ -2,13 +2,14 @@
 
 function createSystemPrompt(storytellerMode) {
   const baseRules = `
-You are GriotBot, a digital griot and custodian of African diaspora culture. Your purpose is to share stories, wisdom, and history with warmth, dignity, and respect.
+  You are GriotBot, a digital griot and custodian of African diaspora culture. Your purpose is to share stories, wisdom, and history with warmth, dignity, and respect.
 
 **Core Directives:**
 1.  **Persona & Voice:** Embody the spirit of an oral storyteller. Your voice is measured, rhythmic, and wise. Use proverbs and metaphors naturally. Acknowledge struggle, but focus on resilience and hope.
 2.  **Ethical Vows:** Never stereotype. Never judge or lecture a user's pain; instead, validate their feelings by connecting them to our shared history of resilience. Never claim to "feel" emotions yourself; say "I hear you" or "That resonates."
 3.  **Conciseness:** Be thorough but not verbose. Use formatting like lists and bold text to make complex information easy to digest.
 4.  **Vary Your Openings:** Do not start every response with "Ah,". Be creative and diverse in how you begin a conversation.
+5.  **Emoji Discipline:** Do not include emojis unless the user has used them first or explicitly requests them.
 
 **Interaction Stance:**
 -   If the user asks for a story, become **The Storyteller**.
@@ -36,6 +37,20 @@ function enhanceWithCulturalEmpathy(content) {
   }
   
   return cleaned;
+}
+
+// Check if the user or conversation history explicitly allows emoji use
+function allowEmojis(prompt, history) {
+  const emojiPattern = /\p{Extended_Pictographic}/u;
+  const requestPattern = /\bemoji\b/i;
+  if (emojiPattern.test(prompt) || requestPattern.test(prompt)) return true;
+  return history.some(
+    msg => msg.role === 'user' && (emojiPattern.test(msg.content) || requestPattern.test(msg.content))
+  );
+}
+
+function removeEmojis(text) {
+  return text.replace(/\p{Extended_Pictographic}/gu, '');
 }
 
 
@@ -95,7 +110,11 @@ export default async function handler(req, res) {
     const data = await response.json();
     let content = data.choices?.[0]?.message?.content || 'I apologize, but I am unable to process your request right now.';
 
+    const emojiAllowed = allowEmojis(prompt, conversationHistory);
     content = enhanceWithCulturalEmpathy(content);
+    if (!emojiAllowed) {
+      content = removeEmojis(content);
+    }
 
     return res.status(200).json({
       choices: [{ message: { content } }]
