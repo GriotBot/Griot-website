@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Head from 'next/head';
 import { Menu, Send, RotateCcw, ThumbsUp, ThumbsDown, Copy, Sun, Moon } from 'react-feather';
+import { MAX_HISTORY_LENGTH, CHAT_HISTORY_KEY } from '../lib/constants';
 
 // Mobile-optimized constants
 const MOBILE_BREAKPOINT = 768;
@@ -59,7 +60,7 @@ export default function MobileGriotBot() {
     setIsLoading(true);
     setShowWelcome(false);
 
-    // Add user message
+    // Add user message and placeholder bot message for streaming
     const userMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
@@ -67,12 +68,23 @@ export default function MobileGriotBot() {
       timestamp: new Date().toISOString()
     };
 
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    const botMessageId = `bot-${Date.now()}`;
+
+    const messagesForHistory = [...messages, userMessage];
+    setMessages([
+      ...messagesForHistory,
+      {
+        id: botMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date().toISOString(),
+        isStreaming: true
+      }
+    ]);
     setInputText('');
 
     // Prepare conversation history (last 10 messages)
-    const conversationHistory = updatedMessages
+    const conversationHistory = messagesForHistory
       .slice(-10)
       .map(msg => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
@@ -92,31 +104,48 @@ export default function MobileGriotBot() {
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      const data = await response.json();
-      const botResponse = data.choices?.[0]?.message?.content || 
-                         'I apologize, but I seem to be having trouble processing your request.';
+      const contentType = response.headers.get('content-type');
+      let accumulatedContent = '';
 
-      const botMessage = {
-        id: `bot-${Date.now()}`,
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        accumulatedContent = data.choices?.[0]?.message?.content ||
+          'I apologize, but I seem to be having trouble processing your request.';
+      } else {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          accumulatedContent += decoder.decode(value, { stream: true });
+          setMessages(prev => prev.map(msg =>
+            msg.id === botMessageId ? { ...msg, content: accumulatedContent, isStreaming: true } : msg
+          ));
+        }
+      }
+
+      const finalBotMessage = {
+        id: botMessageId,
         role: 'assistant',
-        content: botResponse,
-        timestamp: new Date().toISOString()
+        content: accumulatedContent,
+        timestamp: new Date().toISOString(),
+        isStreaming: false
       };
 
-      const finalMessages = [...updatedMessages, botMessage];
-      setMessages(finalMessages);
-      
-      // Save to localStorage
-      localStorage.setItem('griotbot-history', JSON.stringify(finalMessages.slice(-50)));
+      setMessages(prev => {
+        const finalMessages = prev.map(msg => msg.id === botMessageId ? finalBotMessage : msg);
+        localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(finalMessages.slice(-MAX_HISTORY_LENGTH)));
+        return finalMessages;
+      });
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage = {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: 'I apologize, but I encountered an error. Please try again.',
-        timestamp: new Date().toISOString()
-      };
-      setMessages([...updatedMessages, errorMessage]);
+      setMessages(prev => prev.map(msg =>
+        msg.id === botMessageId ? {
+          ...msg,
+          content: 'I apologize, but I encountered an error. Please try again.',
+          isStreaming: false
+        } : msg
+      ));
     } finally {
       setIsLoading(false);
     }
@@ -390,7 +419,7 @@ export default function MobileGriotBot() {
                 setMessages([]);
                 setShowWelcome(true);
                 setSidebarOpen(false);
-                localStorage.removeItem('griotbot-history');
+                localStorage.removeItem(CHAT_HISTORY_KEY);
               }}
               style={{
                 width: '100%',
