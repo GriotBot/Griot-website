@@ -24,7 +24,7 @@ const ProverbDisplay = ({ proverb }) => {
 
   return (
     <>
-      <p>"{quote}"</p>
+      <p>{`"${quote}"`}</p>
       {author && <cite className="quote-attribution">— {author}</cite>}
     </>
   );
