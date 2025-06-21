@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '../Header'; // Use the main Header component
 import EnhancedSidebar from '../EnhancedSidebar'; // Use the main EnhancedSidebar
-import { CHAT_HISTORY_KEY } from '../../lib/constants';
 
 export default function Layout({ children, title = 'GriotBot' }) {
   const [theme, setTheme] = useState('light');
@@ -46,7 +45,6 @@ export default function Layout({ children, title = 'GriotBot' }) {
     if (typeof window === 'undefined') return;
     
     localStorage.removeItem('griotbot-history');
-    localStorage.removeItem(CHAT_HISTORY_KEY);
     if (pathname === '/') {
       window.location.reload();
     } else {
@@ -72,3 +70,25 @@ export default function Layout({ children, title = 'GriotBot' }) {
         sidebarVisible={sidebarVisible}
         onNewChat={handleNewChat}
       />
+      
+      {/* Sidebar navigation */}
+      <EnhancedSidebar 
+        isVisible={sidebarVisible} 
+        onClose={() => setSidebarVisible(false)} 
+      />
+      
+      {/* Main content */}
+      <main 
+        style={{
+          minHeight: '100vh',
+          paddingTop: '60px', // Header height
+          backgroundColor: 'var(--bg-color)',
+          transition: 'background-color 0.3s',
+        }}
+        onClick={() => sidebarVisible && setSidebarVisible(false)}
+      >
+        {children}
+      </main>
+    </>
+  );
+}
