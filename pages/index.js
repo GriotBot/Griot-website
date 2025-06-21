@@ -15,20 +15,21 @@ import {
 const HAS_VISITED_KEY = 'griotbot-has-visited';
 
 // Helper component to display the proverb with the author on a new line
-const ProverbDisplay = ({ proverb }) => {
-  if (!proverb) return null;
+  const ProverbDisplay = ({ proverb }) => {
+    if (!proverb) return null;
 
-  const parts = proverb.split('—');
-  const quote = parts[0].trim();
-  const author = parts.length > 1 ? parts[1].trim() : null;
+    const parts = proverb.split('—');
+    const quote = parts[0].trim();
+    const author = parts.length > 1 ? parts[1].trim() : null;
 
-  return (
-    <>
-      <p>{`"${quote}"`}</p>
-      {author && <cite className="quote-attribution">— {author}</cite>}
-    </>
-  );
-};
+    return (
+      <>
+        <p>{`"${quote}"`}</p>
+        {author && <cite className="quote-attribution">— {author}</cite>}
+      </>
+    );
+  };
+
 
 
 export default function Home() {
