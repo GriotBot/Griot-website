@@ -365,7 +365,6 @@ export default function MobileGriotBot() {
             <Send size={20} />
           </button>
         </div>
-      </div>
 
       <style jsx>{`
         @keyframes pulse {
