@@ -1,2 +1,3 @@
-Sitemap: 
-https://www.griotbot.com/sitemap.xml
+User-agent: *
+Allow: /
+Sitemap: https://www.griotbot.com/sitemap.xml
