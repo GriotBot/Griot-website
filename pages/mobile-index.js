@@ -243,3 +243,136 @@ export default function MobileGriotBot() {
                 />
               </label>
             </div>
+          </div>
+          
+          <div>
+            <h4>Quick Actions</h4>
+            <a href="/about" style={{ color: 'inherit', textDecoration: 'none', display: 'block', padding: '0.5rem 0' }}>
+              About GriotBot
+            </a>
+            <a href="/feedback" style={{ color: 'inherit', textDecoration: 'none', display: 'block', padding: '0.5rem 0' }}>
+              Share Feedback
+            </a>
+          </div>
+        </div>
+
+        {/* Header */}
+        <header style={mobileStyles.header}>
+          <button 
+            onClick={() => setSidebarOpen(true)}
+            style={{ background: 'none', border: 'none', color: 'inherit', padding: '0.5rem' }}
+          >
+            <Menu size={24} />
+          </button>
+          
+          <div style={mobileStyles.logo}>
+            <span>ðŸŒ¿</span>
+            <span>GriotBot</span>
+          </div>
+          
+          <button 
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            style={{ background: 'none', border: 'none', color: 'inherit', padding: '0.5rem' }}
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+        </header>
+
+        {/* Chat Container */}
+        <div ref={chatContainerRef} style={mobileStyles.chatContainer}>
+          {showWelcome && (
+            <div style={mobileStyles.welcomeScreen}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ðŸŒ¿</div>
+              <h1 style={mobileStyles.welcomeTitle}>Welcome to GriotBot</h1>
+              <p style={mobileStyles.welcomeSubtitle}>
+                Your AI companion for culturally rich conversations
+              </p>
+              
+              <div style={mobileStyles.suggestionGrid}>
+                {suggestionCards.map((card, index) => (
+                  <button
+                    key={index}
+                    style={mobileStyles.suggestionCard}
+                    onClick={() => handleSendMessage(card.prompt)}
+                    onTouchStart={(e) => {
+                      e.currentTarget.style.transform = 'scale(0.95)';
+                    }}
+                    onTouchEnd={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
+                      {card.emoji}
+                    </div>
+                    <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', fontSize: '0.8rem', textTransform: 'uppercase', color: '#666' }}>
+                      {card.category}
+                    </div>
+                    <div style={{ fontSize: '0.9rem' }}>
+                      {card.title}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              style={{
+                ...mobileStyles.message,
+                ...(message.role === 'user' ? mobileStyles.userMessage : mobileStyles.botMessage)
+              }}
+            >
+              {message.content}
+            </div>
+          ))}
+
+          {/* Loading indicator */}
+          {isLoading && (
+            <div style={{ ...mobileStyles.message, ...mobileStyles.botMessage, opacity: 0.7 }}>
+              <span>Thinking</span>
+              <span style={{ animation: 'pulse 1.5s infinite' }}>...</span>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Container */}
+        <div style={mobileStyles.inputContainer}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage(inputText);
+              }
+            }}
+            placeholder="Ask GriotBot anything..."
+            style={mobileStyles.input}
+            disabled={isLoading}
+          />
+          <button
+            onClick={() => handleSendMessage(inputText)}
+            style={mobileStyles.sendButton}
+            disabled={isLoading || !inputText.trim()}
+          >
+            <Send size={20} />
+          </button>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+    </>
+  );
+}
