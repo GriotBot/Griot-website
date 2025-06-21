@@ -1,493 +1,486 @@
-// Mobile-Optimized GriotBot Interface
-// File: pages/mobile-index.js (or updates to existing index.js)
-
+// File: pages/mobile-index.js
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Head from 'next/head';
-import { Menu, Send, RotateCcw, ThumbsUp, ThumbsDown, Copy, Sun, Moon } from 'react-feather';
+import { Menu, Send, RotateCcw, ThumbsUp, ThumbsDown, Copy, X } from 'react-feather';
+import { MAX_HISTORY_LENGTH, CHAT_HISTORY_KEY } from '../lib/constants';
 
-// Mobile-optimized constants
-const MOBILE_BREAKPOINT = 768;
-const MOBILE_HEADER_HEIGHT = 60;
-const MOBILE_INPUT_HEIGHT = 80;
-const MOBILE_SIDEBAR_WIDTH = 280;
+// --- Helper Components ---
+
+// Renders a single message bubble
+const Message = ({ msg, onRegenerate }) => {
+  const isUser = msg.role === 'user';
+  const content = msg.content.replace(/\n/g, '<br />');
+
+  return (
+    <div className={`message-wrapper ${isUser ? 'user' : 'assistant'}`}>
+      <div className={`message-bubble ${isUser ? 'user' : 'assistant'}`}>
+        <div dangerouslySetInnerHTML={{ __html: content }} />
+      </div>
+      {(!isUser && !msg.isStreaming && onRegenerate) && (
+        <div className="message-actions">
+          <button onClick={() => onRegenerate(msg.id)} title="Regenerate">
+            <RotateCcw size={14} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- Main Mobile Component ---
 
 export default function MobileGriotBot() {
-  // State management
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState('light');
   const [storytellerMode, setStorytellerMode] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   
-  // Refs for mobile optimization
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
-  const chatContainerRef = useRef(null);
 
-  // Mobile detection
+  // --- Effects ---
+
+  // Load chat history on initial render
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Auto-scroll to bottom on new messages
-  const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'end'
-      });
+    try {
+      const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
+      if (savedHistory) {
+        const parsed = JSON.parse(savedHistory);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+          setShowWelcome(false);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load chat history:", error);
     }
   }, []);
 
+  // Auto-scroll to the latest message
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  // Handle message sending with conversation memory
-  const handleSendMessage = useCallback(async (messageText) => {
-    if (!messageText.trim() || isLoading) return;
+  // --- Handlers ---
+
+  const handleSendMessage = useCallback(async (text) => {
+    const messageText = text.trim();
+    if (!messageText || isLoading) return;
 
     setIsLoading(true);
-    setShowWelcome(false);
+    if (showWelcome) setShowWelcome(false);
+    setInputText('');
 
-    // Add user message
     const userMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: messageText.trim(),
-      timestamp: new Date().toISOString()
+      content: messageText,
+      timestamp: new Date().toISOString(),
     };
+    
+    const botMessageId = `bot-${Date.now()}`;
+    const newMessages = [...messages, userMessage, {
+      id: botMessageId,
+      role: 'assistant',
+      content: '',
+      isStreaming: true,
+      timestamp: new Date().toISOString(),
+    }];
+    setMessages(newMessages);
 
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setInputText('');
-
-    // Prepare conversation history (last 10 messages)
-    const conversationHistory = updatedMessages
-      .slice(-10)
-      .map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }));
+    const conversationHistory = newMessages
+      .slice(0, -1) // Exclude the placeholder
+      .slice(-10)   // Get last 10 for context
+      .map(msg => ({ role: msg.role, content: msg.content }));
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: messageText.trim(),
-          storytellerMode: storytellerMode,
-          conversationHistory: conversationHistory
-        })
+          prompt: messageText,
+          storytellerMode,
+          conversationHistory,
+        }),
       });
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const data = await response.json();
-      const botResponse = data.choices?.[0]?.message?.content || 
-                         'I apologize, but I seem to be having trouble processing your request.';
-
-      const botMessage = {
-        id: `bot-${Date.now()}`,
-        role: 'assistant',
-        content: botResponse,
-        timestamp: new Date().toISOString()
-      };
-
-      const finalMessages = [...updatedMessages, botMessage];
-      setMessages(finalMessages);
+      if (!response.ok) throw new Error('Network response was not ok');
       
-      // Save to localStorage
-      localStorage.setItem('griotbot-history', JSON.stringify(finalMessages.slice(-50)));
+      let accumulatedContent = '';
+      // This logic correctly handles both streaming and non-streaming responses
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        const data = await response.json();
+        accumulatedContent = data.choices?.[0]?.message?.content || 'Sorry, I could not get a response.';
+      } else {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          accumulatedContent += decoder.decode(value, { stream: true });
+          setMessages(prev => prev.map(msg =>
+            msg.id === botMessageId ? { ...msg, content: accumulatedContent } : msg
+          ));
+        }
+      }
+
+      setMessages(prev => {
+        const finalMessages = prev.map(msg =>
+          msg.id === botMessageId ? { ...msg, content: accumulatedContent, isStreaming: false } : msg
+        );
+        localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(finalMessages.slice(-MAX_HISTORY_LENGTH)));
+        return finalMessages;
+      });
+
     } catch (error) {
-      console.error('Error:', error);
-      const errorMessage = {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: 'I apologize, but I encountered an error. Please try again.',
-        timestamp: new Date().toISOString()
-      };
-      setMessages([...updatedMessages, errorMessage]);
+      console.error("Error sending message:", error);
+      setMessages(prev => prev.map(msg => 
+        msg.id === botMessageId ? { ...msg, content: 'I apologize, an error occurred.', isStreaming: false } : msg
+      ));
     } finally {
       setIsLoading(false);
     }
   }, [messages, isLoading, storytellerMode]);
+  
+  const handleNewChat = useCallback(() => {
+    setMessages([]);
+    setShowWelcome(true);
+    setSidebarOpen(false);
+    localStorage.removeItem(CHAT_HISTORY_KEY);
+  }, []);
 
-  // Mobile-optimized suggestion cards
   const suggestionCards = [
-    {
-      category: "History",
-      title: "Tell me about Juneteenth",
-      prompt: "Tell me about the history and significance of Juneteenth",
-      emoji: "ðŸ“š"
-    },
-    {
-      category: "Culture",
-      title: "Share African wisdom",
-      prompt: "Share some traditional African wisdom about community",
-      emoji: "ðŸŒ"
-    },
-    {
-      category: "Stories",
-      title: "Tell me a story",
-      prompt: "Tell me an inspiring story from the African diaspora",
-      emoji: "âœ¨"
-    },
-    {
-      category: "Identity",
-      title: "Cultural connection",
-      prompt: "How can I connect more with my cultural heritage?",
-      emoji: "ðŸ”—"
-    }
+    { title: "The story of Anansi", prompt: "Tell me a story about Anansi the spider" },
+    { title: "Wisdom on resilience", prompt: "Share some wisdom about resilience" },
+    { title: "The history of Jazz", prompt: "Tell me about the origins of Jazz music" },
   ];
-
-  // Mobile styles
-  const mobileStyles = {
-    container: {
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      width: '100%',
-      backgroundColor: 'var(--bg-color, #f8f5f0)',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      position: 'relative',
-      overflow: 'hidden'
-    },
-    
-    header: {
-      height: `${MOBILE_HEADER_HEIGHT}px`,
-      backgroundColor: 'var(--header-bg, #c49a6c)',
-      color: 'var(--header-text, #33302e)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 1rem',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      position: 'relative',
-      zIndex: 1000
-    },
-    
-    logo: {
-      fontSize: '1.2rem',
-      fontWeight: 'bold',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem'
-    },
-    
-    chatContainer: {
-      flex: 1,
-      overflow: 'auto',
-      padding: '1rem',
-      paddingBottom: `${MOBILE_INPUT_HEIGHT + 20}px`,
-      WebkitOverflowScrolling: 'touch',
-      height: `calc(100vh - ${MOBILE_HEADER_HEIGHT + MOBILE_INPUT_HEIGHT}px)`,
-      display: 'flex',
-      flexDirection: 'column'
-    },
-    
-    welcomeScreen: {
-      textAlign: 'center',
-      padding: '2rem 1rem',
-      maxWidth: '100%'
-    },
-    
-    welcomeTitle: {
-      fontSize: '1.8rem',
-      fontWeight: 'bold',
-      marginBottom: '0.5rem',
-      color: 'var(--text-color, #33302e)'
-    },
-    
-    welcomeSubtitle: {
-      fontSize: '1rem',
-      opacity: 0.8,
-      marginBottom: '2rem',
-      color: 'var(--text-color, #33302e)'
-    },
-    
-    suggestionGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-      gap: '1rem',
-      marginTop: '1.5rem',
-      padding: '0 0.5rem'
-    },
-    
-    suggestionCard: {
-      backgroundColor: 'white',
-      padding: '1rem',
-      borderRadius: '12px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      cursor: 'pointer',
-      textAlign: 'center',
-      transition: 'transform 0.2s, box-shadow 0.2s',
-      border: 'none',
-      fontSize: '0.9rem'
-    },
-    
-    message: {
-      margin: '0.75rem 0',
-      padding: '0.75rem 1rem',
-      borderRadius: '16px',
-      maxWidth: '85%',
-      wordWrap: 'break-word',
-      fontSize: '1rem',
-      lineHeight: '1.4'
-    },
-    
-    userMessage: {
-      backgroundColor: 'var(--user-bubble, #bd8735)',
-      color: 'white',
-      alignSelf: 'flex-end',
-      marginLeft: 'auto'
-    },
-    
-    botMessage: {
-      backgroundColor: 'var(--bot-bubble-start, #7d8765)',
-      color: 'white',
-      alignSelf: 'flex-start',
-      marginRight: 'auto'
-    },
-    
-    inputContainer: {
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: `${MOBILE_INPUT_HEIGHT}px`,
-      backgroundColor: 'white',
-      borderTop: '1px solid #e0e0e0',
-      padding: '1rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      zIndex: 1000
-    },
-    
-    input: {
-      flex: 1,
-      padding: '0.75rem 1rem',
-      borderRadius: '24px',
-      border: '1px solid #e0e0e0',
-      fontSize: '1rem',
-      outline: 'none',
-      backgroundColor: '#f5f5f5'
-    },
-    
-    sendButton: {
-      width: '48px',
-      height: '48px',
-      borderRadius: '24px',
-      backgroundColor: 'var(--accent-color, #d7722c)',
-      color: 'white',
-      border: 'none',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      disabled: isLoading
-    },
-    
-    sidebar: {
-      position: 'fixed',
-      top: 0,
-      left: sidebarOpen ? '0' : `-${MOBILE_SIDEBAR_WIDTH}px`,
-      width: `${MOBILE_SIDEBAR_WIDTH}px`,
-      height: '100vh',
-      backgroundColor: 'var(--sidebar-bg, rgba(75, 46, 42, 0.97))',
-      color: 'var(--sidebar-text, #f8f5f0)',
-      zIndex: 2000,
-      transition: 'left 0.3s ease',
-      padding: '1rem',
-      overflow: 'auto'
-    },
-    
-    overlay: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      zIndex: 1500,
-      display: sidebarOpen ? 'block' : 'none'
-    },
-    
-    toggleSwitch: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-      fontSize: '0.9rem',
-      color: 'var(--text-color, #666)'
-    }
-  };
 
   return (
     <>
       <Head>
-        <title>GriotBot - Your Digital Griot</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <title>GriotBot</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <style dangerouslySetInnerHTML={{ __html: `
-          :root {
-            --bg-color: #f8f5f0;
-            --text-color: #33302e;
-            --header-bg: #c49a6c;
-            --header-text: #33302e;
-            --sidebar-bg: rgba(75, 46, 42, 0.97);
-            --sidebar-text: #f8f5f0;
-            --user-bubble: #bd8735;
-            --bot-bubble-start: #7d8765;
-            --accent-color: #d7722c;
-          }
-          
-          * { box-sizing: border-box; }
-          body { margin: 0; padding: 0; overflow: hidden; }
-          
-          /* iOS Safari specific fixes */
-          body { 
-            position: fixed; 
-            width: 100%; 
-            height: 100%; 
-            -webkit-overflow-scrolling: touch;
-          }
-          
-          /* Prevent zoom on input focus */
-          input, textarea, select {
-            font-size: 16px;
-          }
-          
-          /* Hide scrollbars on mobile */
-          ::-webkit-scrollbar { display: none; }
-          * { scrollbar-width: none; }
-        `}} />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </Head>
 
-      <div style={mobileStyles.container}>
-        {/* Overlay for sidebar */}
-        <div 
-          style={mobileStyles.overlay}
-          onClick={() => setSidebarOpen(false)}
-        />
+      <div className="mobile-container">
+        {/* --- Header --- */}
+        <header className="mobile-header">
+          <button className="icon-button" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
+            <Menu size={24} />
+          </button>
+          <div className="header-title">GriotBot</div>
+          <div style={{ width: 40 }}></div> {/* Spacer */}
+        </header>
 
-        {/* Mobile Sidebar */}
-        <div style={mobileStyles.sidebar}>
-          <h3>GriotBot Menu</h3>
-          <div style={{ marginBottom: '2rem' }}>
-            <button 
-              onClick={() => {
-                setMessages([]);
-                setShowWelcome(true);
-                setSidebarOpen(false);
-                localStorage.removeItem('griotbot-history');
-              }}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: 'transparent',
-                color: 'inherit',
-                border: '1px solid rgba(255,255,255,0.3)',
-                borderRadius: '8px',
-                marginBottom: '1rem'
-              }}
-            >
+        {/* --- Sidebar --- */}
+        <div className={`sidebar-container ${sidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <h3>Menu</h3>
+            <button className="icon-button" onClick={() => setSidebarOpen(false)} aria-label="Close menu">
+              <X size={24} />
+            </button>
+          </div>
+          <div className="sidebar-content">
+            <button className="sidebar-button" onClick={handleNewChat}>
               + New Chat
             </button>
-            
-            <div style={mobileStyles.toggleSwitch}>
+            <div className="sidebar-toggle">
               <span>Storyteller Mode</span>
-              <label style={{ display: 'flex', alignItems: 'center' }}>
-                <input 
-                  type="checkbox"
-                  checked={storytellerMode}
-                  onChange={(e) => setStorytellerMode(e.target.checked)}
-                  style={{ marginLeft: '0.5rem' }}
-                />
+              <label className="switch">
+                <input type="checkbox" checked={storytellerMode} onChange={(e) => setStorytellerMode(e.target.checked)} />
+                <span className="slider round"></span>
               </label>
             </div>
           </div>
-          
-          <div>
-            <h4>Quick Actions</h4>
-            <a href="/about" style={{ color: 'inherit', textDecoration: 'none', display: 'block', padding: '0.5rem 0' }}>
-              About GriotBot
-            </a>
-            <a href="/feedback" style={{ color: 'inherit', textDecoration: 'none', display: 'block', padding: '0.5rem 0' }}>
-              Share Feedback
-            </a>
-          </div>
         </div>
+        <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} />
 
-        {/* Header */}
-        <header style={mobileStyles.header}>
-          <button 
-            onClick={() => setSidebarOpen(true)}
-            style={{ background: 'none', border: 'none', color: 'inherit', padding: '0.5rem' }}
-          >
-            <Menu size={24} />
-          </button>
-          
-          <div style={mobileStyles.logo}>
-            <span>ðŸŒ¿</span>
-            <span>GriotBot</span>
-          </div>
-          
-          <button 
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            style={{ background: 'none', border: 'none', color: 'inherit', padding: '0.5rem' }}
-          >
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-          </button>
-        </header>
 
-        {/* Chat Container */}
-        <div ref={chatContainerRef} style={mobileStyles.chatContainer}>
-          {showWelcome && (
-            <div style={mobileStyles.welcomeScreen}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>ðŸŒ¿</div>
-              <h1 style={mobileStyles.welcomeTitle}>Welcome to GriotBot</h1>
-              <p style={mobileStyles.welcomeSubtitle}>
-                Your AI companion for culturally rich conversations
-              </p>
-              
-              <div style={mobileStyles.suggestionGrid}>
-                {suggestionCards.map((card, index) => (
-                  <button
-                    key={index}
-                    style={mobileStyles.suggestionCard}
-                    onClick={() => handleSendMessage(card.prompt)}
-                    onTouchStart={(e) => {
-                      e.currentTarget.style.transform = 'scale(0.95)';
-                    }}
-                    onTouchEnd={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
-                      {card.emoji}
-                    </div>
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', fontSize: '0.8rem', textTransform: 'uppercase', color: '#666' }}>
-                      {card.category}
-                    </div>
-                    <div style={{ fontSize: '0.9rem' }}>
-                      {card.title}
-                    </div>
+        {/* --- Chat Area --- */}
+        <main className="chat-area">
+          {showWelcome ? (
+            <div className="welcome-screen">
+              <img src="/images/logo-light.svg" alt="GriotBot Logo" className="welcome-logo" />
+              <h2>Welcome to GriotBot</h2>
+              <div className="suggestion-grid">
+                {suggestionCards.map(card => (
+                  <button key={card.title} className="suggestion-card" onClick={() => handleSendMessage(card.prompt)}>
+                    {card.title}
                   </button>
                 ))}
               </div>
             </div>
+          ) : (
+            messages.map(msg => <Message key={msg.id} msg={msg} onRegenerate={() => { /* ... */ }} />)
           )}
+          <div ref={messagesEndRef} />
+        </main>
+
+        {/* --- Input Footer --- */}
+        <footer className="input-footer">
+          <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(inputText); }} className="input-form">
+            <textarea
+              ref={inputRef}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Ask anything..."
+              rows="1"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(inputText);
+                }
+              }}
+            />
+            <button type="submit" className="send-button" disabled={isLoading || !inputText.trim()}>
+              {isLoading ? <div className="spinner" /> : <Send size={20} />}
+            </button>
+          </form>
+        </footer>
+      </div>
+
+      <style jsx global>{`
+        /* --- Base Styles & Resets --- */
+        html, body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          background-color: #f0f2f5;
+          overscroll-behavior-y: contain; /* Prevents pull-to-refresh */
+        }
+        .mobile-container {
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          width: 100vw;
+          overflow: hidden;
+          position: relative;
+        }
+
+        /* --- Header --- */
+        .mobile-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 1rem;
+          height: 60px;
+          background-color: #fff;
+          border-bottom: 1px solid #ddd;
+          flex-shrink: 0;
+        }
+        .header-title {
+          font-weight: 600;
+          font-size: 1.2rem;
+        }
+        .icon-button {
+          background: none;
+          border: none;
+          padding: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar-container {
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 280px;
+          background-color: #2c3e50;
+          color: white;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease-in-out;
+          z-index: 1001;
+          display: flex;
+          flex-direction: column;
+        }
+        .sidebar-container.open {
+          transform: translateX(0);
+        }
+        .sidebar-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0,0,0,0.5);
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.3s, visibility 0.3s;
+          z-index: 1000;
+        }
+        .sidebar-overlay.open {
+          opacity: 1;
+          visibility: visible;
+        }
+        .sidebar-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-header h3 {
+          margin: 0;
+          font-size: 1.2rem;
+        }
+        .sidebar-content {
+          padding: 1rem;
+        }
+        .sidebar-button {
+          width: 100%;
+          padding: 0.75rem;
+          background-color: transparent;
+          color: inherit;
+          border: 1px solid rgba(255,255,255,0.3);
+          border-radius: 8px;
+          margin-bottom: 1rem;
+          font-size: 1rem;
+          text-align: left;
+        }
+        .sidebar-toggle {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.5rem 0;
+        }
+
+        /* --- Chat Area --- */
+        .chat-area {
+          flex-grow: 1;
+          overflow-y: auto;
+          padding: 1rem;
+        }
+        .welcome-screen {
+          text-align: center;
+          padding-top: 4rem;
+        }
+        .welcome-logo {
+          width: 80px;
+          height: 80px;
+          margin-bottom: 1rem;
+        }
+        .suggestion-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.75rem;
+          margin-top: 2rem;
+        }
+        .suggestion-card {
+          background-color: #fff;
+          border: 1px solid #ddd;
+          border-radius: 12px;
+          padding: 1rem;
+          font-size: 0.9rem;
+          cursor: pointer;
+        }
+
+        /* --- Messages --- */
+        .message-wrapper {
+          display: flex;
+          margin-bottom: 0.75rem;
+          max-width: 85%;
+        }
+        .message-wrapper.user {
+          justify-content: flex-end;
+          margin-left: auto;
+        }
+        .message-wrapper.assistant {
+          justify-content: flex-start;
+        }
+        .message-bubble {
+          padding: 0.75rem 1rem;
+          border-radius: 18px;
+          line-height: 1.5;
+        }
+        .message-bubble.user {
+          background-color: #007aff;
+          color: white;
+          border-bottom-right-radius: 4px;
+        }
+        .message-bubble.assistant {
+          background-color: #e5e5ea;
+          color: black;
+          border-bottom-left-radius: 4px;
+        }
+        .message-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 8px; /* For assistant messages */
+        }
+        .message-actions button {
+            background: none; border: none; padding: 4px; cursor: pointer; color: #8e8e93;
+        }
+
+        /* --- Input Footer --- */
+        .input-footer {
+          padding: 0.5rem 1rem 1rem 1rem; /* Padding for home indicator on iOS */
+          background-color: #fff;
+          border-top: 1px solid #ddd;
+          flex-shrink: 0;
+        }
+        .input-form {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        .input-form textarea {
+          flex-grow: 1;
+          border: 1px solid #ccc;
+          border-radius: 18px;
+          padding: 0.5rem 1rem;
+          font-size: 1rem;
+          resize: none;
+          max-height: 100px;
+          overflow-y: auto;
+        }
+        .send-button {
+          background-color: #007aff;
+          color: white;
+          border: none;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .send-button:disabled {
+          background-color: #ccc;
+        }
+        .spinner {
+          width: 18px; height: 18px;
+          border: 2px solid rgba(255,255,255,0.5);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        /* --- Toggle Switch --- */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .4s; }
+        input:checked + .slider { background-color: #007aff; }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .slider.round { border-radius: 24px; }
+        .slider.round:before { border-radius: 50%; }
+
+      `}</style>
+    </>
+  );
+}
 
           {/* Messages */}
           {messages.map((message) => (
