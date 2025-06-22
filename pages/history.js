@@ -14,7 +14,10 @@ const EraCard = ({ title, description, themes, visualIdea, cta, ctaAction }) => 
         </div>
       </div>
       <div className="card-cta">
-        <button className="cta-button">{cta.replace('Ask: ', '')}</button>
+        <button className="cta-button">
+          <span>{cta.replace('Ask: ', '')}</span>
+          <span>→</span>
+        </button>
       </div>
     </article>
   );
@@ -156,9 +159,10 @@ export default function HistoryPage() {
 
         .era-card {
           background-color: var(--card-bg, #ffffff);
-          border: 1px solid var(--input-border);
-          border-radius: 12px;
-          box-shadow: 0 4px 12px var(--shadow-color);
+          /* FIXED: Made border more visible */
+          border: 1px solid var(--input-border, #e0e0e0);
+          border-radius: 16px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
           display: flex;
           flex-direction: column;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -181,7 +185,8 @@ export default function HistoryPage() {
           font-family: var(--heading-font);
           font-size: 1.25rem;
           color: var(--accent-color);
-          margin: 0 0 0.75rem 0;
+          /* FIXED: Increased space between title and description */
+          margin: 0 0 1.25rem 0;
         }
 
         .card-description {
@@ -213,8 +218,9 @@ export default function HistoryPage() {
 
         .card-cta {
           border-top: 1px solid var(--input-border);
-          padding: 1rem 1.5rem;
+          padding: 0.75rem 1.5rem;
           background-color: rgba(0,0,0,0.02);
+          margin-top: 1rem;
         }
         
         [data-theme="dark"] .card-cta {
@@ -225,12 +231,21 @@ export default function HistoryPage() {
           background: none;
           border: none;
           color: var(--accent-color);
-          font-weight: 500;
+          font-weight: 600; /* Made bolder */
           font-size: 0.9rem;
           width: 100%;
           text-align: left;
           cursor: pointer;
           padding: 0;
+          /* FIXED: Styled CTA to stand out */
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          transition: color 0.2s;
+        }
+
+        .cta-button:hover {
+            color: var(--accent-hover);
         }
 
         .history-footer {
