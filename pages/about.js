@@ -1,6 +1,7 @@
 // File: pages/about.js (Final Version)
 import StandardLayout from '../components/layout/StandardLayout';
-import { Mail, Instagram, Twitter } from 'react-feather';
+// FIXED: Added the missing 'User' icon to the import list.
+import { Mail, Instagram, Twitter, User } from 'react-feather';
 
 export default function About() {
   // Constants for repeated styles to reduce duplication
@@ -158,7 +159,8 @@ export default function About() {
             GriotBot is more than a product. It's a **movement**—an evolving archive, a tool for empowerment, and a digital ancestor whispering wisdom into the future. We invite you to test it, teach it, and shape it.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
-            <IconLink href="https://www.griotbot.com" Icon={User} label="Chat with GriotBot" />
+            {/* The IconLink component now correctly receives the imported User icon */}
+            <IconLink href="/" Icon={User} label="Chat with GriotBot" />
             <IconLink href="mailto:chat@griotbot.com" Icon={Mail} label="Partner or Support" />
             <IconLink href="https://www.instagram.com/griotbot" Icon={Instagram} label="@griotbot on Instagram" />
             <IconLink href="https://twitter.com/griotbot" Icon={Twitter} label="@griotbot on X" />
