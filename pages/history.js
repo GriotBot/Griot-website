@@ -79,11 +79,12 @@ export default function HistoryPage() {
     }
   ];
 
-  // Function to handle the click, which will start a chat on the main page
+  // FIXED: This function now uses URL query parameters to pass the prompt.
   const startChatWithPrompt = (prompt) => {
-    // We can store the prompt and redirect, so the index page can pick it up.
-    localStorage.setItem('griotbot-chat-starter', prompt);
-    router.push('/');
+    router.push({
+      pathname: '/',
+      query: { prompt: prompt },
+    });
   };
 
   return (
@@ -159,7 +160,6 @@ export default function HistoryPage() {
 
         .era-card {
           background-color: var(--card-bg, #ffffff);
-          /* FIXED: Made border more visible */
           border: 1px solid var(--input-border, #e0e0e0);
           border-radius: 16px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -185,7 +185,6 @@ export default function HistoryPage() {
           font-family: var(--heading-font);
           font-size: 1.25rem;
           color: var(--accent-color);
-          /* FIXED: Increased space between title and description */
           margin: 0 0 1.25rem 0;
         }
 
@@ -231,13 +230,12 @@ export default function HistoryPage() {
           background: none;
           border: none;
           color: var(--accent-color);
-          font-weight: 600; /* Made bolder */
+          font-weight: 600; 
           font-size: 0.9rem;
           width: 100%;
           text-align: left;
           cursor: pointer;
           padding: 0;
-          /* FIXED: Styled CTA to stand out */
           display: flex;
           justify-content: space-between;
           align-items: center;
