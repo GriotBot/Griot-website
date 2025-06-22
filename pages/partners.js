@@ -2,33 +2,15 @@
 import StandardLayout from '../components/layout/StandardLayout';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { Building, Award, Mail } from 'react-feather';
+import { Building, Award, Mail, PlusCircle } from 'react-feather';
 
-// Placeholder data for partners. This would eventually come from a database.
+// UPDATED: The list now contains only official partners.
 const mockPartners = [
   {
-    name: "National Museum of African American History and Culture",
-    logoUrl: "/images/partners/nmaahc-logo-placeholder.png", // Replace with actual logo
-    type: "Museum Partner",
-    website: "https://nmaahc.si.edu/",
-  },
-  {
-    name: "Howard University",
-    logoUrl: "/images/partners/howard-logo-placeholder.png", // Replace with actual logo
-    type: "University Partner",
-    website: "https://howard.edu/",
-  },
-  {
-    name: "Schomburg Center for Research in Black Culture",
-    logoUrl: "/images/partners/schomburg-logo-placeholder.png", // Replace with actual logo
-    type: "Research Partner",
-    website: "https://www.nypl.org/locations/schomburg",
-  },
-   {
-    name: "The Gullah Geechee Cultural Heritage Corridor",
-    logoUrl: "/images/partners/gullah-geechee-logo-placeholder.png",
-    type: "Cultural Heritage Partner",
-    website: "https://gullahgeecheecorridor.org/",
+    name: "StarterBlox Foundation, Inc.",
+    logoUrl: "https://placehold.co/150x80/e2e8f0/e2e8f0?text=Logo", // Replace with actual logo
+    type: "Founding Partner",
+    website: "https://www.starterbloxfoundation.org",
   },
 ];
 
@@ -38,7 +20,7 @@ const PartnerCard = ({ partner }) => {
     <a href={partner.website} target="_blank" rel="noopener noreferrer" className="partner-card">
       <div className="card-logo-container">
         {/* Using a placeholder for the logo image */}
-        <img src="https://placehold.co/150x80/e2e8f0/e2e8f0?text=Logo" alt={`${partner.name} logo`} className="card-logo" />
+        <img src={partner.logoUrl} alt={`${partner.name} logo`} className="card-logo" />
       </div>
       <div className="card-content">
         <h3 className="card-name">{partner.name}</h3>
@@ -74,19 +56,29 @@ export default function PartnersPage() {
           {mockPartners.map(partner => (
             <PartnerCard key={partner.name} partner={partner} />
           ))}
+
+          {/* ADDED: An invitation card for potential new partners */}
+          <div className="partner-card invitation-card" onClick={() => document.getElementById('partner-cta').scrollIntoView({ behavior: 'smooth' })}>
+             <div className="invitation-content">
+                <PlusCircle size={40} className="invitation-icon" />
+                <h3 className="invitation-title">Become a Partner</h3>
+                <p className="invitation-text">Join us in our mission.</p>
+             </div>
+          </div>
         </section>
 
-        <section className="partner-with-us-cta">
+        <section id="partner-cta" className="partner-with-us-cta">
           <div className="cta-icon"><Award size={32} /></div>
           <h2>Become a Partner</h2>
           <p>
             Join us in building a future where cultural knowledge is accessible, engaging, and preserved for generations to come. We offer pilot programs and partnership opportunities for educational and cultural institutions.
           </p>
           <div className="contact-info">
-             <p>To learn more, please contact our partnerships team.</p>
-             <a href="mailto:partnerships@griotbot.com" className="cta-button">
+             <p>To learn more, please contact our team.</p>
+             {/* UPDATED: Email link and text changed */}
+             <a href="mailto:chat@griotbot.com" className="cta-button">
                 <Mail size={18} />
-                <span>partnerships@griotbot.com</span>
+                <span>chat@griotbot.com</span>
              </a>
              <p className="corporate-info">
                 GriotBot Corporation is a Public Benefit Corporation.
@@ -180,7 +172,40 @@ export default function PartnersPage() {
             opacity: 0.7;
             margin: 0;
         }
+
+        /* --- Invitation Card Styles --- */
+        .invitation-card {
+            border-style: dashed;
+            border-width: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 220px;
+            background-color: rgba(0,0,0,0.02);
+        }
+        [data-theme="dark"] .invitation-card {
+            background-color: rgba(255,255,255,0.03);
+        }
+        .invitation-content {
+            text-align: center;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+        .invitation-icon {
+            margin-bottom: 1rem;
+        }
+        .invitation-title {
+            font-family: var(--heading-font);
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+        }
+        .invitation-text {
+            font-size: 0.9rem;
+            margin: 0;
+        }
         
+        /* --- CTA Section --- */
         .partner-with-us-cta {
           margin-top: 4rem;
           padding: 2.5rem;
