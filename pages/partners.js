@@ -4,13 +4,15 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { Building, Award, Mail, PlusCircle } from 'react-feather';
 
-// UPDATED: The list now contains only official partners.
+// UPDATED: Added a description and logo styling for the partner.
 const mockPartners = [
   {
     name: "StarterBlox Foundation, Inc.",
-    logoUrl: "https://starterbloxfoundation.org/wp-content/uploads/2023/10/Logo-StarterBlox-Foundation-Inc-1-10.svg", // UPDATED: Replaced placeholder with actual logo URL
+    logoUrl: "https://starterbloxfoundation.org/wp-content/uploads/2023/10/Logo-StarterBlox-Foundation-Inc-1-10.svg",
     type: "Founding Partner",
     website: "https://www.starterbloxfoundation.org",
+    description: "A non-profit organization dedicated to providing educational resources and opportunities to underserved communities.",
+    logoStyle: { maxHeight: '48px' } // 60% size reduction
   },
 ];
 
@@ -19,12 +21,14 @@ const PartnerCard = ({ partner }) => {
   return (
     <a href={partner.website} target="_blank" rel="noopener noreferrer" className="partner-card">
       <div className="card-logo-container">
-        {/* Using a placeholder for the logo image */}
-        <img src={partner.logoUrl} alt={`${partner.name} logo`} className="card-logo" />
+        {/* The logo now uses an inline style to adjust its size */}
+        <img src={partner.logoUrl} alt={`${partner.name} logo`} className="card-logo" style={partner.logoStyle} />
       </div>
       <div className="card-content">
         <h3 className="card-name">{partner.name}</h3>
         <p className="card-type">{partner.type}</p>
+        {/* ADDED: Renders the new description if it exists */}
+        {partner.description && <p className="card-description">{partner.description}</p>}
       </div>
     </a>
   );
@@ -171,6 +175,15 @@ export default function PartnersPage() {
             color: var(--text-color);
             opacity: 0.7;
             margin: 0;
+        }
+        
+        /* ADDED: Styles for the new partner description */
+        .card-description {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-top: 1rem;
+            line-height: 1.5;
         }
 
         /* --- Invitation Card Styles --- */
