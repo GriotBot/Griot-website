@@ -92,10 +92,10 @@ export default function About() {
         <section>
           <h2 style={HEADING_STYLES}>Our Mission: A Bridge to the Past, A Voice for the Future</h2>
           <p>
-            In a world overflowing with data but starving for wisdom, GriotBot was born from a powerful idea: technology can be used not to erase tradition—but to **honor, preserve, and share it**.
+            In a world overflowing with data but starving for wisdom, GriotBot was born from a powerful idea: technology can be used not to erase tradition—but to <strong>honor, preserve, and share it</strong>.
           </p>
           <p>
-            Inspired by the griots of West Africa—oral historians, poets, philosophers, and keepers of communal memory—GriotBot is a **cultural AI companion** that speaks with **clarity, empathy, and intention**.
+            Inspired by the griots of West Africa—oral historians, poets, philosophers, and keepers of communal memory—GriotBot is a <strong>cultural AI companion</strong> that speaks with <strong>clarity, empathy, and intention</strong>.
           </p>
            <p>
             Whether you're exploring your family roots, teaching Black history, or seeking ancestral insight, GriotBot is here to help:
@@ -118,7 +118,7 @@ export default function About() {
         <section>
           <h2 style={HEADING_STYLES}>How GriotBot Works</h2>
           <p>
-            GriotBot is built on a hybrid system that combines **cutting-edge AI** with a **curated cultural knowledge base** guided by care and conscience.
+            GriotBot is built on a hybrid system that combines <strong>cutting-edge AI</strong> with a <strong>curated cultural knowledge base</strong> guided by care and conscience.
           </p>
           <ul style={{ paddingLeft: '20px', listStyle: 'none' }}>
             <li style={{marginBottom: '1rem'}}><strong>A Fine-Tuned Persona:</strong> Inspired by griots and elders across the diaspora, GriotBot responds with warmth, respect, and intention.</li>
@@ -140,7 +140,7 @@ export default function About() {
         <section>
           <h2 style={HEADING_STYLES}>Where We Are & What's Coming</h2>
           <p>
-            GriotBot is currently in **active development** with a web-based beta that includes:
+            GriotBot is currently in <strong>active development</strong> with a web-based beta that includes:
           </p>
           <ul style={{ paddingLeft: '20px' }}>
               <li>Conversational Q&A</li>
@@ -149,14 +149,14 @@ export default function About() {
           </ul>
            <p><strong>Coming soon:</strong> Voice and accent options, visual storytelling features, expanded historical timelines, and multilingual support across diaspora communities.</p>
           <p>
-            Our long-term vision is to grow GriotBot into a **freemium app and global learning platform**—accessible to classrooms, cultural organizations, and everyday users worldwide.
+            Our long-term vision is to grow GriotBot into a <strong>freemium app and global learning platform</strong>—accessible to classrooms, cultural organizations, and everyday users worldwide.
           </p>
         </section>
 
         <section>
           <h2 style={HEADING_STYLES}>Join the Journey</h2>
           <p>
-            GriotBot is more than a product. It's a **movement**—an evolving archive, a tool for empowerment, and a digital ancestor whispering wisdom into the future. We invite you to test it, teach it, and shape it.
+            GriotBot is more than a product. It's a <strong>movement</strong>—an evolving archive, a tool for empowerment, and a digital ancestor whispering wisdom into the future. We invite you to test it, teach it, and shape it.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
             {/* The IconLink component now correctly receives the imported User icon */}
