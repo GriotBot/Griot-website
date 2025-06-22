@@ -92,10 +92,10 @@ export default function About() {
         <section>
           <h2 style={HEADING_STYLES}>Our Mission: A Bridge to the Past, A Voice for the Future</h2>
           <p>
-            In a world overflowing with data but starving for wisdom, GriotBot was born from a powerful idea: technology can be used not to erase tradition—but to <strong>honor, preserve, and share it</strong>.
+            In a world overflowing with data but starving for wisdom, GriotBot was born from a powerful idea: technology can be used not to erase tradition, but to <strong>honor, preserve, and share it</strong>.
           </p>
           <p>
-            Inspired by the griots of West Africa—oral historians, poets, philosophers, and keepers of communal memory—GriotBot is a <strong>cultural AI companion</strong> that speaks with <strong>clarity, empathy, and intention</strong>.
+            Inspired by the griots of West Africa, oral historians, poets, philosophers, and keepers of communal memory—GriotBot is a <strong>cultural AI companion</strong> that speaks with <strong>clarity, empathy, and intention</strong>.
           </p>
            <p>
             Whether you're exploring your family roots, teaching Black history, or seeking ancestral insight, GriotBot is here to help:
@@ -111,7 +111,7 @@ export default function About() {
             The African diaspora's stories, wisdom, and lived experiences are vast, diverse, and deeply significant. Yet, too often, they remain buried in fragmented archives, hidden in academic texts, or lost across generations.
           </p>
           <p>
-            GriotBot helps reawaken those connections—bringing together heritage, history, and humanity in one accessible space.
+            GriotBot helps reawaken those connections, bringing together heritage, history, and humanity in one accessible space.
           </p>
         </section>
 
@@ -122,7 +122,7 @@ export default function About() {
           </p>
           <ul style={{ paddingLeft: '20px', listStyle: 'none' }}>
             <li style={{marginBottom: '1rem'}}><strong>A Fine-Tuned Persona:</strong> Inspired by griots and elders across the diaspora, GriotBot responds with warmth, respect, and intention.</li>
-            <li style={{marginBottom: '1rem'}}><strong>Ethical Guardrails:</strong> Every answer is shaped by a cultural and emotional intelligence framework—avoiding stereotypes and honoring dignity.</li>
+            <li style={{marginBottom: '1rem'}}><strong>Ethical Guardrails:</strong> Every answer is shaped by a cultural and emotional intelligence framework, avoiding stereotypes and honoring dignity.</li>
             <li><strong>A Living Knowledge Base:</strong> Grounded in oral traditions, literature, historical facts, and contemporary insight to stay culturally relevant and accurate.</li>
           </ul>
         </section>
@@ -149,14 +149,14 @@ export default function About() {
           </ul>
            <p><strong>Coming soon:</strong> Voice and accent options, visual storytelling features, expanded historical timelines, and multilingual support across diaspora communities.</p>
           <p>
-            Our long-term vision is to grow GriotBot into a <strong>freemium app and global learning platform</strong>—accessible to classrooms, cultural organizations, and everyday users worldwide.
+            Our long-term vision is to grow GriotBot into a <strong>freemium app and global learning platform</strong>, accessible to classrooms, cultural organizations, and everyday users worldwide.
           </p>
         </section>
 
         <section>
           <h2 style={HEADING_STYLES}>Join the Journey</h2>
           <p>
-            GriotBot is more than a product. It's a <strong>movement</strong>—an evolving archive, a tool for empowerment, and a digital ancestor whispering wisdom into the future. We invite you to test it, teach it, and shape it.
+            GriotBot is more than a product. It's a <strong>movement</strong>, an evolving archive, a tool for empowerment, and a digital ancestor whispering wisdom into the future. We invite you to test it, teach it, and shape it.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
             {/* The IconLink component now correctly receives the imported User icon */}
