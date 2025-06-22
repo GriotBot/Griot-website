@@ -138,7 +138,7 @@ export default function ComingSoon() {
           
           {/* FIXED: Replaced JavaScript handler with a standard HTML form submission for reliability. */}
           <form 
-            action="https://formspree.io/f/YOUR_UNIQUE_FORM_ID" // <-- PASTE YOUR URL HERE
+            action="https://formspree.io/f/xwpbndbo" // <-- PASTE YOUR URL HERE
             method="POST"
             style={{ display: 'flex', gap: '0.75rem', maxWidth: '400px', margin: '0 auto' }}
           >
@@ -146,7 +146,7 @@ export default function ComingSoon() {
             <input
               id="email-subscribe"
               type="email"
-              name="email" // This name is used by Formspree
+              name="Subscribe Form" // This name is used by Formspree
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address"
