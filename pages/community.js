@@ -35,21 +35,23 @@ export default function CommunityPage() {
       description: 'Read powerful testimonials and see how users are connecting with their heritage and finding inspiration with GriotBot.',
       Icon: Users,
       ctaLabel: 'See Community Stories',
-      ctaAction: () => startChatWithPrompt("Show me how others are using GriotBot"),
+      // UPDATED: Links to the new /stories page
+      ctaAction: () => router.push('/stories'),
     },
     {
       title: 'Our Institutional Partners',
       description: 'We are honored to partner with leading museums, universities, and cultural centers to preserve and share our shared history.',
       Icon: BookOpen,
       ctaLabel: 'Meet Our Partners',
-      ctaAction: () => startChatWithPrompt("Tell me about GriotBot's partners"),
+      // UPDATED: Links to the new /partners page
+      ctaAction: () => router.push('/partners'),
     },
     {
       title: 'Become a Part of the Story',
       description: 'GriotBot is shaped by its community. Whether you are an educator, a potential partner, or a user with feedback, you can help us grow.',
       Icon: Heart,
       ctaLabel: 'Provide Feedback or Partner',
-      ctaAction: () => router.push('/feedback'), // Links directly to the feedback page
+      ctaAction: () => router.push('/feedback'), // This already correctly links to the feedback page
     },
     {
       title: 'The Digital Drum',
@@ -60,6 +62,7 @@ export default function CommunityPage() {
     }
   ];
 
+  // This function is no longer needed on this page but kept in case other cards use it.
   const startChatWithPrompt = (prompt) => {
     router.push({
       pathname: '/',
