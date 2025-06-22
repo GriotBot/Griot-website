@@ -8,7 +8,7 @@ import { Building, Award, Mail, PlusCircle } from 'react-feather';
 const mockPartners = [
   {
     name: "StarterBlox Foundation, Inc.",
-    logoUrl: "https://placehold.co/150x80/e2e8f0/e2e8f0?text=Logo", // Replace with actual logo
+    logoUrl: "https://starterbloxfoundation.org/wp-content/uploads/2023/10/Logo-StarterBlox-Foundation-Inc-1-10.svg", // UPDATED: Replaced placeholder with actual logo URL
     type: "Founding Partner",
     website: "https://www.starterbloxfoundation.org",
   },
