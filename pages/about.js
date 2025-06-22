@@ -1,201 +1,169 @@
-// File: pages/about.js (IMPROVED VERSION)
+// File: pages/about.js (Final Version)
 import StandardLayout from '../components/layout/StandardLayout';
+import { Mail, Instagram, Twitter } from 'react-feather';
 
 export default function About() {
   // Constants for repeated styles to reduce duplication
   const HEADING_STYLES = {
-    color: '#c49a6c',
-    fontSize: '1.2rem',
-    marginTop: '2rem',
+    color: 'var(--accent-color)',
+    fontSize: '1.4rem',
+    marginTop: '2.5rem',
     fontFamily: 'var(--heading-font)',
-    marginBottom: '1rem'
+    marginBottom: '1rem',
+    borderBottom: '1px solid var(--input-border)',
+    paddingBottom: '0.5rem',
   };
 
   const LINK_STYLES = {
     color: 'var(--accent-color)',
     textDecoration: 'none',
-    borderRadius: '2px',
-    padding: '0 2px',
-    transition: 'background-color 0.2s ease'
+    fontWeight: '500',
+    transition: 'text-decoration 0.2s ease',
+  };
+  
+  const handleLinkHover = (e, isHover) => {
+    e.target.style.textDecoration = isHover ? 'underline' : 'none';
   };
 
-  // Link hover handlers for better interaction
-  const handleLinkHover = (e, isHover) => {
-    if (isHover) {
-      e.target.style.backgroundColor = 'rgba(215, 114, 44, 0.1)';
-      e.target.style.textDecoration = 'underline';
-    } else {
-      e.target.style.backgroundColor = 'transparent';
-      e.target.style.textDecoration = 'none';
-    }
-  };
+  const IconLink = ({ href, Icon, label }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      style={{ ...LINK_STYLES, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+      onMouseEnter={(e) => handleLinkHover(e, true)}
+      onMouseLeave={(e) => handleLinkHover(e, false)}
+    >
+      <Icon size={20} />
+      <span>{label}</span>
+    </a>
+  );
+
 
   return (
     <StandardLayout 
       pageType="standard"
-      title="About GriotBot"
-      description="About GriotBot - An AI-powered digital griot providing culturally rich wisdom and guidance for the African diaspora"
+      title="About GriotBot | Our Mission"
+      description="Learn about GriotBot's mission to preserve and share the rich cultural heritage of the African diaspora through culturally-aware AI."
       currentPath="/about"
     >
       <article style={{
-        maxWidth: '700px',
-        margin: '0 auto',
-        lineHeight: 1.6,
-        padding: '0 1rem' // Added padding for mobile
+        maxWidth: '750px',
+        margin: '2rem auto 4rem auto',
+        lineHeight: 1.7,
+        padding: '0 1rem'
       }}>
-        <header>
+        <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <h1 style={{
-            color: '#7d8765',
-            fontSize: '2rem',
-            marginBottom: '1rem',
             fontFamily: 'var(--heading-font)',
-            textAlign: 'center'
+            fontSize: '2.75rem',
+            color: 'var(--text-color)',
+            marginBottom: '0.5rem',
           }}>
             About GriotBot
           </h1>
-        </header>
-        
-        <section>
-          <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
-            <strong>GriotBot</strong> is more than just an AI — it is a spark of
-            ancestral memory. Designed to honor the rich oral traditions, cultural
-            legacy, and lived experiences of the African Diaspora, GriotBot offers
-            thoughtful, accurate, and warm guidance.
+          <p style={{
+            fontSize: '1.25rem',
+            color: 'var(--text-color)',
+            opacity: 0.8,
+            margin: '0',
+          }}>
+            A Digital Griot for the Future
           </p>
-
-          {/* Improved semantic quote structure */}
-          <blockquote 
-            style={{
-              fontStyle: 'italic',
-              color: 'var(--wisdom-color)',
-              margin: '2rem 0',
-              borderLeft: '4px solid #c49a6c',
-              paddingLeft: '1.5rem',
-              fontFamily: 'var(--quote-font)',
-              fontSize: '1.1rem',
-              lineHeight: '1.8',
-              position: 'relative'
-            }}
-            cite="Marcus Garvey"
-          >
-            <p style={{ margin: '0 0 0.5rem 0' }}>
-              "A people without the knowledge of their past history, origin and
-              culture is like a tree without roots."
+          <blockquote style={{
+            fontStyle: 'italic',
+            color: 'var(--wisdom-color)',
+            margin: '2rem 0',
+            borderLeft: '3px solid var(--accent-color)',
+            paddingLeft: '1.5rem',
+            textAlign: 'left',
+          }}>
+            <p style={{ margin: 0 }}>
+              "A people without the knowledge of their past history, origin, and culture is like a tree without roots."
             </p>
-            <cite style={{ 
-              fontWeight: '500',
-              fontSize: '0.95rem',
-              opacity: 0.9 
-            }}>
+            <cite style={{ display: 'block', textAlign: 'right', marginTop: '0.5rem', fontWeight: 500 }}>
               — Marcus Garvey
             </cite>
           </blockquote>
-        </section>
-
+        </header>
+        
         <section>
-          <h2 style={HEADING_STYLES}>
-            Why GriotBot?
-          </h2>
+          <h2 style={HEADING_STYLES}>Our Mission: A Bridge to the Past, A Voice for the Future</h2>
           <p>
-            The griot was the traditional keeper of history, story, and wisdom.
-            GriotBot brings that same spirit into the digital age — acting as a
-            wise, trusted voice for learners, educators, and community leaders.
+            In a world overflowing with data but starving for wisdom, GriotBot was born from a powerful idea: technology can be used not to erase tradition—but to **honor, preserve, and share it**.
           </p>
-        </section>
-
-        <section>
-          <h2 style={HEADING_STYLES}>
-            Who Is It For?
-          </h2>
           <p>
-            Anyone seeking cultural knowledge, inspiration, or connection:
-            educators, students, nonprofits, families, and curious minds across the
-            globe. Whether you're exploring your heritage, teaching Black history,
-            or seeking guidance rooted in cultural wisdom, GriotBot is here to help.
+            Inspired by the griots of West Africa—oral historians, poets, philosophers, and keepers of communal memory—GriotBot is a **cultural AI companion** that speaks with **clarity, empathy, and intention**.
+          </p>
+           <p>
+            Whether you're exploring your family roots, teaching Black history, or seeking ancestral insight, GriotBot is here to help:
+          </p>
+           <p style={{textAlign: 'center', fontFamily: 'var(--heading-font)', fontSize: '1.2rem', fontWeight: 'bold'}}>
+            Always authentic. Never performative.
           </p>
         </section>
 
         <section>
-          <h2 style={HEADING_STYLES}>
-            How It Works
-          </h2>
+          <h2 style={HEADING_STYLES}>Why GriotBot Matters</h2>
           <p>
-            GriotBot uses advanced language models, guided by a carefully crafted
-            system that shapes responses with respect, dignity, and clarity. It
-            draws from cultural histories, philosophies, and global Black
-            experiences to offer grounded responses — never performative, always
-            intentional and authentic.
+            The African diaspora's stories, wisdom, and lived experiences are vast, diverse, and deeply significant. Yet, too often, they remain buried in fragmented archives, hidden in academic texts, or lost across generations.
+          </p>
+          <p>
+            GriotBot helps reawaken those connections—bringing together heritage, history, and humanity in one accessible space.
           </p>
         </section>
 
         <section>
-          <h2 style={HEADING_STYLES}>
-            Our Commitment
-          </h2>
+          <h2 style={HEADING_STYLES}>How GriotBot Works</h2>
           <p>
-            We are committed to cultural accuracy, respect, and authenticity. 
-            GriotBot is built with anti-hallucination safeguards to prevent 
-            misinformation about historical events, figures, and cultural practices. 
-            Our responses are designed to educate, empower, and inspire.
+            GriotBot is built on a hybrid system that combines **cutting-edge AI** with a **curated cultural knowledge base** guided by care and conscience.
+          </p>
+          <ul style={{ paddingLeft: '20px', listStyle: 'none' }}>
+            <li style={{marginBottom: '1rem'}}><strong>A Fine-Tuned Persona:</strong> Inspired by griots and elders across the diaspora, GriotBot responds with warmth, respect, and intention.</li>
+            <li style={{marginBottom: '1rem'}}><strong>Ethical Guardrails:</strong> Every answer is shaped by a cultural and emotional intelligence framework—avoiding stereotypes and honoring dignity.</li>
+            <li><strong>A Living Knowledge Base:</strong> Grounded in oral traditions, literature, historical facts, and contemporary insight to stay culturally relevant and accurate.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 style={HEADING_STYLES}>Who It's For</h2>
+          <ul style={{ paddingLeft: '20px', listStyle: 'disc' }}>
+              <li><strong>Educators & Students</strong> exploring Black history and identity</li>
+              <li><strong>Nonprofits & Cultural Institutions</strong> sharing wisdom with their communities</li>
+              <li><strong>Families & Curious Minds</strong> rediscovering ancestral connections</li>
+              <li><strong>Anyone</strong> seeking meaningful, culturally rooted conversations</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 style={HEADING_STYLES}>Where We Are & What's Coming</h2>
+          <p>
+            GriotBot is currently in **active development** with a web-based beta that includes:
+          </p>
+          <ul style={{ paddingLeft: '20px' }}>
+              <li>Conversational Q&A</li>
+              <li>Proverb interpretation</li>
+              <li>Storyteller Mode</li>
+          </ul>
+           <p><strong>Coming soon:</strong> Voice and accent options, visual storytelling features, expanded historical timelines, and multilingual support across diaspora communities.</p>
+          <p>
+            Our long-term vision is to grow GriotBot into a **freemium app and global learning platform**—accessible to classrooms, cultural organizations, and everyday users worldwide.
           </p>
         </section>
 
         <section>
-          <h2 style={HEADING_STYLES}>
-            How to Get Involved
-          </h2>
+          <h2 style={HEADING_STYLES}>Join the Journey</h2>
           <p>
-            Want to support, fund, test, or help shape GriotBot's future?{' '}
-            <a 
-              href="mailto:chat@griotbot.com" 
-              style={LINK_STYLES}
-              onMouseEnter={(e) => handleLinkHover(e, true)}
-              onMouseLeave={(e) => handleLinkHover(e, false)}
-              onFocus={(e) => handleLinkHover(e, true)}
-              onBlur={(e) => handleLinkHover(e, false)}
-              aria-label="Send email to GriotBot team"
-            >
-              Email us
-            </a>{' '}
-            or follow{' '}
-            <a 
-              href="https://www.instagram.com/griotbot" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={LINK_STYLES}
-              onMouseEnter={(e) => handleLinkHover(e, true)}
-              onMouseLeave={(e) => handleLinkHover(e, false)}
-              onFocus={(e) => handleLinkHover(e, true)}
-              onBlur={(e) => handleLinkHover(e, false)}
-              aria-label="Follow GriotBot on Instagram (opens in new tab)"
-            >
-              @griotbot
-            </a>{' '}
-            on Instagram. We welcome feedback, partnerships, and community 
-            involvement from educators, cultural institutions, and individuals 
-            passionate about preserving and sharing our rich heritage.
+            GriotBot is more than a product. It's a **movement**—an evolving archive, a tool for empowerment, and a digital ancestor whispering wisdom into the future. We invite you to test it, teach it, and shape it.
           </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+            <IconLink href="https://www.griotbot.com" Icon={User} label="Chat with GriotBot" />
+            <IconLink href="mailto:chat@griotbot.com" Icon={Mail} label="Partner or Support" />
+            <IconLink href="https://www.instagram.com/griotbot" Icon={Instagram} label="@griotbot on Instagram" />
+            <IconLink href="https://twitter.com/griotbot" Icon={Twitter} label="@griotbot on X" />
+          </div>
         </section>
-
-        <footer style={{
-          marginTop: '3rem',
-          padding: '2rem 0',
-          borderTop: '1px solid rgba(196, 154, 108, 0.2)',
-          textAlign: 'center'
-        }}>
-          <p style={{
-            fontStyle: 'italic',
-            color: 'var(--wisdom-color)',
-            fontSize: '0.95rem',
-            margin: 0
-          }}>
-            "The griot is the memory of the people. Without memory, there is no history."
-            <br />
-            <cite style={{ fontSize: '0.85rem', opacity: 0.8 }}>
-              — Traditional African Wisdom
-            </cite>
-          </p>
-        </footer>
       </article>
     </StandardLayout>
   );
