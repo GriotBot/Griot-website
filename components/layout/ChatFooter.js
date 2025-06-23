@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Send } from 'react-feather';
 // FIXED: Corrected the import path to the stylesheet.
-import styles from '../../styles/ChatFooter.module.css';
+import styles from '../../styles/components/ChatFooter.module.css';
 
 // FIXED: Added 'isLoading' to the props to handle the button's loading state.
 export default function ChatFooter({ onSendMessage, disabled = false, isLoading = false }) {
