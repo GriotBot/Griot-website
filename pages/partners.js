@@ -12,7 +12,7 @@ const mockPartners = [
     type: "Founding Partner",
     website: "https://www.starterbloxfoundation.org",
     description: "A non-profit organization dedicated to providing educational resources and opportunities to underserved communities.",
-    logoStyle: { maxHeight: '99px' } // 60% size reduction
+    logoStyle: { maxHeight: '149px' } // 60% size reduction
   },
 ];
 
@@ -154,7 +154,7 @@ export default function PartnersPage() {
             border-bottom: 1px solid var(--input-border);
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start; /* UPDATED: Aligned logo to the left */
             height: 120px;
         }
 
