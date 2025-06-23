@@ -12,25 +12,33 @@ const mockPartners = [
     type: "Founding Partner",
     website: "https://www.starterbloxfoundation.org",
     description: "A non-profit organization dedicated to providing educational resources and opportunities to underserved communities.",
-    logoStyle: { maxHeight: '48px' } // 60% size reduction
+    logoStyle: { maxHeight: '99px' } // 60% size reduction
   },
 ];
 
 // Helper component for each partner card
 const PartnerCard = ({ partner }) => {
   return (
-    <a href={partner.website} target="_blank" rel="noopener noreferrer" className="partner-card">
-      <div className="card-logo-container">
-        {/* The logo now uses an inline style to adjust its size */}
-        <img src={partner.logoUrl} alt={`${partner.name} logo`} className="card-logo" style={partner.logoStyle} />
-      </div>
+    // FIXED: The card itself is no longer a link.
+    <article className="partner-card">
+      {/* The logo is now a link */}
+      <a href={partner.website} target="_blank" rel="noopener noreferrer" aria-label={`Visit ${partner.name}'s website`}>
+        <div className="card-logo-container">
+          <img src={partner.logoUrl} alt={`${partner.name} logo`} className="card-logo" style={partner.logoStyle} />
+        </div>
+      </a>
       <div className="card-content">
-        <h3 className="card-name">{partner.name}</h3>
+        <h3 className="card-name">
+           {/* The name is also a link */}
+           <a href={partner.website} target="_blank" rel="noopener noreferrer" className="card-name-link">
+            {partner.name}
+           </a>
+        </h3>
         <p className="card-type">{partner.type}</p>
-        {/* ADDED: Renders the new description if it exists */}
+        {/* The description is now plain text and not part of any link */}
         {partner.description && <p className="card-description">{partner.description}</p>}
       </div>
-    </a>
+    </article>
   );
 };
 
@@ -131,8 +139,6 @@ export default function PartnersPage() {
           border: 1px solid var(--input-border, #e0e0e0);
           border-radius: 16px;
           box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-          text-decoration: none;
-          color: inherit;
           display: flex;
           flex-direction: column;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -168,6 +174,15 @@ export default function PartnersPage() {
             font-size: 1.1rem;
             font-weight: 600;
             margin: 0 0 0.5rem 0;
+        }
+
+        .card-name-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .card-name-link:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
         }
         
         .card-type {
