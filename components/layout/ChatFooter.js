@@ -73,6 +73,11 @@ export default function ChatFooter({ onSendMessage, disabled = false, isLoading 
           </button>
         </form>
 
+        {/* ADDED: Disclaimer text below the input form */}
+        <p className={styles.disclaimer}>
+          GriotBot may make mistakes. Double-check important facts.
+        </p>
+
         <div className={styles.footerActions}>
             <div className={styles.storytellerToggle}>
                 <label>
