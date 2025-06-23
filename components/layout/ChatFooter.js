@@ -2,9 +2,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Send } from 'react-feather';
-import styles from '../../styles/components/ChatFooter.module.css';
+// FIXED: Corrected the import path to the stylesheet.
+import styles from '../../styles/ChatFooter.module.css';
 
-export default function ChatFooter({ onSendMessage, disabled = false }) {
+// FIXED: Added 'isLoading' to the props to handle the button's loading state.
+export default function ChatFooter({ onSendMessage, disabled = false, isLoading = false }) {
   const [message, setMessage] = useState('');
   const [storytellerMode, setStorytellerMode] = useState(false);
   const textareaRef = useRef(null);
