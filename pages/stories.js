@@ -4,32 +4,26 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { Book, Edit, MessageCircle } from 'react-feather';
 
-// Placeholder data for stories. This would eventually come from a database.
-const mockStories = [
+// UPDATED: Replaced specific testimonials with clearly labeled samples.
+const sampleStories = [
   {
     id: 1,
-    title: "Rediscovering My Roots Through a Single Proverb",
-    author: "A. Thompson, Brooklyn, NY",
-    snippet: "I asked GriotBot about a phrase my grandmother used to say. It returned a Yoruba proverb that opened up a whole new part of my family's history I never knew. It felt like finding a missing piece of myself...",
-    tags: ["Family", "Identity", "Wisdom"],
-    date: "June 20, 2025",
+    title: "Sample Story: A Personal Discovery",
+    author: "User from the Community",
+    isSample: true,
+    snippet: "This is a sample of how a user story about personal discovery could look. Here, a user might share how GriotBot helped them connect with a piece of their family's history or understand a cultural tradition more deeply.",
+    tags: ["Sample", "Identity", "Wisdom"],
+    date: "June 22, 2025",
   },
   {
     id: 2,
-    title: "How I Used GriotBot to Teach Black History",
-    author: "Ms. Davis, Educator in Atlanta, GA",
-    snippet: "My students were disengaged with the textbook, so I turned to GriotBot. Asking it to tell the story of the Harlem Renaissance in the voice of a poet completely changed the energy in my classroom. The students were captivated.",
-    tags: ["Education", "History", "Community"],
-    date: "June 18, 2025",
+    title: "Sample Story: An Educational Insight",
+    author: "Educator Showcase",
+    isSample: true,
+    snippet: "This space can feature how an educator used GriotBot in their classroom. For example, a teacher might describe how a story about the Harlem Renaissance engaged their students in a new and exciting way.",
+    tags: ["Sample", "Education", "History"],
+    date: "June 22, 2025",
   },
-  {
-    id: 3,
-    title: "A Story of Resilience That Gave Me Hope",
-    author: "Anonymous",
-    snippet: "I was feeling lost and unheard. I asked GriotBot for a story about resilience, and it told me a tale about the Maroons of Jamaica. Their courage and spirit gave me the strength I needed to face my own challenges.",
-    tags: ["Inspiration", "Resilience", "Hope"],
-    date: "June 15, 2025",
-  }
 ];
 
 // Helper component for each story card
@@ -49,7 +43,7 @@ const StoryCard = ({ story }) => {
       </div>
       <div className="card-footer">
         <div className="card-tags">
-          {story.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
+          {story.tags.map(tag => <span key={tag} className={`tag ${story.isSample ? 'sample-tag' : ''}`}>{tag}</span>)}
         </div>
         <button className="read-more-btn" onClick={() => alert('Full story and comment features coming soon!')}>
           Read More & Comment →
@@ -82,7 +76,7 @@ export default function StoriesPage() {
         </header>
 
         <section className="stories-list">
-          {mockStories.map(story => (
+          {sampleStories.map(story => (
             <StoryCard key={story.id} story={story} />
           ))}
         </section>
@@ -216,6 +210,13 @@ export default function StoriesPage() {
         }
         [data-theme="dark"] .tag {
             background-color: rgba(255,255,255,0.15);
+        }
+        
+        .sample-tag {
+            background-color: var(--accent-color) !important;
+            color: white !important;
+            opacity: 1;
+            font-weight: 500;
         }
 
         .read-more-btn {
