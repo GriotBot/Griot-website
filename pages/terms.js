@@ -1,611 +1,159 @@
-// File: pages/terms.js
-import { useState } from 'react';
-import { FileText, Shield, Users, Book, AlertCircle, Mail, ArrowLeft } from 'react-feather';
+// File: pages/terms.js (Final Version)
 import StandardLayout from '../components/layout/StandardLayout';
 import Link from 'next/link';
+import Head from 'next/head';
 
-export default function Terms() {
-  // Style constants to reduce duplication
-  const CARD_STYLES = {
-    backgroundColor: 'var(--card-bg)',
-    padding: '2rem',
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px var(--shadow-color)',
-    border: '1px solid var(--input-border)',
-    textAlign: 'left',
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    marginBottom: '2rem'
-  };
-
-  // Improved hover handlers
-  const handleCtaHover = (e, isHovering) => {
-    if (isHovering) {
-      e.currentTarget.style.transform = 'translateY(-2px)';
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-    } else {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = 'none';
-    }
-  };
+export default function TermsPage() {
+  
+  const Section = ({ title, children }) => (
+    <section className="legal-section">
+      <h2 className="section-heading">{title}</h2>
+      <div className="section-content">{children}</div>
+    </section>
+  );
 
   return (
-    <StandardLayout 
+    <StandardLayout
       pageType="standard"
-      title="Terms and Conditions - GriotBot"
-      description="Terms and Conditions for using GriotBot - your AI-powered digital griot"
+      title="Terms of Service - GriotBot"
+      description="Read the Terms of Service for using the GriotBot platform."
       currentPath="/terms"
     >
-      <div style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-        lineHeight: 1.7,
-        padding: '0 1rem'
-      }}>
-        {/* Back to Chat Link */}
-        <Link href="/">
-          <a style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            color: 'var(--accent-color)',
-            textDecoration: 'none',
-            marginBottom: '2rem',
-            padding: '0.5rem 1rem',
-            border: '1px solid var(--accent-color)',
-            borderRadius: '6px',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = 'var(--accent-color)';
-            e.target.style.color = 'white';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent';
-            e.target.style.color = 'var(--accent-color)';
-          }}>
-            <ArrowLeft size={16} />
-            Back to Chat
-          </a>
-        </Link>
-
-        {/* Main Heading */}
-        <h1 style={{
-          color: 'var(--text-color)',
-          fontSize: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          textAlign: 'center'
-        }}>
-          Terms and Conditions
-        </h1>
-
-        {/* Effective Date */}
-        <div style={{
-          backgroundColor: 'var(--card-bg)',
-          padding: '1rem',
-          borderRadius: '8px',
-          borderLeft: '4px solid var(--accent-color)',
-          marginBottom: '2rem',
-          fontStyle: 'italic'
-        }}>
-          <strong>Effective Date:</strong> January 1, 2025<br />
-          <strong>Last Updated:</strong> January 1, 2025
-        </div>
-
-        {/* Introduction */}
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          Welcome to GriotBot! These Terms and Conditions ("Terms") govern your use of the GriotBot platform, 
-          including our website, AI chat interface, and related services (collectively, the "Service"). 
-          By accessing or using GriotBot, you agree to be bound by these Terms.
+      <Head>
+        {/* Additional specific head elements if needed */}
+      </Head>
+      <article className="legal-container">
+        <header className="legal-header">
+          <h1>Terms of Service</h1>
+          <p>Last Updated: June 22, 2025</p>
+        </header>
+        
+        <p className="intro">
+          Welcome to GriotBot. These Terms of Service ("Terms") govern your use of the GriotBot website and its related services (collectively, the "Service"), provided by GriotBot Corporation ("we," "us," or "our"). By accessing or using our Service, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use the Service. Your use of the Service is also subject to our{' '}
+          <Link href="/privacy" legacyBehavior>
+            <a className="inline-link">Privacy Policy</a>
+          </Link>
+          , which explains how we collect, use, and protect your personal information.
         </p>
 
-        {/* Section 1: About GriotBot */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          1. About GriotBot
-        </h2>
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          GriotBot is an AI-powered digital griot inspired by the West African tradition of storytelling, 
-          history-keeping, and guidance. Our Service provides culturally rich, emotionally intelligent 
-          responses focused on African diaspora culture, history, and wisdom.
-        </p>
+        <Section title="1. Use of the Service">
+            <ul className="styled-list">
+                <li><strong>Eligibility:</strong> You must be at least 13 years old to use the Service.</li>
+                <li><strong>Permitted Use:</strong> You agree to use the Service only for lawful purposes and in a way that does not infringe the rights of, restrict, or inhibit anyone else's use and enjoyment of the Service.</li>
+                <li><strong>Prohibited Use:</strong> You may not use the Service to generate content that is hateful, harassing, violent, or that violates any applicable laws or the rights of any third party. You further agree not to use the Service to:
+                    <ul>
+                        <li>Generate or disseminate false or misleading information.</li>
+                        <li>Promote hate speech, racism, or cultural appropriation.</li>
+                        <li>Attempt to bypass safety features or manipulate responses.</li>
+                        <li>Engage in automated or bot-driven scraping or abuse of the Service.</li>
+                    </ul>
+                </li>
+            </ul>
+        </Section>
+        
+        <Section title="2. Service Content and AI-Generated Content">
+            <ul className="styled-list">
+                <li><strong>Nature of Content:</strong> The content provided by GriotBot is generated by an artificial intelligence model. While we strive for cultural accuracy and authenticity, the responses are generated by a machine and may contain inaccuracies or omissions.</li>
+                <li><strong>No Professional Advice:</strong> The content provided by GriotBot is for informational and entertainment purposes only. It does not constitute and should not be relied upon as legal, financial, medical, or other professional advice. Always consult with a qualified professional for your specific situation.</li>
+                <li><strong>Ownership of Generated Content:</strong> You may use the content generated for you by the Service (the "Output") for personal, educational, or non-commercial purposes. For any commercial use (e.g., publishing, resale), please contact us at <strong>chat@griotbot.com</strong>.</li>
+            </ul>
+        </Section>
 
-        {/* Section 2: Acceptance of Terms */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          2. Acceptance of Terms
-        </h2>
-        <p style={{ marginBottom: '1rem' }}>By using GriotBot, you confirm that:</p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>You are at least 13 years old</li>
-          <li style={{ marginBottom: '0.5rem' }}>You have the legal capacity to enter into these Terms</li>
-          <li style={{ marginBottom: '0.5rem' }}>You will use the Service in compliance with all applicable laws</li>
-          <li style={{ marginBottom: '0.5rem' }}>You agree to our Privacy Policy and cultural guidelines</li>
-        </ul>
+        <Section title="3. User Conduct and Responsibilities">
+             <ul className="styled-list">
+                <li><strong>Your Inputs:</strong> You are responsible for your use of the Service and for any prompts, messages, or other content you provide ("Inputs").</li>
+                <li><strong>License to Use Inputs:</strong> By submitting Inputs to the Service, you grant GriotBot Corporation a non-exclusive, royalty-free, worldwide license to use that content to provide and improve the Service.</li>
+                <li><strong>Sensitive Information:</strong> Do not submit any content you do not have the right to share or that contains personally identifiable or sensitive information about yourself or others.</li>
+            </ul>
+        </Section>
 
-        {/* Section 3: Description of Service */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          3. Description of Service
-        </h2>
+        <Section title="4. Disclaimers and Limitation of Liability">
+            <p>THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. WE MAKE NO WARRANTIES, EXPRESS OR IMPLIED, REGARDING THE ACCURACY, RELIABILITY, OR COMPLETENESS OF THE SERVICE OR ITS CONTENT.</p>
+            <p>TO THE FULLEST EXTENT PERMITTED BY LAW, GRIOTBOT CORPORATION SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, RESULTING FROM YOUR ACCESS TO OR USE OF THE SERVICE.</p>
+        </Section>
 
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          3.1 Core Features
-        </h3>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>
-            <strong style={{ color: 'var(--accent-color)', fontWeight: 600 }}>AI Chat Interface:</strong> Interactive conversations with our cultural AI assistant
-          </li>
-          <li style={{ marginBottom: '0.5rem' }}>
-            <strong style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Storyteller Mode:</strong> Narrative responses inspired by griot traditions
-          </li>
-          <li style={{ marginBottom: '0.5rem' }}>
-            <strong style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Cultural Content:</strong> Information about African diaspora history, culture, and wisdom
-          </li>
-          <li style={{ marginBottom: '0.5rem' }}>
-            <strong style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Educational Resources:</strong> Learning materials and cultural insights
-          </li>
-        </ul>
+        <Section title="5. Changes to Terms">
+            <p>We reserve the right to modify these Terms at any time. We will provide notice of any significant changes. Your continued use of the Service after such changes constitutes your acceptance of the new Terms.</p>
+        </Section>
 
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          3.2 Service Limitations
-        </h3>
-        <p style={{ marginBottom: '1rem' }}>
-          GriotBot is designed for educational and cultural purposes. While we strive for accuracy, 
-          our responses should not be considered:
-        </p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Professional advice (legal, medical, financial, or therapeutic)</li>
-          <li style={{ marginBottom: '0.5rem' }}>Definitive historical or academic authority</li>
-          <li style={{ marginBottom: '0.5rem' }}>Substitute for professional consultation or formal education</li>
-        </ul>
+        <Section title="6. Governing Law">
+            <p>These Terms shall be governed by and construed in accordance with the laws of the <strong>State of Maryland, United States</strong>, without regard to its conflict of law principles.</p>
+        </Section>
 
-        {/* Section 4: User Responsibilities */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          4. User Responsibilities
-        </h2>
+        <Section title="7. Termination">
+            <p>We reserve the right to suspend or terminate your access to the Service at our sole discretion, without notice, for behavior that violates these Terms or is otherwise harmful to the community or platform.</p>
+        </Section>
 
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          4.1 Appropriate Use
-        </h3>
-        <p style={{ marginBottom: '1rem' }}>You agree to use GriotBot responsibly and respectfully. You will NOT:</p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Use the Service for harmful, illegal, or discriminatory purposes</li>
-          <li style={{ marginBottom: '0.5rem' }}>Attempt to harm, harass, or discriminate against any individual or group</li>
-          <li style={{ marginBottom: '0.5rem' }}>Share false, misleading, or culturally insensitive content</li>
-          <li style={{ marginBottom: '0.5rem' }}>Attempt to reverse engineer, hack, or compromise our systems</li>
-          <li style={{ marginBottom: '0.5rem' }}>Use the Service to generate content that violates intellectual property rights</li>
-          <li style={{ marginBottom: '0.5rem' }}>Impersonate others or misrepresent your identity</li>
-        </ul>
+        <Section title="8. Contact Us">
+            <p>If you have any questions about these Terms, please contact us at <a href="mailto:chat@griotbot.com" className="inline-link">chat@griotbot.com</a>.</p>
+        </Section>
 
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          4.2 Cultural Respect
-        </h3>
-        <p style={{ marginBottom: '1rem' }}>Given our focus on African diaspora culture, we expect all users to:</p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Engage respectfully with cultural content and traditions</li>
-          <li style={{ marginBottom: '0.5rem' }}>Avoid perpetuating stereotypes or cultural appropriation</li>
-          <li style={{ marginBottom: '0.5rem' }}>Report any culturally insensitive responses or content</li>
-          <li style={{ marginBottom: '0.5rem' }}>Contribute to a welcoming environment for all users</li>
-        </ul>
+      </article>
 
-        {/* Section 5: Privacy and Data Protection */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          5. Privacy and Data Protection
-        </h2>
-        <p style={{ marginBottom: '1rem' }}>Your privacy is fundamental to our mission. We operate with a privacy-first approach:</p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>We do not store your conversation content</li>
-          <li style={{ marginBottom: '0.5rem' }}>We use minimal analytics focused on improving cultural accuracy</li>
-          <li style={{ marginBottom: '0.5rem' }}>We never share personal information with third parties for marketing</li>
-          <li style={{ marginBottom: '0.5rem' }}>We comply with applicable data protection regulations</li>
-        </ul>
-        <p style={{ marginBottom: '1rem' }}>
-          For detailed information, please review our{' '}
-          <Link href="/privacy">
-            <a style={{ color: 'var(--accent-color)', textDecoration: 'none' }}>Privacy Policy</a>
-          </Link>.
-        </p>
-
-        {/* Section 6: Intellectual Property */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          6. Intellectual Property
-        </h2>
-
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          6.1 GriotBot Content
-        </h3>
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          The GriotBot platform, including our AI model, interface, and original content, 
-          is protected by intellectual property laws. We respect cultural heritage and 
-          traditional knowledge while creating original educational content.
-        </p>
-
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          6.2 User Content
-        </h3>
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          While we don't store your conversations, any feedback or content you provide 
-          may be used to improve our Service. You retain ownership of your original ideas 
-          and expressions.
-        </p>
-
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          6.3 Cultural Heritage
-        </h3>
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          We acknowledge that many stories, proverbs, and cultural knowledge shared through 
-          GriotBot belong to communities and traditions. We strive to honor these sources 
-          and encourage users to respect cultural origins.
-        </p>
-
-        {/* Section 7: Disclaimers and Limitations */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          7. Disclaimers and Limitations
-        </h2>
-
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          7.1 AI Limitations
-        </h3>
-        <p style={{ marginBottom: '1rem' }}>GriotBot uses advanced AI technology, but like all AI systems:</p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Responses may occasionally be inaccurate or incomplete</li>
-          <li style={{ marginBottom: '0.5rem' }}>Cultural interpretations may vary across different communities</li>
-          <li style={{ marginBottom: '0.5rem' }}>The AI cannot replace human cultural experts or educators</li>
-          <li style={{ marginBottom: '0.5rem' }}>We continuously work to improve accuracy and cultural authenticity</li>
-        </ul>
-
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          7.2 Service Availability
-        </h3>
-        <p style={{ marginBottom: '1rem' }}>We strive to provide reliable service but cannot guarantee:</p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Uninterrupted access to the platform</li>
-          <li style={{ marginBottom: '0.5rem' }}>Error-free operation at all times</li>
-          <li style={{ marginBottom: '0.5rem' }}>Compatibility with all devices or browsers</li>
-          <li style={{ marginBottom: '0.5rem' }}>Permanent availability of all features</li>
-        </ul>
-
-        {/* Section 8: Institutional and Educational Use */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          8. Institutional and Educational Use
-        </h2>
-
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          8.1 Educational Partnerships
-        </h3>
-        <p style={{ marginBottom: '1rem' }}>
-          We welcome partnerships with educational institutions, museums, and cultural organizations. 
-          Special terms may apply for institutional use, including:
-        </p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Volume licensing for schools and universities</li>
-          <li style={{ marginBottom: '0.5rem' }}>Custom integration for educational platforms</li>
-          <li style={{ marginBottom: '0.5rem' }}>Enhanced privacy protections for student data</li>
-          <li style={{ marginBottom: '0.5rem' }}>Specialized cultural content for specific curricula</li>
-        </ul>
-
-        <h3 style={{
-          color: 'var(--wisdom-color)',
-          fontSize: '1.2rem',
-          marginTop: '1.5rem',
-          marginBottom: '0.75rem',
-          fontFamily: 'var(--heading-font)'
-        }}>
-          8.2 COPPA Compliance
-        </h3>
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          For users under 13, we require parental consent and additional privacy protections 
-          in compliance with the Children's Online Privacy Protection Act (COPPA).
-        </p>
-
-        {/* Section 9: Modifications to Service and Terms */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          9. Modifications to Service and Terms
-        </h2>
-        <p style={{ marginBottom: '1rem' }}>We reserve the right to:</p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Update these Terms with 30 days notice for material changes</li>
-          <li style={{ marginBottom: '0.5rem' }}>Modify or discontinue Service features as needed</li>
-          <li style={{ marginBottom: '0.5rem' }}>Improve our AI model and cultural accuracy measures</li>
-          <li style={{ marginBottom: '0.5rem' }}>Add new features or capabilities</li>
-        </ul>
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          Continued use of GriotBot after changes constitutes acceptance of updated Terms.
-        </p>
-
-        {/* Section 10: Termination */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          10. Termination
-        </h2>
-        <p style={{ marginBottom: '1rem' }}>Either party may terminate this agreement:</p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>
-            <strong style={{ color: 'var(--accent-color)', fontWeight: 600 }}>You</strong> may stop using GriotBot at any time
-          </li>
-          <li style={{ marginBottom: '0.5rem' }}>
-            <strong style={{ color: 'var(--accent-color)', fontWeight: 600 }}>We</strong> may suspend access for Terms violations
-          </li>
-          <li style={{ marginBottom: '0.5rem' }}>
-            <strong style={{ color: 'var(--accent-color)', fontWeight: 600 }}>We</strong> may discontinue the Service with reasonable notice
-          </li>
-        </ul>
-
-        {/* Section 11: Limitation of Liability */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          11. Limitation of Liability
-        </h2>
-        <p style={{ marginBottom: '1rem' }}>
-          To the maximum extent permitted by law, GriotBot and its creators are not liable for:
-        </p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Indirect, incidental, or consequential damages</li>
-          <li style={{ marginBottom: '0.5rem' }}>Decisions made based on AI-generated content</li>
-          <li style={{ marginBottom: '0.5rem' }}>Cultural misunderstandings or misinterpretations</li>
-          <li style={{ marginBottom: '0.5rem' }}>Technical issues or service interruptions</li>
-        </ul>
-
-        {/* Section 12: Governing Law */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          12. Governing Law
-        </h2>
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          These Terms are governed by the laws of the jurisdiction where GriotBot is operated, 
-          without regard to conflict of law principles. Any disputes will be resolved through 
-          binding arbitration or in the appropriate courts.
-        </p>
-
-        {/* Section 13: Community Guidelines */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          13. Community Guidelines
-        </h2>
-        <p style={{ marginBottom: '1rem' }}>
-          GriotBot is built to serve and honor the African diaspora community. We expect all 
-          users to contribute to a respectful, educational environment that:
-        </p>
-        <ul style={{ margin: '1rem 0', paddingLeft: '2rem' }}>
-          <li style={{ marginBottom: '0.5rem' }}>Celebrates cultural diversity within the diaspora</li>
-          <li style={{ marginBottom: '0.5rem' }}>Promotes learning and understanding</li>
-          <li style={{ marginBottom: '0.5rem' }}>Respects different perspectives and experiences</li>
-          <li style={{ marginBottom: '0.5rem' }}>Supports cultural preservation and education</li>
-        </ul>
-
-        {/* Section 14: Feedback and Improvements */}
-        <h2 style={{
-          color: 'var(--accent-color)',
-          fontSize: '1.5rem',
-          marginTop: '2.5rem',
-          marginBottom: '1rem',
-          fontFamily: 'var(--heading-font)',
-          borderBottom: '2px solid var(--accent-color)',
-          paddingBottom: '0.5rem'
-        }}>
-          14. Feedback and Improvements
-        </h2>
-        <p style={{ marginBottom: '1rem', textAlign: 'justify' }}>
-          We actively seek community feedback to improve cultural accuracy and user experience. 
-          Your input helps us better serve the diaspora community and preserve cultural authenticity.
-        </p>
-
-        {/* Contact Information */}
-        <div style={{
-          backgroundColor: 'var(--card-bg)',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          marginTop: '2rem',
-          border: '1px solid var(--input-border)'
-        }}>
-          <h3 style={{
-            marginTop: 0,
-            color: 'var(--accent-color)',
-            fontFamily: 'var(--heading-font)'
-          }}>
-            Contact Information
-          </h3>
-          <p style={{ marginBottom: '1rem' }}>
-            If you have questions about these Terms and Conditions, please contact us:
-          </p>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={{ marginBottom: '0.5rem' }}>
-              <strong>Email:</strong>{' '}
-              <a href="mailto:legal@griotbot.com" style={{ color: 'var(--accent-color)', textDecoration: 'none' }}>
-                legal@griotbot.com
-              </a>
-            </li>
-            <li style={{ marginBottom: '0.5rem' }}>
-              <strong>General Inquiries:</strong>{' '}
-              <a href="mailto:chat@griotbot.com" style={{ color: 'var(--accent-color)', textDecoration: 'none' }}>
-                chat@griotbot.com
-              </a>
-            </li>
-            <li style={{ marginBottom: '0.5rem' }}>
-              <strong>Instagram:</strong>{' '}
-              <a href="https://www.instagram.com/griotbot" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', textDecoration: 'none' }}>
-                @griotbot
-              </a>
-            </li>
-            <li style={{ marginBottom: '0.5rem' }}>
-              <strong>Twitter:</strong>{' '}
-              <a href="https://twitter.com/griotbot" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', textDecoration: 'none' }}>
-                @griotbot
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Closing Statement */}
-        <p style={{
-          marginTop: '2rem',
-          fontSize: '0.9rem',
-          fontStyle: 'italic',
-          opacity: 0.8,
-          textAlign: 'center'
-        }}>
-          Thank you for being part of the GriotBot community. Together, we preserve and share 
-          the rich cultural heritage of the African diaspora through innovative technology. 🌿
-        </p>
-      </div>
+      <style jsx>{`
+        .legal-container {
+          max-width: 800px;
+          margin: 2rem auto 4rem auto;
+          padding: 0 1rem;
+          line-height: 1.8;
+          font-size: 1rem;
+        }
+        .legal-header {
+          text-align: center;
+          margin-bottom: 3rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--input-border);
+        }
+        .legal-header h1 {
+          font-family: var(--heading-font);
+          font-size: 2.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .legal-header p, .intro {
+          color: var(--text-color);
+          opacity: 0.8;
+        }
+        .intro {
+            margin-bottom: 2rem;
+        }
+        .legal-section {
+          margin-bottom: 2.5rem;
+        }
+        .section-heading {
+          font-family: var(--heading-font);
+          font-size: 1.5rem;
+          color: var(--accent-color);
+          margin-bottom: 1rem;
+        }
+        .section-content {
+          padding-left: 1rem;
+          border-left: 3px solid var(--input-border);
+        }
+        .styled-list {
+          padding-left: 20px;
+          list-style: none;
+        }
+        .styled-list li {
+          position: relative;
+          padding-left: 25px;
+          margin-bottom: 1rem;
+        }
+        .styled-list li::before {
+          content: '▸';
+          position: absolute;
+          left: 0;
+          color: var(--accent-color);
+          font-weight: bold;
+        }
+        .inline-link {
+            color: var(--accent-color);
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .inline-link:hover {
+            text-decoration: underline;
+        }
+      `}</style>
     </StandardLayout>
   );
 }
