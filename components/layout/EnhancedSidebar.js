@@ -1,4 +1,4 @@
-// File: components/layout/EnhancedSidebar.js - POLISHED FINAL VERSION
+// File: components/layout/EnhancedSidebar.js - Reverted and Links Updated
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { 
@@ -65,7 +65,6 @@ export default function EnhancedSidebar({
           gap: '1rem',
           fontSize: '0.94rem', // ← INCREASED: from 0.85rem to 0.94rem
           boxSizing: 'border-box'
-          // ← REMOVED: Red debug border
         }}
         aria-hidden={!isVisible}
         aria-label="Main navigation"
@@ -216,7 +215,8 @@ export default function EnhancedSidebar({
             Explore
           </h3>
           
-          <Link href="/comingsoon">
+          {/* UPDATED: Link for History */}
+          <Link href="/history">
             <a onClick={onToggle} style={{
               color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
               borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
@@ -224,11 +224,11 @@ export default function EnhancedSidebar({
             }}
             onMouseOver={(e) => {
               e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+              e.target.style.textDecoration = 'none';
             }}
             onMouseOut={(e) => {
               e.target.style.backgroundColor = 'transparent';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+              e.target.style.textDecoration = 'none';
             }}
             >
               <Users size={18} />
@@ -236,7 +236,8 @@ export default function EnhancedSidebar({
             </a>
           </Link>
           
-          <Link href="/comingsoon">
+          {/* UPDATED: Link for Culture */}
+          <Link href="/culture">
             <a onClick={onToggle} style={{
               color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
               borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
@@ -244,11 +245,11 @@ export default function EnhancedSidebar({
             }}
             onMouseOver={(e) => {
               e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+              e.target.style.textDecoration = 'none';
             }}
             onMouseOut={(e) => {
               e.target.style.backgroundColor = 'transparent';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+              e.target.style.textDecoration = 'none';
             }}
             >
               <BookOpen size={18} />
@@ -256,7 +257,8 @@ export default function EnhancedSidebar({
             </a>
           </Link>
           
-          <Link href="/comingsoon">
+          {/* UPDATED: Link for Community */}
+          <Link href="/community">
             <a onClick={onToggle} style={{
               color: '#f8f5f0', textDecoration: 'none', padding: '0.4rem 0.6rem',
               borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.4rem',
@@ -264,11 +266,11 @@ export default function EnhancedSidebar({
             }}
             onMouseOver={(e) => {
               e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+              e.target.style.textDecoration = 'none';
             }}
             onMouseOut={(e) => {
               e.target.style.backgroundColor = 'transparent';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+              e.target.style.textDecoration = 'none';
             }}
             >
               <MapPin size={18} />
@@ -300,11 +302,11 @@ export default function EnhancedSidebar({
             }}
             onMouseOver={(e) => {
               e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+              e.target.style.textDecoration = 'none';
             }}
             onMouseOut={(e) => {
               e.target.style.backgroundColor = currentPage === '/about' ? 'rgba(255,255,255,0.1)' : 'transparent';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+              e.target.style.textDecoration = 'none';
             }}
             >
               <Info size={18} />
@@ -321,11 +323,11 @@ export default function EnhancedSidebar({
             }}
             onMouseOver={(e) => {
               e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline on hover
+              e.target.style.textDecoration = 'none';
             }}
             onMouseOut={(e) => {
               e.target.style.backgroundColor = currentPage === '/feedback' ? 'rgba(255,255,255,0.1)' : 'transparent';
-              e.target.style.textDecoration = 'none'; // ← ENSURE: No underline
+              e.target.style.textDecoration = 'none';
             }}
             >
               <MessageSquare size={18} />
