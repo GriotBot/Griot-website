@@ -1,5 +1,5 @@
 // File: /api/chat.js
-// GriotBot API handler with GPT-3.5-turbo-instruct + Streaming Support
+// GriotBot API handler with deepseek/deepseek-r1-0528:free + Streaming Support
 // Fixed prompt formatting and added streaming response
 
 import { NextResponse } from 'next/server';
