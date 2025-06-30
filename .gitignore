@@ -5,7 +5,7 @@
 
 # Next.js build output
 /.next/
-/out/
+/out/ 
 /build/
 
 # Static export
