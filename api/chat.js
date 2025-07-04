@@ -3,6 +3,9 @@
 // Fixed prompt formatting and added streaming response
 
 import { NextResponse } from 'next/server';
+import validateEnv from '../lib/validateEnv';
+
+validateEnv();
 
 export const config = {
   runtime: 'edge',
