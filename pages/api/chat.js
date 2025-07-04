@@ -1,4 +1,7 @@
 // File: /pages/api/chat.js - Syntax Error Fixed
+import validateEnv from '../../lib/validateEnv';
+
+validateEnv();
 
 function createSystemPrompt(storytellerMode) {
   const baseRules = `
