@@ -1,4 +1,7 @@
 // File: /pages/api/chat.js - Syntax Error Fixed
+const validateEnv = require('../../lib/validateEnv.js');
+
+validateEnv();
 
 function createSystemPrompt(storytellerMode) {
   const baseRules = `
@@ -38,7 +41,7 @@ function enhanceWithCulturalEmpathy(content) {
 }
 
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Standard CORS and method validation
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
