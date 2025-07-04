@@ -12,7 +12,8 @@ export const config = {
 };
 
 const MODEL = 'deepseek/deepseek-r1-0528:free';
-const COMPLETIONS_ENDPOINT = 'https://openrouter.ai/api/v1/completions';
+// Use the chat completions endpoint as documented by OpenRouter
+const COMPLETIONS_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 export default async function handler(req) {
   try {
