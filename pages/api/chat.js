@@ -36,13 +36,25 @@ export default async function handler(req, res) {
       });
     }
 
-    // Validate API key
+    // Validate API key with detailed debugging
     const apiKey = process.env.OPENROUTER_API_KEY;
+    
+    // Enhanced debugging for API key issues
+    console.log('🔍 Environment Check:', {
+      hasApiKey: !!apiKey,
+      keyLength: apiKey ? apiKey.length : 0,
+      keyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'undefined',
+      nodeEnv: process.env.NODE_ENV,
+      vercelUrl: process.env.VERCEL_URL
+    });
+    
     if (!apiKey || !apiKey.trim()) {
       console.error('❌ Missing OPENROUTER_API_KEY environment variable');
+      console.error('Available env vars:', Object.keys(process.env).filter(key => key.includes('OPEN')));
       return res.status(500).json({ 
         error: 'API key not configured',
-        debug: 'Check environment variables in Vercel dashboard'
+        debug: 'Environment variable OPENROUTER_API_KEY is missing or empty. Check Vercel dashboard settings.',
+        availableEnvVars: Object.keys(process.env).filter(key => key.includes('OPEN'))
       });
     }
 
