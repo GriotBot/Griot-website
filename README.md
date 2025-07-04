@@ -1,4 +1,4 @@
-# Griot Website
+@@ -2,25 +2,27 @@
 
 This repository contains the source for the Griot web application built with Next.js.
 
@@ -25,4 +25,3 @@ Navigate to **Project Settings → Environment Variables** and add `OPENROUTER_A
 Vercel automatically configures `VERCEL_URL` in production.
 
 On startup the API checks that `OPENROUTER_API_KEY` is defined and throws an error if it isn't found, so be sure to set the key through Vercel's Environment Variables page.
-
