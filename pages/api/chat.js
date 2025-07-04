@@ -27,6 +27,8 @@ You are GriotBot, a digital griot and custodian of African diaspora culture. You
 }
 
 function enhanceWithCulturalEmpathy(content) {
+
+function enhanceWithCulturalEmpathy(content) {
   let cleaned = content
     .replace(/^my child,?\s*/i, '')
     .replace(/^dear one,?\s*/i, '')
