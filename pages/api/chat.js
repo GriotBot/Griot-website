@@ -1,5 +1,5 @@
 // File: /pages/api/chat.js - Syntax Error Fixed
-import validateEnv from '../../lib/validateEnv';
+const validateEnv = require('../../lib/validateEnv.js');
 
 validateEnv();
 
@@ -27,8 +27,6 @@ You are GriotBot, a digital griot and custodian of African diaspora culture. You
 }
 
 function enhanceWithCulturalEmpathy(content) {
-
-function enhanceWithCulturalEmpathy(content) {
   let cleaned = content
     .replace(/^my child,?\s*/i, '')
     .replace(/^dear one,?\s*/i, '')
@@ -44,6 +42,7 @@ function enhanceWithCulturalEmpathy(content) {
 
 
 export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Standard CORS and method validation
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -68,6 +67,7 @@ export default async function handler(req, res) {
     }
 
     const systemPrompt = createSystemPrompt(storytellerMode);
+    
     
     const messages = [
       { role: 'system', content: systemPrompt },
